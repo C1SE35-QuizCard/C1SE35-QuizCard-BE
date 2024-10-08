@@ -3,24 +3,27 @@ import jakarta.persistence.*;
 import lombok.*;
 
 
-@Entity
-@Table(name = "user_progress")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "user_progress")
 public class UserProgress {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer progressId;
+    @Column(name = "progress_id")
+    private Long progressId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = false)
     private Flashcard flashcard;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private AppUser user;
+    private AppUser appUser;
 
-    private Boolean progressType; // Đúng/ Sai hoặc loại tiến trình nào đó
+    @Column(name = "progress_type")
+    private Boolean progressType;
 }

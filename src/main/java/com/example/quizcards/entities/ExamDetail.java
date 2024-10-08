@@ -2,22 +2,25 @@ package com.example.quizcards.entities;
 import lombok.*;
 import jakarta.persistence.*;
 
-@Entity
-@Table(name = "exam_details")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "exam_details")
 public class ExamDetail {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer mulId;
+    @Column(name = "ex_id")
+    private Long exId;
 
-    @Column(name = "test_id")
-    private Integer testId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_id", nullable = false)
+    private Test test;
 
-    @Column(name = "flashcard_id")
-    private Long flashcardId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flashcard_id", nullable = false)
+    private Flashcard flashcard;
 
     @Column(name = "your_answer", length = 1850)
     private String yourAnswer;
