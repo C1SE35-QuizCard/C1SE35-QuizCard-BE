@@ -20,12 +20,6 @@ public class DeadlineReminder {
     @Column(name = "deadline_reminders_id")
     private Integer deadlineRemindersId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(name = "set_id", nullable = false)
-    private Integer setId;
-
     @Column(name = "reminder_time", nullable = false)
     private Timestamp reminderTime;
 
