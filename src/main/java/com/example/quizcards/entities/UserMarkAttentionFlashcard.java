@@ -3,11 +3,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 
-@Entity
-@Table(name = "user_mark_attention_flashcards")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "user_mark_attention_flashcards")
 public class UserMarkAttentionFlashcard {
 
     @Id
