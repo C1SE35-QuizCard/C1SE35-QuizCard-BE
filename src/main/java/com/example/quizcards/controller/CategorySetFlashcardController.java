@@ -26,13 +26,13 @@ public class CategorySetFlashcardController {
     public ResponseEntity<Object> findAllCategorySetFlashcard(){
         try {
             if (categorySetFlashcardService.getAll().isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>("No Categories Found", HttpStatus.NO_CONTENT);
             } else {
                 List<ICategorySetFlashcardDTO> categories = categorySetFlashcardService.getAll();
                 return ResponseEntity.ok(categories);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -46,7 +46,7 @@ public class CategorySetFlashcardController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No set flashcards found for category ID " + categoryId);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -59,7 +59,7 @@ public class CategorySetFlashcardController {
             ICategorySetFlashcardDTO category = categorySetFlashcardService.getCategorySetFlashcardById(categoryId);
             return ResponseEntity.ok(category);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -79,7 +79,7 @@ public class CategorySetFlashcardController {
             categorySetFlashcardService.addCategorySetFlashcard(request.getCategory_name());
             return ResponseEntity.status(HttpStatus.CREATED).body("Category Set Flashcard created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the Category set flashcard: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the Category set flashcard");
         }
     }
 
@@ -90,7 +90,7 @@ public class CategorySetFlashcardController {
                 categorySetFlashcardService.deleteCategorySetFlashcard(categoryId);
                 return new ResponseEntity<>("Category Set Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the Category set flashcard: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the Category set flashcard:");
             }
         }else{
             return new ResponseEntity<>("Category Set Flashcard not found", HttpStatus.NOT_FOUND);
@@ -116,7 +116,7 @@ public class CategorySetFlashcardController {
             categorySetFlashcardService.updateCategorySetFlashcard(request);
             return new ResponseEntity<>("Category Set Flashcard updated successfully", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Category set flashcard: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Category set flashcard");
         }
     }
 }
