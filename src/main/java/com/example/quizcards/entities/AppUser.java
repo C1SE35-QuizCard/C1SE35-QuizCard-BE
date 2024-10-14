@@ -1,10 +1,14 @@
 package com.example.quizcards.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +46,7 @@ public class AppUser implements Serializable {
     private Boolean credentialsNonExpired;
 
     @Column(name = "date_create", nullable = false)
+    @CreationTimestamp
     private LocalDateTime dateCreate;
 
     @Column(name = "date_of_birth")
@@ -56,12 +61,14 @@ public class AppUser implements Serializable {
     @Column(name = "full_name", length = 50)
     private String fullName;
 
+    @NotNull
     @Column(name = "user_name", unique = true, length = 50)
     private String username;
 
     @Column(name = "gender")
     private Boolean gender;
 
+    @NotNull
     @Column(name = "hash_password", columnDefinition = "TEXT")
     private String hashPassword;
 
@@ -70,6 +77,12 @@ public class AppUser implements Serializable {
 
     @Column(name = "user_code", unique = true)
     private String userCode;
+
+    @Column(name = "first_name", length = 50)
+    private String firstName;
+
+    @Column(name = "last_name", length = 50)
+    private String lastName;
 
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))
