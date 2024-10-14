@@ -28,13 +28,13 @@ public class FlashcardController {
     public ResponseEntity<Object> findAllFlashcard(){
         try {
             if (flashcardService.getAll().isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>("No flashcards found", HttpStatus.NO_CONTENT);
             } else {
                 List<IFlashcardDTO> flashcards = flashcardService.getAll();
                 return ResponseEntity.ok(flashcards);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -48,7 +48,7 @@ public class FlashcardController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -61,7 +61,7 @@ public class FlashcardController {
             IFlashcardDTO flashcard = flashcardService.findByCardId(cardId);
             return ResponseEntity.ok(flashcard);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
@@ -81,7 +81,7 @@ public class FlashcardController {
             flashcardService.addFlashcard(request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getApproved(), request.getSetId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Flashcard created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the flashcard: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the flashcard");
         }
     }
 
@@ -92,7 +92,7 @@ public class FlashcardController {
                 flashcardService.deleteFlashcard(cardId);
                 return new ResponseEntity<>("Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the flashcard: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the flashcard");
             }
         }else{
             return new ResponseEntity<>("Flashcard not found", HttpStatus.NOT_FOUND);
@@ -118,7 +118,7 @@ public class FlashcardController {
             flashcardService.updateFlashcard(request);
             return new ResponseEntity<>("Flashcard updated successfully", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the flashcard: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the flashcard");
         }
     }
 }
