@@ -119,4 +119,73 @@ public class SetFlashcardController {
         }
     }
 
+    @GetMapping("/search/{title}")
+    public ResponseEntity<Object> searchByTitle(@PathVariable("title") String title){
+        try {
+            if (setFlashcardService.searchByTitle(title).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.searchByTitle(title);
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+        }
+    }
+
+    @GetMapping("/sort")
+    public ResponseEntity<Object> sortByUpdatedDate(){
+        try {
+            if (setFlashcardService.sortByUpdatedDate().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.sortByUpdatedDate();
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+        }
+    }
+
+    @GetMapping("/list/sets/{userId}")
+    public ResponseEntity<Object> getAllSetByUserId(@PathVariable("userId") Long userId){
+        try {
+            if (setFlashcardService.getAllSetByUserId(userId).isEmpty()) {
+                return ResponseEntity.status( HttpStatus.NO_CONTENT).body("The user does not have any flashcard sets");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByUserId(userId);
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+        }
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<Object> getAllSetPublic(){
+        try {
+            if (setFlashcardService.getAllSetPublic().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetPublic();
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+        }
+    }
+
+    @GetMapping("/public/{userId}")
+    public ResponseEntity<Object> getAllSetPublicByUserId(@PathVariable("userId") Long userId){
+        try {
+            if (setFlashcardService.getAllSetPublicByUserId(userId).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any public flashcard sets");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetPublicByUserId(userId);
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+        }
+    }
 }

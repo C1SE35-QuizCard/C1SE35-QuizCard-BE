@@ -24,7 +24,7 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
-            where s.category_id = c.category_id and s.category_id = :category_id and s.user_id = a.user_id
+            where s.category_id = c.category_id and s.category_id = :category_id and s.user_id = a.user_id and s.sharing_mode = true
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(@Param("category_id") int categoryId);
 

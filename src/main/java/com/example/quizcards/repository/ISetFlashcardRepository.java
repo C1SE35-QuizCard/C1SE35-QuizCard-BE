@@ -24,7 +24,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards();
 
@@ -34,6 +34,20 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
             where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id
             """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") int id);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            from set_flashcards s, app_users a, category_set_flashcards c
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.user_id = :user_id
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> findAllSetByUserId(@Param("user_id") Long userId);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            from set_flashcards s, app_users a, category_set_flashcards c
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and s.user_id = :user_id
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> findAllSetPublicByUserId(@Param("user_id") Long userId);
 
     @Modifying
     @Transactional
@@ -72,4 +86,26 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                           @Param ("sharing_mode") Boolean sharingMode,
                           @Param ("user_id") Long userId,
                           @Param ("category_id") int categoryId);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            from set_flashcards s, app_users a, category_set_flashcards c
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.title like %:title% and s.sharing_mode = true
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> searchByTitle(@Param("title") String title);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            from set_flashcards s, app_users a, category_set_flashcards c
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
+            order by s.updated_at DESC
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> sortByUpdatedDate();
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            from set_flashcards s, app_users a, category_set_flashcards c
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> findAllSetPublic();
 }

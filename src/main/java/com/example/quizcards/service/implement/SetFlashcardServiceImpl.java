@@ -34,4 +34,23 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public void updateSetFlashcard(SetFlashcardUpdateRequest request){
         setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(), request.getIsApproved(), request.getIsAnonymous(), request.getSharingMode(), request.getUserId(), request.getCategoryId());
     }
+
+    public List<ISetFlashcardDTO> searchByTitle(String title){
+        return setFlashcardRepository.searchByTitle(title);
+    }
+
+    public List<ISetFlashcardDTO> sortByUpdatedDate(){
+        return setFlashcardRepository.sortByUpdatedDate();
+    }
+
+    public List<ISetFlashcardDTO> getAllSetByUserId(Long userId){
+        return setFlashcardRepository.findAllSetByUserId(userId);
+    }
+    public List<ISetFlashcardDTO> getAllSetPublic(){
+        return setFlashcardRepository.findAllSetPublic();
+    }
+
+    public List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId){
+        return setFlashcardRepository.findAllSetPublicByUserId(userId);
+    }
 }
