@@ -1,10 +1,16 @@
 package com.example.quizcards.entities;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "user_notification")
-@Data
 public class UserNotification {
 
     @Id

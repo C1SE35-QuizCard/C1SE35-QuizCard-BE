@@ -1,5 +1,4 @@
 package com.example.quizcards.config;
-
 import com.example.quizcards.security.JwtAuthenticationFilter;
 import com.example.quizcards.service.ICustomUserDetailsService;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
@@ -80,4 +79,5 @@ public class SecurityConfig  {
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
 }
