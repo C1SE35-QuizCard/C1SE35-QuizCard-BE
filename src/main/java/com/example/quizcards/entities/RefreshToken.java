@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -29,6 +31,7 @@ public class RefreshToken implements Serializable {
 
     @Column(name = "token", nullable = false, length = 255)
     private String token;
+
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
