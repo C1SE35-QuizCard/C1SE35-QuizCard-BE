@@ -9,10 +9,8 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(19)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
-	sourceCompatibility = JavaVersion.VERSION_19
-	targetCompatibility = JavaVersion.VERSION_19
 }
 
 configurations {
@@ -33,7 +31,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'org.passay:passay:1.6.0'
-
 	//    http://mvnrepository.com/artifact/org.springframework.security/spring-security-jwt
 	implementation group: 'org.springframework.security', name: 'spring-security-jwt', version: '1.1.1.RELEASE'
 //    http://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
@@ -46,8 +43,6 @@ dependencies {
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.5'
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-websocket', version: '3.3.1'
-
-
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
