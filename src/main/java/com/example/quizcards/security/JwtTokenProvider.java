@@ -29,8 +29,8 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.jwtExpirationInMs}")
-    private Long jwtExpirationInMs;
+    @Value("${jwt.jwtExpirationInSec}")
+    private Long jwtExpirationInSec;
 
     // Tạo Access Token
     public String generateAccessToken(UserPrincipal userPrincipal) {
@@ -40,7 +40,7 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         claims.put("roles", roles);
-        return generateToken(claims, userPrincipal, jwtExpirationInMs);
+        return generateToken(claims, userPrincipal, jwtExpirationInSec);
     }
 
     // Lấy Username từ JWT
@@ -85,7 +85,7 @@ public class JwtTokenProvider {
                 .setClaims(extraClaims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

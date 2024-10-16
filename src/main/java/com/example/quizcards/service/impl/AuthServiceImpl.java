@@ -2,6 +2,7 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.request.LoginRequest;
 import com.example.quizcards.dto.request.SignupRequest;
+import com.example.quizcards.dto.request.UpdatePasswordRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.entities.AppRole;
@@ -16,6 +17,8 @@ import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
 import com.example.quizcards.service.IRefreshTokenService;
+import com.example.quizcards.utils.CodeRandom;
+import com.example.quizcards.utils.CookieSetter;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,11 +62,9 @@ public class AuthServiceImpl implements IAuthService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @Value("${jwt.jwtExpirationInMs}")
-    private Long jwtExpirationInMs;
+    @Autowired
+    private CookieSetter cs;
 
-    @Value("${jwt.refreshTokenExpirationInMs}")
-    private Long refreshTokenExpirationInMs;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
@@ -88,9 +89,6 @@ public class AuthServiceImpl implements IAuthService {
         user.setHashPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setUserCode(createUserCode());
         user.setRole(role);
-        user.setAccountNonExpired(true);
-        user.setAccountNonLocked(true);
-        user.setCredentialsNonExpired(true);
         user.setGender(true);
         user.setEnabled(true);
 
@@ -102,7 +100,7 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User register successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User register successfully!");
     }
 
     @Override
@@ -118,7 +116,7 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User login successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User login successfully!");
     }
 
     @Override
@@ -135,7 +133,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         if (rft != null) {
-            ResponseCookie cookie = ResponseCookie.from("token",  "")
+            ResponseCookie cookie = ResponseCookie.from("token", "")
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
@@ -160,55 +158,30 @@ public class AuthServiceImpl implements IAuthService {
         return ResponseEntity.ok(new ApiResponse(true, "User logout successfully"));
     }
 
+    @Override
+    @Transactional
+    public ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response) {
+        AppUser user = appUserRepository.findById(id).orElseThrow();
+
+        if ((user.getHashPassword() != null && !user.getHashPassword().isEmpty()) &&
+                !passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getHashPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, "Wrong old password!"));
+        }
+
+        user.setHashPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
+
+        appUserRepository.save(user);
+
+        return ResponseEntity.ok().body(new ApiResponse(true,
+                "User password has been updated successfully"));
+    }
+
+
     private String createUserCode() {
         String newUserCode;
         do {
-            newUserCode = generateRandomCode(24);
+            newUserCode = CodeRandom.generateRandomCode(24);
         } while (appUserRepository.existsByUserCode(newUserCode));
         return newUserCode;
-    }
-
-    private String generateRandomCode(int length) {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder code = new StringBuilder();
-        Random random;
-
-        try {
-            random = SecureRandom.getInstance("SHA1PRNG");
-        } catch (NoSuchAlgorithmException e) {
-            random = new Random();
-        }
-
-        for (int i = 0; i < length; i++) {
-            code.append(characters.charAt(random.nextInt(characters.length())));
-        }
-        return code.toString();
-    }
-
-    public ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
-                                                                           String accessToken,
-                                                                           String refreshToken,
-                                                                           String message) {
-        ResponseCookie cookie = ResponseCookie.from("token", accessToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(jwtExpirationInMs)
-                .build(); // Thời gian tồn tại của cookie (0)
-
-        ResponseCookie newRefreshTokenCookie = ResponseCookie.from("rft", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(refreshTokenExpirationInMs)
-                .build();
-
-        response.addHeader("Set-Cookie", cookie.toString());
-        response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
-
-        return new ResponseEntity<>(new JwtAuthenticationResponse(
-                accessToken, refreshToken, message), HttpStatus.OK);
     }
 }

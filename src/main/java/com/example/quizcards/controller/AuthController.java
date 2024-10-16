@@ -2,13 +2,18 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.LoginRequest;
 import com.example.quizcards.dto.request.SignupRequest;
+import com.example.quizcards.dto.request.UpdatePasswordRequest;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,5 +46,15 @@ public class AuthController {
             HttpServletRequest loginRequest,
             HttpServletResponse response) {
         return authService.logoutUser(loginRequest, response);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    @PostMapping("update-password")
+    public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
+                                                HttpServletResponse response) {
+        updatePasswordRequest.validate();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
     }
 }

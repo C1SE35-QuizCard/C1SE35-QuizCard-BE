@@ -37,15 +37,6 @@ public class UserPrincipal implements UserDetails {
     private String password;
 
     @JsonIgnore
-    private boolean isAccountNonExpired;
-
-    @JsonIgnore
-    private boolean isAccountNonLocked;
-
-    @JsonIgnore
-    private boolean isCredentialsNonExpired;
-
-    @JsonIgnore
     private boolean isEnabled;
 
     private Collection<? extends GrantedAuthority> authorities;
@@ -56,8 +47,7 @@ public class UserPrincipal implements UserDetails {
 
         return new UserPrincipal(user.getUserId(),
                 user.getFirstName(), user.getLastName(), user.getUsername(), user.getUserCode(),
-                user.getEmail(), user.getHashPassword(), user.getAccountNonExpired(),
-                user.getAccountNonLocked(), user.getCredentialsNonExpired(), user.getEnabled(),
+                user.getEmail(), user.getHashPassword(), user.getEnabled(),
                 authorities);
     }
 
