@@ -1,6 +1,7 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.FolderCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IFolderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +114,7 @@ public class FolderController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

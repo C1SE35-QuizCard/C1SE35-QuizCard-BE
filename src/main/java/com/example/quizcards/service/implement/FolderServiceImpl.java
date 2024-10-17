@@ -1,6 +1,6 @@
 package com.example.quizcards.service.implement;
 
-import com.example.quizcards.dto.FolderUpdateRequest;
+import com.example.quizcards.dto.request.FolderCreationRequest;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.repository.IFolderRepository;
@@ -32,7 +32,7 @@ public class FolderServiceImpl implements IFolderService {
     public void deleteFolder(int folderId){
         folderRepository.deleteFolderById(folderId);
     }
-    public void updateFolder(FolderUpdateRequest request){
+    public void updateFolder(FolderCreationRequest request){
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
     }
 }

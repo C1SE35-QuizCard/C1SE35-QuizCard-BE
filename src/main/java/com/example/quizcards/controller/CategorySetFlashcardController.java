@@ -1,6 +1,7 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ICategorySetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class CategorySetFlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            categorySetFlashcardService.addCategorySetFlashcard(request.getCategory_name());
+            categorySetFlashcardService.addCategorySetFlashcard(request.getCategoryName());
             return ResponseEntity.status(HttpStatus.CREATED).body("Category Set Flashcard created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the Category set flashcard");
@@ -98,7 +99,7 @@ public class CategorySetFlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody CategorySetFlashcardUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody CategorySetFlashcardCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

@@ -48,7 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final List<String> excludeUrlPatterns = List.of(
             "/api/v1/auth/**",
-            "/ws/**"
+            "/ws/**",
+            "/api/**"
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();

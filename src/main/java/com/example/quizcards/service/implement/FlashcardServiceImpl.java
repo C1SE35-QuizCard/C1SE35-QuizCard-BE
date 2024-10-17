@@ -1,6 +1,6 @@
 package com.example.quizcards.service.implement;
 
-import com.example.quizcards.dto.FlashcardUpdateRequest;
+import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.service.IFlashcardService;
@@ -31,7 +31,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
         flashcardRepository.deleteFlashcardById(cardId);
     }
 
-    public void updateFlashcard(FlashcardUpdateRequest request){
+    public void updateFlashcard(FlashcardCreationRequest request){
         flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getIsApproved(), request.getSetId());
     }
 

@@ -1,6 +1,6 @@
 package com.example.quizcards.service.implement;
 
-import com.example.quizcards.dto.CollectionUpdateRequest;
+import com.example.quizcards.dto.request.CollectionCreationRequest;
 import com.example.quizcards.dto.ICollectionDTO;
 import com.example.quizcards.repository.ICollectionRepository;
 import com.example.quizcards.service.ICollectionService;
@@ -33,7 +33,7 @@ public class CollectionServiceImp implements ICollectionService {
     public void deleteCollection(Long id){
         collectionRepository.deleteCollectionById(id);
     }
-    public void updateCollection(CollectionUpdateRequest request){
+    public void updateCollection(CollectionCreationRequest request){
         collectionRepository.updateCollection(request.getId(), request.getFolderId(), request.getSetId());
     }
 }

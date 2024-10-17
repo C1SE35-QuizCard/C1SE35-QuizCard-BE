@@ -2,7 +2,7 @@ package com.example.quizcards.service;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
-import com.example.quizcards.dto.SetFlashcardUpdateRequest;
+import com.example.quizcards.dto.request.SetFlashcardCreationRequest;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public interface ISetFlashcardService {
     ISetFlashcardDTO findBySetId(int setId);
     void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, int categoryId);
     void deleteSetFlashcard(int setId);
-    void updateSetFlashcard(SetFlashcardUpdateRequest request);
+    void updateSetFlashcard(SetFlashcardCreationRequest request);
     List<ISetFlashcardDTO> searchByTitle(String title);
     List<ISetFlashcardDTO> sortByUpdatedDate();
     List<ISetFlashcardDTO> getAllSetByUserId(Long userId);

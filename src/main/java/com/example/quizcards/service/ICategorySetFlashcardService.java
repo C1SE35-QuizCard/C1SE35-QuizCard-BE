@@ -1,6 +1,7 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 
 import java.util.List;
 
@@ -10,5 +11,5 @@ public interface ICategorySetFlashcardService {
     List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(int categoryId);
     void addCategorySetFlashcard(String categoryName);
     void deleteCategorySetFlashcard(int categoryId);
-    void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request);
+    void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request);
 }
