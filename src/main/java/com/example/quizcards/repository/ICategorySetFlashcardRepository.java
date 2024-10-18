@@ -22,10 +22,10 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             """, nativeQuery = true)
     ICategorySetFlashcardDTO findCategorySetFlashcardById(@Param("category_id") Long categoryId);
 
-    Optional<CategorySetFlashcard> findByCategoryName(String categoryName);
+    List<ICategorySetFlashcardDTO> findByCategoryName(String categoryName);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.category_id = c.category_id and s.category_id = :category_id and s.user_id = a.user_id and s.sharing_mode = true
             """, nativeQuery = true)

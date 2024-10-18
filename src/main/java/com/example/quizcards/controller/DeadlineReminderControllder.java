@@ -29,7 +29,7 @@ public class DeadlineReminderControllder {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching deadline reminders.";
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> getDeadlineReminderById(@PathVariable("id") int id){
+    public ResponseEntity<Object> getDeadlineReminderById(@PathVariable("id") Long id){
         try {
             if (deadlineReminderService.getDeadlineReminderById(id) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Deadline reminders not found");
@@ -42,7 +42,7 @@ public class DeadlineReminderControllder {
     }
 
     @GetMapping("/set/{set_id}")
-    public ResponseEntity<Object> getDeadlineReminderBySetId(@PathVariable("set_id") int setId){
+    public ResponseEntity<Object> getDeadlineReminderBySetId(@PathVariable("set_id") Long setId){
         try {
             if (deadlineReminderService.getDeadlineReminderBySetId(setId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Deadline reminders not found");
@@ -94,7 +94,7 @@ public class DeadlineReminderControllder {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteDeadlineReminder(@PathVariable("id") int deadlineRemindersId) {
+    public ResponseEntity<Object> deleteDeadlineReminder(@PathVariable("id") Long deadlineRemindersId) {
         if(deadlineReminderService.getDeadlineReminderById(deadlineRemindersId) != null) {
             try {
                 deadlineReminderService.deleteDeadlineReminder(deadlineRemindersId);

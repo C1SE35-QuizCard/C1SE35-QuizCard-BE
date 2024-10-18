@@ -7,5 +7,6 @@ public interface IFolderDTO {
     String getTitle();
     LocalDateTime getCreatedAt();
     LocalDateTime getUpdatedAt();
-    String getFullName();
+    String getFirstName();
+    String getLastName();
 }

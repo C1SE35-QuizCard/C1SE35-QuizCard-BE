@@ -15,31 +15,33 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
 
+    @Override
     public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId){
         return categoryRepository.findCategorySetFlashcardById(categoryId);
     }
 
+    @Override
     public List<ICategorySetFlashcardDTO> getAll(){
         return categoryRepository.findAllCategorySetFlashcard();
     }
 
+    @Override
     public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId){
         return categoryRepository.findAllSetFlashcardsByCategoryId(categoryId);
     }
 
+    @Override
     public void addCategorySetFlashcard(String categoryName){
         categoryRepository.createCategorySetFlashcard(categoryName);
     }
 
+    @Override
     public void deleteCategorySetFlashcard(Long categoryId){
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
-<<<<<<< HEAD:src/main/java/com/example/quizcards/service/implement/CategorySetFlashcardServiceImpl.java
+    @Override
     public void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request){
-=======
-    public void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request){
->>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e:src/main/java/com/example/quizcards/service/impl/CategorySetFlashcardServiceImpl.java
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }
