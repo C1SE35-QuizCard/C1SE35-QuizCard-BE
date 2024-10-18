@@ -1,0 +1,74 @@
+package com.example.quizcards.repository;
+
+import com.example.quizcards.dto.ICategorySetFlashcardDTO;
+import com.example.quizcards.dto.IFolderDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.entities.Folder;
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface IFolderRepository extends JpaRepository<Folder, Integer> {
+    @Query(value = """
+            select f.folder_id, f.title, f.created_at, f.updated_at, s.full_name
+            from folders f, app_users s
+            where f.folder_id = :folder_id and f.user_id = s.user_id
+            """, nativeQuery = true)
+    IFolderDTO findFolderById(@Param("folder_id") Long folderId);
+
+    @Query(value = """
+            select f.folder_id, f.title, f.created_at, f.updated_at, s.full_name
+            from folders f, app_users s
+            where f.user_id = :user_id and f.user_id = s.user_id
+            """, nativeQuery = true)
+    IFolderDTO findFolderByIdUserId(@Param("user_id") Long userId);
+
+    @Query(value = """
+            select f.folder_id, f.title, f.created_at, f.updated_at, s.full_name
+            from folders f, app_users s
+            where f.title like %:title% and f.user_id = s.user_id
+            """, nativeQuery = true)
+    List<IFolderDTO> searchFolderByTitle(@Param("title") String title);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, m.category_name
+            from set_flashcards s, app_users a, category_set_flashcards m, folders f, collection l
+            where f.user_id = a.user_id and f.folder_id = l.folder_id and l.set_id = s.set_id and s.category_id = m.category_id and f.folder_id = :folder_id
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> findSetByFolderId(@Param("folder_id") Long folderId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            insert into folders(title, created_at, updated_at, user_id)
+            values (:title, now(), now(), :user_id)
+            """, nativeQuery = true)
+    void createFolder(@Param ("title") String title,
+                      @Param ("user_id") Long userId);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            delete from folders f
+            where f.folder_id = :folder_id
+            """, nativeQuery = true)
+    void deleteFolderById(@Param("folder_id") Long folderId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            update folders f
+            set f.title = :title, f.updated_at = now(), f.user_id = :user_id
+            where f.folder_id = :folder_id
+            """, nativeQuery = true)
+    void updateFolder(@Param ("folder_id") Long folderId,
+                      @Param ("title") String title,
+                      @Param ("user_id") Long userId);
+}

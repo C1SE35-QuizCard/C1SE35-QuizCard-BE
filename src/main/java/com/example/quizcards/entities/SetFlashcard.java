@@ -15,25 +15,28 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "set_flashcards")
+@Table(name = "set_flashcards", indexes = {
+        @Index(name = "idx_category_id", columnList = "category_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+})
 public class SetFlashcard implements Serializable {
-    private static final long serialVersionUID = 1L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "set_id", nullable = false)
-    private Integer setId;
+    @Column(name = "set_id")
+    private Long setId;
 
-    @Column(name = "title", nullable = false, length = 100)
+    @Column(name = "title", length = 100, nullable = false)
     private String title;
 
     @Column(name = "description_set", columnDefinition = "TEXT")
     private String descriptionSet;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
     @Column(name = "is_approved")
@@ -46,10 +49,10 @@ public class SetFlashcard implements Serializable {
     private Boolean sharingMode;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_set_user"))
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     private AppUser user;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", foreignKey = @ForeignKey(name = "fk_set_category"))
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private CategorySetFlashcard category;
 }

@@ -52,6 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/logout",
+            "/api/**",
             "/ws/**"
     );
 
@@ -62,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String bearer =  request.getHeader("Authorization");
-            if (bearer == null || bearer.startsWith("Bearer")) {
+            if (!StringUtils.hasText(bearer) || bearer.startsWith("Bearer")) {
                 throw new Exception("Token must be start by Bearer");
             }
 
@@ -142,12 +143,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception ex) {
             LOGGER.error("Could not set user authentication in security context", ex);
-            Map<String, Object> map = new HashMap<>();
-            map.put("success", false);
-            map.put("message", ex.getMessage());
+            Map<String, Object> errors = new HashMap<>();
+            errors.put("success", false);
+            errors.put("message", ex.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json; charset=UTF-8");
-            response.getWriter().write(new ObjectMapper().writeValueAsString(map));
+            response.getWriter().write(new ObjectMapper().writeValueAsString(errors));
         }
     }
 

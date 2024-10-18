@@ -24,22 +24,34 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   HttpHeaders headers,
                                                                   HttpStatusCode status,
                                                                   WebRequest request) {
-        Map<String, String> errors = new HashMap<>();
+
+        Map<String, Object> errors = new HashMap<>();
+        Map<String, Object> detailErrors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
+                detailErrors.put(error.getField(), error.getDefaultMessage()));
 
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        errors.put("message", "Validation errors");
+        errors.put("errors", detailErrors);
+
+        return new ResponseEntity<>(errors, status);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex,
+                                                            HttpHeaders headers,
+                                                            HttpStatusCode status,
+                                                            WebRequest request) {
+        Map<String, Object> errors = new HashMap<>();
+        Map<String, Object> detailErrors = new HashMap<>();
 
         ex.getConstraintViolations().forEach(violation ->
-                errors.put(violation.getPropertyPath().toString(), violation.getMessage()));
+                detailErrors.put(violation.getPropertyPath().toString(), violation.getMessage()));
 
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        errors.put("message", "Validation errors");
+        errors.put("errors", detailErrors);
+
+        return new ResponseEntity<>(errors, status);
     }
 
     @ExceptionHandler(QuizCardApiException.class)
