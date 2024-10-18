@@ -15,12 +15,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "set_flashcards")
+@Table(name = "set_flashcards", indexes = {
+        @Index(name = "idx_category_id", columnList = "category_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+})
 public class SetFlashcard implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "set_id")
-    private int setId;
+    private Long setId;
 
     @Column(name = "title", length = 100, nullable = false)
     private String title;

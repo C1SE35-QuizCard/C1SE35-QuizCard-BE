@@ -11,22 +11,25 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface ICategorySetFlashcardRepository extends JpaRepository<CategorySetFlashcard, Integer> {
+public interface ICategorySetFlashcardRepository extends JpaRepository<CategorySetFlashcard, Long> {
     @Query(value = """
             select c.category_id, c.category_name
             from category_set_flashcards c
             where c.category_id = :category_id
             """, nativeQuery = true)
-    ICategorySetFlashcardDTO findCategorySetFlashcardById(@Param("category_id") int categoryId);
+    ICategorySetFlashcardDTO findCategorySetFlashcardById(@Param("category_id") Long categoryId);
+
+    Optional<CategorySetFlashcard> findByCategoryName(String categoryName);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.category_id = c.category_id and s.category_id = :category_id and s.user_id = a.user_id and s.sharing_mode = true
             """, nativeQuery = true)
-    List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(@Param("category_id") int categoryId);
+    List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(@Param("category_id") Long categoryId);
 
     @Query(value = """
             select c.category_id, c.category_name
@@ -49,7 +52,7 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             delete from category_set_flashcards c
             where c.category_id = :category_id
             """, nativeQuery = true)
-    void deleteCategorySetFlashcard(@Param("category_id") int categoryId);
+    void deleteCategorySetFlashcard(@Param("category_id") Long categoryId);
 
     @Modifying
     @Transactional
@@ -58,6 +61,6 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             set c.category_name = :category_name
             where c.category_id = :category_id
             """, nativeQuery = true)
-    void updateCategorySetFlashcard(@Param ("category_id") int categoryId,
+    void updateCategorySetFlashcard(@Param ("category_id") Long categoryId,
                                     @Param ("category_name") String categoryName);
 }

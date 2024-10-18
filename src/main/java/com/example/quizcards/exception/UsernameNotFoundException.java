@@ -4,26 +4,26 @@ import com.example.quizcards.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-public class AccessDeniedException extends RuntimeException {
+@ResponseStatus(code = HttpStatus.NOT_FOUND)
+public class UsernameNotFoundException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private ApiResponse apiResponse;
 
     private String message;
 
-    public AccessDeniedException(ApiResponse apiResponse) {
+    public UsernameNotFoundException(ApiResponse apiResponse) {
         super();
         this.apiResponse = apiResponse;
     }
 
-    public AccessDeniedException(String message) {
+    public UsernameNotFoundException(String message) {
         super(message);
         this.message = message;
         apiResponse = new ApiResponse(false, message);
     }
 
-    public AccessDeniedException(String message, Throwable cause) {
+    public UsernameNotFoundException(String message, Throwable cause) {
         super(message, cause);
         apiResponse = new ApiResponse(false, message);
     }

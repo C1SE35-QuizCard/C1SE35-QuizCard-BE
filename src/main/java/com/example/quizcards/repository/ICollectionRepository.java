@@ -34,14 +34,14 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             from folders f, set_flashcards s, collection c
             where f.folder_id = c.folder_id and s.set_id = c.set_id and c.set_id = :set_id
             """, nativeQuery = true)
-    List<ICollectionDTO> findCollectionBySetId(@Param("set_id") int setId);
+    List<ICollectionDTO> findCollectionBySetId(@Param("set_id") Long setId);
 
     @Query(value = """
             select c.id, c.folder_id, c.set_id, c.created_at, c.updated_at
             from folders f, set_flashcards s, collection c
             where f.folder_id = c.folder_id and s.set_id = c.set_id and c.folder_id = :folder_id
             """, nativeQuery = true)
-    List<ICollectionDTO> findCollectionByFolderId(@Param("folder_id") int folderId);
+    List<ICollectionDTO> findCollectionByFolderId(@Param("folder_id") Long folderId);
 
     @Modifying
     @Transactional
@@ -49,8 +49,8 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             insert into collection(folder_id, set_id, created_at, updated_at)
             values (:folder_id, :set_id, now(), now())
             """, nativeQuery = true)
-    void createCollection(@Param("folder_id") int folderId,
-                          @Param ("set_id") int setId);
+    void createCollection(@Param("folder_id") Long folderId,
+                          @Param ("set_id") Long setId);
 
 
     @Modifying
@@ -69,6 +69,6 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             where c.id = :id
             """, nativeQuery = true)
     void updateCollection(@Param ("id") Long id,
-                          @Param("folder_id") int folderId,
-                          @Param ("set_id") int setId);
+                          @Param("folder_id") Long folderId,
+                          @Param ("set_id") Long setId);
 }

@@ -39,7 +39,7 @@ public class FlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") int setId){
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId){
         try {
             if (!flashcardService.getAllBySetId(setId).isEmpty()) {
                 List<IFlashcardDTO> flashcards = flashcardService.getAllBySetId(setId);
@@ -78,7 +78,11 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            flashcardService.addFlashcard(request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getApproved(), request.getSetId());
+            flashcardService.addFlashcard(request.getTerm(),
+                    request.getDefinition(),
+                    request.getImageLink(),
+                    request.getApproved(),
+                    request.getSetId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Flashcard created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the flashcard");

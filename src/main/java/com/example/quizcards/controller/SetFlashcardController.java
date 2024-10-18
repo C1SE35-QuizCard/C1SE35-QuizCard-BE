@@ -36,7 +36,7 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") int setId){
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId){
         try {
             if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
                 List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
@@ -50,7 +50,7 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") int setId){
+    public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") Long setId){
         try {
             if (setFlashcardService.findBySetId(setId) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Set Flashcard not found");
@@ -75,7 +75,13 @@ public class SetFlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            setFlashcardService.addSetFlashcard(request.getTitle(), request.getDescriptionSet(), request.getIsApproved(), request.getIsAnonymous(), request.getSharingMode(), request.getUserId(), request.getCategoryId());
+            setFlashcardService.addSetFlashcard(request.getTitle(),
+                    request.getDescriptionSet(),
+                    request.getIsApproved(),
+                    request.getIsAnonymous(),
+                    request.getSharingMode(),
+                    request.getUserId(),
+                    request.getCategoryId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the set flashcard");
@@ -83,7 +89,7 @@ public class SetFlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteSetFlashcardById(@PathVariable("id") int setId) {
+    public ResponseEntity<Object> deleteSetFlashcardById(@PathVariable("id") Long setId) {
         if(setFlashcardService.findBySetId(setId) != null) {
             try {
                 setFlashcardService.deleteSetFlashcard(setId);

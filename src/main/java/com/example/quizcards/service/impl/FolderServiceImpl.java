@@ -9,30 +9,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
 public class FolderServiceImpl implements IFolderService {
 
     @Autowired
     private IFolderRepository folderRepository;
-    public IFolderDTO getFolderById(int folderId){
+
+    public IFolderDTO getFolderById(Long folderId) {
         return folderRepository.findFolderById(folderId);
     }
-    public IFolderDTO getFolderByIdUserId(Long userId){
+
+    public IFolderDTO getFolderByIdUserId(Long userId) {
         return folderRepository.findFolderByIdUserId(userId);
     }
-    public List<IFolderDTO> searchFolderByTitle(String title){
+
+    public List<IFolderDTO> searchFolderByTitle(String title) {
         return folderRepository.searchFolderByTitle(title);
     }
-    public List<ISetFlashcardDTO> getSetByFolderId(int folderId){
+
+    public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
         return folderRepository.findSetByFolderId(folderId);
     }
-    public void addFolder(String title, Long userId){
+
+    public void addFolder(String title, Long userId) {
         folderRepository.createFolder(title, userId);
     }
-    public void deleteFolder(int folderId){
+
+    public void deleteFolder(Long folderId) {
         folderRepository.deleteFolderById(folderId);
     }
-    public void updateFolder(FolderUpdateRequest request){
+
+    public void updateFolder(FolderUpdateRequest request) {
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
     }
 }

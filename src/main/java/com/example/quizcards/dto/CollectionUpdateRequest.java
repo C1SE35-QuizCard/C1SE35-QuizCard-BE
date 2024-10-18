@@ -12,50 +12,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CollectionUpdateRequest {
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public int getFolderId() {
-        return folderId;
-    }
-
-    public void setFolderId(int folderId) {
-        this.folderId = folderId;
-    }
-
-    public int getSetId() {
-        return setId;
-    }
-
-    public void setSetId(int setId) {
-        this.setId = setId;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     private Long id;
-    private int folderId;
-    private int setId;
+    private Long folderId;
+    private Long setId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
 }

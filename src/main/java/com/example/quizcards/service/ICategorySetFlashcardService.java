@@ -5,10 +5,10 @@ import com.example.quizcards.dto.*;
 import java.util.List;
 
 public interface ICategorySetFlashcardService {
-    ICategorySetFlashcardDTO getCategorySetFlashcardById(int categoryId);
+    ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId);
     List<ICategorySetFlashcardDTO> getAll();
-    List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(int categoryId);
+    List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId);
     void addCategorySetFlashcard(String categoryName);
-    void deleteCategorySetFlashcard(int categoryId);
+    void deleteCategorySetFlashcard(Long categoryId);
     void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request);
 }

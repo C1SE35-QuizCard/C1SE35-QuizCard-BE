@@ -7,9 +7,9 @@ import com.example.quizcards.dto.IFlashcardDTO;
 import java.util.List;
 
 public interface IFlashcardService {
-    List<IFlashcardDTO> getAllBySetId(int id);
+    List<IFlashcardDTO> getAllBySetId(Long id);
     List<IFlashcardDTO> getAll();
-    void addFlashcard(String question, String answer,String imageLink,Boolean isApproved, int setId);
+    void addFlashcard(String term, String definition,String imageLink,Boolean isApproved, Long setId);
     void deleteFlashcard(Long cardId);
     void updateFlashcard(FlashcardUpdateRequest request);
     IFlashcardDTO findByCardId(Long cardId);
