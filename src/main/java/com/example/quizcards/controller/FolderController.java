@@ -38,12 +38,12 @@ public class FolderController {
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("id") Long userId){
+    public ResponseEntity<Object> getFolderByUserId(@PathVariable("id") Long userId){
         try {
-            if (folderService.getFolderByIdUserId(userId) == null) {
+            if (folderService.getFolderByUserId(userId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for user ID " + userId);
             } else {
-                IFolderDTO folder = folderService.getFolderByIdUserId(userId);
+                IFolderDTO folder = folderService.getFolderByUserId(userId);
                 return ResponseEntity.ok(folder);
             }
         } catch (Exception e) {
@@ -52,7 +52,7 @@ public class FolderController {
     }
 
     @GetMapping("/search/{title}")
-    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("title") String title){
+    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title){
         try {
             if (folderService.searchFolderByTitle(title).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for title " + title);

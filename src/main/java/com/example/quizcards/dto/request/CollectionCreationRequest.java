@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CollectionCreationRequest {
     private Long id;
-    private int folderId;
-    private int setId;
+    private Long folderId;
+    private Long setId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

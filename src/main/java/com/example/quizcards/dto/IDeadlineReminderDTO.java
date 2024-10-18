@@ -4,8 +4,8 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 public interface IDeadlineReminderDTO {
-    int getDeadlineRemindersId();
+    Long getDeadlineRemindersId();
     Timestamp getReminderTime();
     Long getUserId();
-    int getSetId();
+    Long getSetId();
 }

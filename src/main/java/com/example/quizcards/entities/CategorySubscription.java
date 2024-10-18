@@ -45,7 +45,6 @@ public class CategorySubscription {
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
-    @CreationTimestamp
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }
