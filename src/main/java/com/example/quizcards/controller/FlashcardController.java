@@ -77,7 +77,10 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
+<<<<<<< HEAD
+=======
 
+>>>>>>> 76c78c3d77cc5ca52ad7a6e6e45324f3faa13547
             flashcardService.addFlashcard(request.getQuestion(),
                     request.getAnswer(),
                     request.getImageLink(),
