@@ -1,11 +1,15 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.FolderCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFolderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +27,7 @@ public class FolderController {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching folder";
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getFolderById(@PathVariable("id") Long folderId){
+    public ResponseEntity<Object> getFolderById(@PathVariable("id") Long folderId) {
         try {
             if (folderService.getFolderById(folderId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for folder ID " + folderId);
@@ -37,12 +41,12 @@ public class FolderController {
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("id") Long userId){
+    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("id") Long userId) {
         try {
-            if (folderService.getFolderByIdUserId(userId) == null) {
+            if (folderService.getFoldersByUserId(userId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for user ID " + userId);
             } else {
-                IFolderDTO folder = folderService.getFolderByIdUserId(userId);
+                List<IFolderDTO> folder = folderService.getFoldersByUserId(userId);
                 return ResponseEntity.ok(folder);
             }
         } catch (Exception e) {
@@ -51,7 +55,7 @@ public class FolderController {
     }
 
     @GetMapping("/search/{title}")
-    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("title") String title){
+    public ResponseEntity<Object> getFolderByIdUserId(@PathVariable("title") String title) {
         try {
             if (folderService.searchFolderByTitle(title).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for title " + title);
@@ -65,7 +69,7 @@ public class FolderController {
     }
 
     @GetMapping("/set/{folder_id}")
-    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId){
+    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId) {
         try {
             if (folderService.getSetByFolderId(folderId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No set found for folder ID " + folderId);
@@ -100,20 +104,20 @@ public class FolderController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> deleteFolder(@PathVariable("id") Long folderId) {
-        if(folderService.getFolderById(folderId) != null) {
+        if (folderService.getFolderById(folderId) != null) {
             try {
                 folderService.deleteFolder(folderId);
                 return new ResponseEntity<>("Folder deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the Folder");
             }
-        }else{
+        } else {
             return new ResponseEntity<>("Folder not found", HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -125,7 +129,7 @@ public class FolderController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            if(folderService.getFolderById(request.getFolderId()) == null) {
+            if (folderService.getFolderById(request.getFolderId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Folder not found");
             }
             folderService.updateFolder(request);

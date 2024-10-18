@@ -1,4 +1,4 @@
-package com.example.quizcards.dto;
+package com.example.quizcards.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ public class FlashcardCreationRequest {
     @NotBlank(message = "Question of the flashcard is empty.")
     private String question;
 
-    @NotBlank(message = "Definition of the flashcard is empty.")
+    @NotBlank(message = "Answer of the flashcard is empty.")
     private String answer;
     private String imageLink;
     private Boolean isApproved;
@@ -24,11 +24,4 @@ public class FlashcardCreationRequest {
     private LocalDateTime updatedAt;
     private Long setId;
 
-    public Boolean getApproved() {
-        return isApproved;
-    }
-
-    public void setApproved(Boolean approved) {
-        isApproved = approved;
-    }
 }

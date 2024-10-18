@@ -1,9 +1,11 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.LoginRequest;
+import com.example.quizcards.dto.request.RefreshTokenRequest;
 import com.example.quizcards.dto.request.SignupRequest;
 import com.example.quizcards.dto.request.UpdatePasswordRequest;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +50,12 @@ public class AuthController {
         return authService.logoutUser(loginRequest, response);
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest, HttpServletResponse response) {
+        return authService.getAccessToken(refreshTokenRequest, response);
+    }
+
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     @PostMapping("update-password")
     public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
@@ -55,6 +63,7 @@ public class AuthController {
         updatePasswordRequest.validate();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
         return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
     }
 }

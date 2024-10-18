@@ -1,6 +1,6 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.FolderUpdateRequest;
+import com.example.quizcards.dto.request.FolderCreationRequest;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.repository.IFolderRepository;
@@ -20,8 +20,8 @@ public class FolderServiceImpl implements IFolderService {
         return folderRepository.findFolderById(folderId);
     }
 
-    public IFolderDTO getFolderByIdUserId(Long userId) {
-        return folderRepository.findFolderByIdUserId(userId);
+    public List<IFolderDTO> getFoldersByUserId(Long userId) {
+        return folderRepository.findFoldersByUserId(userId);
     }
 
     public List<IFolderDTO> searchFolderByTitle(String title) {
@@ -40,7 +40,7 @@ public class FolderServiceImpl implements IFolderService {
         folderRepository.deleteFolderById(folderId);
     }
 
-    public void updateFolder(FolderUpdateRequest request) {
+    public void updateFolder(FolderCreationRequest request){
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
     }
 }

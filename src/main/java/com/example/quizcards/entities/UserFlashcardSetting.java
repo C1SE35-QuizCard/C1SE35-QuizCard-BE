@@ -14,11 +14,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_flashcard_settings", indexes = {
+@Table(name = "user_flashcard_setting", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_set_id", columnList = "set_id")
+        @Index(name = "idx_set_id", columnList = "set_id"),
+        @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id"),
+        @Index(name = "idx_set_id_user_id", columnList = "set_id,user_id")
 })
-public class UserFlashcardSettings {
+public class UserFlashcardSetting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
