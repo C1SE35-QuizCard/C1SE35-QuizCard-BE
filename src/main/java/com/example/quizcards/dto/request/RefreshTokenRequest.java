@@ -1,0 +1,12 @@
+package com.example.quizcards.dto.request;
+
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
+
+@Data
+public class RefreshTokenRequest {
+    @NotBlank
+    private String refreshToken;
+}
