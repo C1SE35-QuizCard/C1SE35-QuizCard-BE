@@ -13,12 +13,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeadlineReminderCreationRequest {
-    private int deadlineRemindersId;
+    private Long deadlineRemindersId;
 
     @NotNull(message = "Reminder time cannot be null.")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
     private Timestamp reminderTime;
 
     private Long userId;
-    private int setId;
+    private Long setId;
 }

@@ -1,5 +1,6 @@
 package com.example.quizcards.database;
 
+import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.role.RoleName;
@@ -56,8 +57,8 @@ public class Database {
                         "Pubg",
                         "Dota2");
                 for (String category : categories) {
-                    Optional<CategorySetFlashcard> chkCategory = repo.findByCategoryName(category);
-                    if (chkCategory.isPresent()) {
+                    List<ICategorySetFlashcardDTO> chkCategory = repo.findByCategoryName(category);
+                    if (chkCategory.isEmpty()) {
                         logger.info(String.format("Category: %s valid", category));
                     } else {
                         CategorySetFlashcard categoryEntity = new CategorySetFlashcard();

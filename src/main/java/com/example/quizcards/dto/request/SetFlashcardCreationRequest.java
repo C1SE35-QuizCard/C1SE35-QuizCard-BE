@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SetFlashcardCreationRequest {
-    private int setId;
+    private Long setId;
 
     @NotBlank(message = "Title of the set flashcard is empty.")
     private String title;
@@ -22,5 +22,5 @@ public class SetFlashcardCreationRequest {
     private Boolean isAnonymous;
     private Boolean sharingMode;
     private Long userId;
-    private int categoryId;
+    private Long categoryId;
 }

@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.request.DeadlineReminderCreationRequest;
@@ -18,33 +18,43 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
     @Autowired
     private IDeadlineReminderRepository deadlineReminderRepository;
 
-    public IDeadlineReminderDTO getDeadlineReminderById(int id){
+    @Override
+    public IDeadlineReminderDTO getDeadlineReminderById(Long id){
         return deadlineReminderRepository.findDeadlineReminderById(id);
     }
 
+    @Override
     public List<IDeadlineReminderDTO> getDeadlineReminderByUserId(Long userId){
         return deadlineReminderRepository.findDeadlineReminderByUserId(userId);
     }
 
-    public List<IDeadlineReminderDTO> getDeadlineReminderBySetId(int setId){
+    @Override
+    public List<IDeadlineReminderDTO> getDeadlineReminderBySetId(Long setId){
         return deadlineReminderRepository.findDeadlineReminderBySetId(setId);
     }
 
-    public void addDeadlineReminder(Timestamp reminderTime, Long userId, int setId){
+    @Override
+    public void addDeadlineReminder(Timestamp reminderTime, Long userId, Long setId){
         deadlineReminderRepository.createDeadlineReminder(reminderTime, userId, setId);
     }
-    public void deleteDeadlineReminder(int deadlineRemindersId){
+
+    @Override
+    public void deleteDeadlineReminder(Long deadlineRemindersId){
         deadlineReminderRepository.deleteDeadlineReminder(deadlineRemindersId);
     }
+
+    @Override
     public void updateDeadlineReminder(DeadlineReminderCreationRequest request){
         deadlineReminderRepository.updateDeadlineReminder(request.getDeadlineRemindersId(), request.getReminderTime(), request.getUserId(), request.getSetId());
     }
 
-    public boolean existsByUserIdAndSetId(Long userId, int setId){
+    @Override
+    public boolean existsByUserIdAndSetId(Long userId, Long setId){
         return deadlineReminderRepository.existsByUserIdAndSetId(userId, setId) != 0;
     }
 
-    public boolean existsByUserIdAndSetIdAndNotId(Long userId, int setId, int deadlineRemindersId) {
+    @Override
+    public boolean existsByUserIdAndSetIdAndNotId(Long userId, Long setId, Long deadlineRemindersId) {
         return deadlineReminderRepository.existsByUserIdAndSetIdAndNotId(userId, setId, deadlineRemindersId) > 0;
     }
 }

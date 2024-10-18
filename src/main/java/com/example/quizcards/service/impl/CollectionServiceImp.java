@@ -15,24 +15,37 @@ public class CollectionServiceImp implements ICollectionService {
     @Autowired
     private ICollectionRepository collectionRepository;
 
+    @Override
     public ICollectionDTO getCollectionById(Long id){
         return collectionRepository.findCollectionById(id);
     }
+
+    @Override
     public List<ICollectionDTO> getAllCollection(){
         return collectionRepository.findAllCollection();
     }
+
+    @Override
     public List<ICollectionDTO> getCollectionBySetId(Long setId){
         return collectionRepository.findCollectionBySetId(setId);
     }
+
+    @Override
     public List<ICollectionDTO> getCollectionByFolderId(Long folderId){
         return collectionRepository.findCollectionByFolderId(folderId);
     }
+
+    @Override
     public void addCollection(Long folderId, Long setId){
         collectionRepository.createCollection(folderId, setId);
     }
+
+    @Override
     public void deleteCollection(Long id){
         collectionRepository.deleteCollectionById(id);
     }
+
+    @Override
     public void updateCollection(CollectionCreationRequest request){
         collectionRepository.updateCollection(request.getId(), request.getFolderId(), request.getSetId());
     }

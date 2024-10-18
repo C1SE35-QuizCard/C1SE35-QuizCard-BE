@@ -82,7 +82,7 @@ public class FlashcardController {
                     request.getAnswer(),
                     request.getImageLink(),
                     request.getIsApproved(),
-                    (long) request.getSetId());
+                    request.getSetId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body("Flashcard created successfully");
         } catch (Exception e) {
