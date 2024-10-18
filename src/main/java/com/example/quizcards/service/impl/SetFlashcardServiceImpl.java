@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
