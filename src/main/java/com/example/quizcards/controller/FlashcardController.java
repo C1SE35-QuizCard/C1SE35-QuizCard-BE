@@ -78,11 +78,11 @@ public class FlashcardController {
         }
         try {
 
-            flashcardService.addFlashcard(request.getTerm(),
-                    request.getDefinition(),
+            flashcardService.addFlashcard(request.getQuestion(),
+                    request.getAnswer(),
                     request.getImageLink(),
-                    request.getApproved(),
-                    request.getSetId());
+                    request.getIsApproved(),
+                    (long) request.getSetId());
 
             return ResponseEntity.status(HttpStatus.CREATED).body("Flashcard created successfully");
         } catch (Exception e) {
