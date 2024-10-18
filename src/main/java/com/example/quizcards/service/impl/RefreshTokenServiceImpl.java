@@ -1,8 +1,8 @@
 package com.example.quizcards.service.impl;
 
 import com.example.quizcards.entities.RefreshToken;
-import com.example.quizcards.repository.AppUserRepository;
-import com.example.quizcards.repository.RefreshTokenRepository;
+import com.example.quizcards.repository.IAppUserRepository;
+import com.example.quizcards.repository.IRefreshTokenRepository;
 import com.example.quizcards.service.IRefreshTokenService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +21,14 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     private Long refreshTokenDurationSec;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private IRefreshTokenRepository IRefreshTokenRepository;
 
     @Autowired
-    private AppUserRepository userRepository;
+    private IAppUserRepository userRepository;
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+        return IRefreshTokenRepository.findByToken(token);
     }
 
     @Override
@@ -40,13 +40,13 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
         newRefreshToken.setExpiryDate(Instant.now().plusSeconds(refreshTokenDurationSec).atZone(ZoneId.systemDefault()).toLocalDateTime());
         newRefreshToken.setToken(UUID.randomUUID().toString());
 
-        return refreshTokenRepository.save(newRefreshToken);
+        return IRefreshTokenRepository.save(newRefreshToken);
     }
 
     @Override
     public RefreshToken verifyExpiration(RefreshToken refreshToken) {
         if (refreshToken.getExpiryDate().compareTo(LocalDateTime.now()) < 0) {
-            refreshTokenRepository.delete(refreshToken);
+            IRefreshTokenRepository.delete(refreshToken);
             return null;
         }
         return refreshToken;
@@ -55,7 +55,7 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
     @Override
     @Transactional
     public int deleteByUserId(Long userId) {
-        return refreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
+        return IRefreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
     }
 
     @Override
@@ -64,6 +64,6 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
         refreshToken.setExpiryDate(
                 Instant.now().plusMillis(refreshTokenDurationSec).atZone(ZoneId.systemDefault()).toLocalDateTime()
         );
-        refreshTokenRepository.save(refreshToken);
+        IRefreshTokenRepository.save(refreshToken);
     }
 }

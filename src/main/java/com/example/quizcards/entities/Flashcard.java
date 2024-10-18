@@ -26,7 +26,11 @@ public class Flashcard implements Serializable {
     @Column(name = "question", nullable = false, length = 930)
     private String question;
 
+<<<<<<< HEAD
+    @Column(name = "answer", nullable = false, length = 1850)
+=======
     @Column(name = "answer", nullable = false, length = 930)
+>>>>>>> 76c78c3d77cc5ca52ad7a6e6e45324f3faa13547
     private String answer;
 
     @Column(name = "image_url")
