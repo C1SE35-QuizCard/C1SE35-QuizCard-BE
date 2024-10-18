@@ -1,6 +1,6 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.CategorySetFlashcardUpdateRequest;
+import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
@@ -15,27 +15,33 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
 
+    @Override
     public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId){
         return categoryRepository.findCategorySetFlashcardById(categoryId);
     }
 
+    @Override
     public List<ICategorySetFlashcardDTO> getAll(){
         return categoryRepository.findAllCategorySetFlashcard();
     }
 
+    @Override
     public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId){
         return categoryRepository.findAllSetFlashcardsByCategoryId(categoryId);
     }
 
+    @Override
     public void addCategorySetFlashcard(String categoryName){
         categoryRepository.createCategorySetFlashcard(categoryName);
     }
 
+    @Override
     public void deleteCategorySetFlashcard(Long categoryId){
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
-    public void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request){
+    @Override
+    public void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request){
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }

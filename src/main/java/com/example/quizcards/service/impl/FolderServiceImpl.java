@@ -1,6 +1,6 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.FolderUpdateRequest;
+import com.example.quizcards.dto.request.FolderCreationRequest;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.repository.IFolderRepository;
@@ -16,31 +16,38 @@ public class FolderServiceImpl implements IFolderService {
     @Autowired
     private IFolderRepository folderRepository;
 
+    @Override
     public IFolderDTO getFolderById(Long folderId) {
         return folderRepository.findFolderById(folderId);
     }
 
-    public IFolderDTO getFolderByIdUserId(Long userId) {
+    @Override
+    public IFolderDTO getFolderByUserId(Long userId) {
         return folderRepository.findFolderByIdUserId(userId);
     }
 
+    @Override
     public List<IFolderDTO> searchFolderByTitle(String title) {
         return folderRepository.searchFolderByTitle(title);
     }
 
+    @Override
     public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
         return folderRepository.findSetByFolderId(folderId);
     }
 
+    @Override
     public void addFolder(String title, Long userId) {
         folderRepository.createFolder(title, userId);
     }
 
+    @Override
     public void deleteFolder(Long folderId) {
         folderRepository.deleteFolderById(folderId);
     }
 
-    public void updateFolder(FolderUpdateRequest request) {
+    @Override
+    public void updateFolder(FolderCreationRequest request){
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
     }
 }

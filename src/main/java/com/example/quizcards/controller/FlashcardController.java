@@ -1,7 +1,6 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.FlashcardCreationRequest;
-import com.example.quizcards.dto.FlashcardUpdateRequest;
+import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IFlashcardService;
@@ -78,11 +77,16 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 76c78c3d77cc5ca52ad7a6e6e45324f3faa13547
             flashcardService.addFlashcard(request.getQuestion(),
                     request.getAnswer(),
                     request.getImageLink(),
-                    request.getApproved(),
+                    request.getIsApproved(),
                     request.getSetId());
+
             return ResponseEntity.status(HttpStatus.CREATED).body("Flashcard created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the flashcard");
@@ -104,7 +108,7 @@ public class FlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateFlashcard(@Validated @RequestBody FlashcardUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateFlashcard(@Validated @RequestBody FlashcardCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

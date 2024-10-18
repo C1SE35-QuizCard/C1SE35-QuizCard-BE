@@ -49,6 +49,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final List<String> excludeUrlPatterns = List.of(
+
+            "/api/v1/auth/**",
+            "/ws/**",
+            "/api/**",
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/logout",

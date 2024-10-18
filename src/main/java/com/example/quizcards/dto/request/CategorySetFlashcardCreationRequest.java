@@ -1,4 +1,4 @@
-package com.example.quizcards.dto;
+package com.example.quizcards.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategorySetFlashcardCreationRequest {
+
     private Long categoryId;
 
     @NotBlank(message = "Name of the Category is empty.")

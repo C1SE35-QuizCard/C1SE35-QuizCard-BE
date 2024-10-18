@@ -1,7 +1,6 @@
-package com.example.quizcards.dto;
+package com.example.quizcards.dto.request;
 
-import com.example.quizcards.entities.Folder;
-import com.example.quizcards.entities.SetFlashcard;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,10 +10,13 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CollectionCreationRequest {
-    private Long id;
+public class FolderCreationRequest {
     private Long folderId;
-    private Long setId;
+
+    @NotBlank(message = "Title of the folder is empty.")
+    private String title;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long userId;
 }

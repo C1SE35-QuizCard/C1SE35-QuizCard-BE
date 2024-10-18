@@ -1,6 +1,6 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.CollectionUpdateRequest;
+import com.example.quizcards.dto.request.CollectionCreationRequest;
 import com.example.quizcards.dto.ICollectionDTO;
 import com.example.quizcards.repository.ICollectionRepository;
 import com.example.quizcards.service.ICollectionService;
@@ -15,25 +15,38 @@ public class CollectionServiceImp implements ICollectionService {
     @Autowired
     private ICollectionRepository collectionRepository;
 
+    @Override
     public ICollectionDTO getCollectionById(Long id){
         return collectionRepository.findCollectionById(id);
     }
+
+    @Override
     public List<ICollectionDTO> getAllCollection(){
         return collectionRepository.findAllCollection();
     }
+
+    @Override
     public List<ICollectionDTO> getCollectionBySetId(Long setId){
         return collectionRepository.findCollectionBySetId(setId);
     }
+
+    @Override
     public List<ICollectionDTO> getCollectionByFolderId(Long folderId){
         return collectionRepository.findCollectionByFolderId(folderId);
     }
+
+    @Override
     public void addCollection(Long folderId, Long setId){
         collectionRepository.createCollection(folderId, setId);
     }
+
+    @Override
     public void deleteCollection(Long id){
         collectionRepository.deleteCollectionById(id);
     }
-    public void updateCollection(CollectionUpdateRequest request){
+
+    @Override
+    public void updateCollection(CollectionCreationRequest request){
         collectionRepository.updateCollection(request.getId(), request.getFolderId(), request.getSetId());
     }
 }

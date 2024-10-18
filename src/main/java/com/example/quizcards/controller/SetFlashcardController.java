@@ -1,6 +1,7 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.SetFlashcardCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ISetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class SetFlashcardController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
         }
     }
 
@@ -103,7 +104,7 @@ public class SetFlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

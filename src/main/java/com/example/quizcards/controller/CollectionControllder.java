@@ -1,9 +1,9 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.request.CollectionCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ICollectionService;
-import com.example.quizcards.service.IFolderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
@@ -115,7 +114,7 @@ public class CollectionControllder {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateCollection(@Validated @RequestBody CollectionUpdateRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateCollection(@Validated @RequestBody CollectionCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
