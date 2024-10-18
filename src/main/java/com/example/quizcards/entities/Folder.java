@@ -20,7 +20,7 @@ public class Folder implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "folder_id")
-    private int folderId;
+    private Long folderId;
 
     @Column(name = "title", length = 100, nullable = false)
     private String title;

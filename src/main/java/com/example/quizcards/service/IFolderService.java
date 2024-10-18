@@ -8,11 +8,11 @@ import com.example.quizcards.dto.SetFlashcardUpdateRequest;
 import java.util.List;
 
 public interface IFolderService {
-    IFolderDTO getFolderById(int folderId);
+    IFolderDTO getFolderById(Long folderId);
     IFolderDTO getFolderByIdUserId(Long userId);
     List<IFolderDTO> searchFolderByTitle(String title);
-    List<ISetFlashcardDTO> getSetByFolderId(int folderId);
+    List<ISetFlashcardDTO> getSetByFolderId(Long folderId);
     void addFolder(String title, Long userId);
-    void deleteFolder(int folderId);
+    void deleteFolder(Long folderId);
     void updateFolder(FolderUpdateRequest request);
 }

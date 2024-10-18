@@ -23,7 +23,7 @@ public class FolderController {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching folder";
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getFolderById(@PathVariable("id") int folderId){
+    public ResponseEntity<Object> getFolderById(@PathVariable("id") Long folderId){
         try {
             if (folderService.getFolderById(folderId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for folder ID " + folderId);
@@ -65,7 +65,7 @@ public class FolderController {
     }
 
     @GetMapping("/set/{folder_id}")
-    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") int folderId){
+    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId){
         try {
             if (folderService.getSetByFolderId(folderId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No set found for folder ID " + folderId);
@@ -99,7 +99,7 @@ public class FolderController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteFolder(@PathVariable("id") int folderId) {
+    public ResponseEntity<Object> deleteFolder(@PathVariable("id") Long folderId) {
         if(folderService.getFolderById(folderId) != null) {
             try {
                 folderService.deleteFolder(folderId);

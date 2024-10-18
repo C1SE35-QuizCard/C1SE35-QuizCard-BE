@@ -1,6 +1,7 @@
 package com.example.quizcards.repository;
 
 import com.example.quizcards.entities.AppUser;
+import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

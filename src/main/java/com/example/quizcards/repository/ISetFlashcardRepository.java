@@ -19,7 +19,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
             from flashcards f, set_flashcards s
             where f.set_id = s.set_id and s.set_id = :set_id
             """, nativeQuery = true)
-    List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") int id);
+    List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
@@ -33,7 +33,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id
             """, nativeQuery = true)
-    ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") int id);
+    ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
@@ -61,7 +61,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                           @Param ("is_anonymous") Boolean isAnonymous,
                           @Param ("sharing_mode") Boolean sharingMode,
                           @Param ("user_id") Long userId,
-                          @Param ("category_id") int categoryId);
+                          @Param ("category_id") Long categoryId);
 
     @Modifying
     @Transactional
@@ -69,7 +69,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
             delete from set_flashcards s
             where s.set_id = :set_id
             """, nativeQuery = true)
-    void deleteSetFlashcardById(@Param("set_id") int setId);
+    void deleteSetFlashcardById(@Param("set_id") Long setId);
 
     @Modifying
     @Transactional
@@ -78,14 +78,14 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
             set s.title = :title, s.description_set = :description_set, s.updated_at = now(), s.is_approved = :is_approved, s.is_anonymous = :is_anonymous, s.sharing_mode = :sharing_mode, s.user_id = :user_id, s.category_id = :category_id
             where s.set_id = :set_id
             """, nativeQuery = true)
-    void updateSetFlashcard(@Param ("set_id") int setId,
+    void updateSetFlashcard(@Param ("set_id") Long setId,
                           @Param ("title") String title,
                           @Param ("description_set") String descriptionSet,
                           @Param ("is_approved") Boolean isApproved,
                           @Param ("is_anonymous") Boolean isAnonymous,
                           @Param ("sharing_mode") Boolean sharingMode,
                           @Param ("user_id") Long userId,
-                          @Param ("category_id") int categoryId);
+                          @Param ("category_id") Long categoryId);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name

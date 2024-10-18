@@ -3,7 +3,7 @@ package com.example.quizcards.dto;
 import java.time.LocalDateTime;
 
 public interface ISetFlashcardDTO {
-    int getSetId();
+    Long getSetId();
     String getTitle();
     String getDescriptionSet();
     LocalDateTime getCreatedAt();

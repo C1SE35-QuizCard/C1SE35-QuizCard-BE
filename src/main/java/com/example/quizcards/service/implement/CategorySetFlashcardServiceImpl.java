@@ -15,7 +15,7 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
 
-    public ICategorySetFlashcardDTO getCategorySetFlashcardById(int categoryId){
+    public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId){
         return categoryRepository.findCategorySetFlashcardById(categoryId);
     }
 
@@ -23,7 +23,7 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
         return categoryRepository.findAllCategorySetFlashcard();
     }
 
-    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(int categoryId){
+    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId){
         return categoryRepository.findAllSetFlashcardsByCategoryId(categoryId);
     }
 
@@ -31,11 +31,11 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
         categoryRepository.createCategorySetFlashcard(categoryName);
     }
 
-    public void deleteCategorySetFlashcard(int categoryId){
+    public void deleteCategorySetFlashcard(Long categoryId){
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
     public void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request){
-        categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategory_name());
+        categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }

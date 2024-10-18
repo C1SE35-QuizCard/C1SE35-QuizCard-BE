@@ -13,13 +13,16 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "test")
+@Table(name = "test", indexes = {
+        @Index(name = "idx_test_mode_id", columnList = "test_mode_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_set_id", columnList = "set_id")
+})
 public class Test {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "test_id")
-    private int testId;
+    private Long testId;
 
     @ManyToOne
     @JoinColumn(name = "test_mode_id", referencedColumnName = "test_mode_id")

@@ -30,20 +30,11 @@ public class AppUser implements Serializable {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "account_non_expired")
-    private Boolean accountNonExpired;
-
-    @Column(name = "account_non_locked")
-    private Boolean accountNonLocked;
-
     @Column(name = "address", length = 255)
     private String address;
 
     @Column(name = "avatar", length = 255)
     private String avatar;
-
-    @Column(name = "credentials_non_expired")
-    private Boolean credentialsNonExpired;
 
     @Column(name = "date_create", nullable = false)
     @CreationTimestamp
@@ -57,9 +48,6 @@ public class AppUser implements Serializable {
 
     @Column(name = "enabled")
     private Boolean enabled;
-
-    @Column(name = "full_name", length = 50)
-    private String fullName;
 
     @NotNull
     @Column(name = "user_name", unique = true, length = 50)
@@ -83,6 +71,12 @@ public class AppUser implements Serializable {
 
     @Column(name = "last_name", length = 50)
     private String lastName;
+
+//    @Column(name = "code_sms")
+//    private String codeEmail;
+//
+//    @Column(name = "code_expired_at")
+//    private LocalDateTime codeExpiredAt;
 
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))

@@ -1,6 +1,6 @@
 package com.example.quizcards.dto;
 
 public interface ICategorySetFlashcardDTO {
-    int getCategoryId();
+    Long getCategoryId();
     String getCategoryName();
 }

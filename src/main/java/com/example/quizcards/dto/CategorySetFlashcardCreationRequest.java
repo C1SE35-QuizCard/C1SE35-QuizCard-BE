@@ -9,23 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategorySetFlashcardCreationRequest {
-    public int getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public @NotBlank(message = "Name of the Category is empty.") String getCategory_name() {
-        return categoryName;
-    }
-
-    public void setCategory_name(@NotBlank(message = "Name of the Category is empty.") String category_name) {
-        this.categoryName = category_name;
-    }
-
-    private int categoryId;
+    private Long categoryId;
 
     @NotBlank(message = "Name of the Category is empty.")
     private String categoryName;
