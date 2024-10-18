@@ -23,8 +23,8 @@ public class FlashcardServiceImpl implements IFlashcardService {
         return flashcardRepository.findAllFlashcards();
     }
 
-    public void addFlashcard(String term, String definition,String imageLink,Boolean isApproved, Long setId){
-        flashcardRepository.createFlashcards(term, definition, imageLink, isApproved, setId);
+    public void addFlashcard(String question, String answer,String imageLink,Boolean isApproved, Long setId){
+        flashcardRepository.createFlashcards(question, answer, imageLink, isApproved, setId);
     }
 
     public void deleteFlashcard(Long cardId){
@@ -32,7 +32,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     public void updateFlashcard(FlashcardUpdateRequest request){
-        flashcardRepository.updateFlashcards(request.getCardId(), request.getTerm(), request.getDefinition(), request.getImageLink(), request.getIsApproved(), request.getSetId());
+        flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getIsApproved(), request.getSetId());
     }
 
     public IFlashcardDTO findByCardId(Long cardId){

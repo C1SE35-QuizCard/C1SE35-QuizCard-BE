@@ -78,8 +78,8 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            flashcardService.addFlashcard(request.getTerm(),
-                    request.getDefinition(),
+            flashcardService.addFlashcard(request.getQuestion(),
+                    request.getAnswer(),
                     request.getImageLink(),
                     request.getApproved(),
                     request.getSetId());

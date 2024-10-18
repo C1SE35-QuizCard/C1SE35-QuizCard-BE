@@ -3,7 +3,7 @@ package com.example.quizcards.database;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.role.RoleName;
-import com.example.quizcards.repository.AppRoleRepository;
+import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class Database {
     private static final Logger logger = LoggerFactory.getLogger(Database.class);
 
     @Bean
-    CommandLineRunner initRoles(AppRoleRepository repo) {
+    CommandLineRunner initRoles(IAppRoleRepository repo) {
         return new CommandLineRunner() {
             @Override
             public void run(String... args) throws Exception {

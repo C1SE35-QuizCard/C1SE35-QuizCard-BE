@@ -23,11 +23,11 @@ public class Flashcard implements Serializable {
     @Column(name = "card_id", nullable = false)
     private Long cardId;
 
-    @Column(name = "term", nullable = false, length = 930)
-    private String term;
+    @Column(name = "question", nullable = false, length = 930)
+    private String question;
 
-    @Column(name = "definition", nullable = false, length = 930)
-    private String definition;
+    @Column(name = "answer", nullable = false, length = 1850)
+    private String answer;
 
     @Column(name = "image_url")
     private String imageLink;

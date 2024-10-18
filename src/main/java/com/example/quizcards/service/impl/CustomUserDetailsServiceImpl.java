@@ -2,7 +2,7 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.exception.AccessDeniedException;
-import com.example.quizcards.repository.AppUserRepository;
+import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailsServiceImpl implements UserDetailsService, ICustomUserDetailsService {
     @Autowired
-    private AppUserRepository userRepository;
+    private IAppUserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail)
