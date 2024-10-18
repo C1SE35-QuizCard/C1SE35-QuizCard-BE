@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "test_mode")
 public class TestMode {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "test_mode_id")

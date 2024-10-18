@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 public class FlashcardCreationRequest {
     private Long cardId;
 
-    @NotBlank(message = "Term of the flashcard is empty.")
-    private String term;
+    @NotBlank(message = "Question of the flashcard is empty.")
+    private String question;
 
     @NotBlank(message = "Definition of the flashcard is empty.")
-    private String definition;
+    private String answer;
     private String imageLink;
     private Boolean isApproved;
     private LocalDateTime createdAt;
