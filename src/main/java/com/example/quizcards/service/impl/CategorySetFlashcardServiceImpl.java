@@ -1,6 +1,6 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.CategorySetFlashcardUpdateRequest;
+import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
@@ -35,7 +35,11 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
+<<<<<<< HEAD:src/main/java/com/example/quizcards/service/implement/CategorySetFlashcardServiceImpl.java
+    public void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request){
+=======
     public void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request){
+>>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e:src/main/java/com/example/quizcards/service/impl/CategorySetFlashcardServiceImpl.java
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }

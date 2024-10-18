@@ -49,11 +49,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final List<String> excludeUrlPatterns = List.of(
+<<<<<<< HEAD
+            "/api/v1/auth/**",
+            "/ws/**",
+            "/api/**"
+=======
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/logout",
             "/api/**",
             "/ws/**"
+>>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
