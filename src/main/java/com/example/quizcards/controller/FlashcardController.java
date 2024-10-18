@@ -24,7 +24,7 @@ public class FlashcardController {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching flashcards";
 
     @GetMapping("/list")
-    public ResponseEntity<Object> findAllFlashcard(){
+    public ResponseEntity<Object> findAllFlashcard() {
         try {
             if (flashcardService.getAll().isEmpty()) {
                 return new ResponseEntity<>("No flashcards found", HttpStatus.NO_CONTENT);
@@ -38,7 +38,7 @@ public class FlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId){
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
         try {
             if (!flashcardService.getAllBySetId(setId).isEmpty()) {
                 List<IFlashcardDTO> flashcards = flashcardService.getAllBySetId(setId);
@@ -52,7 +52,7 @@ public class FlashcardController {
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> detailFlashcardById(@PathVariable("id") Long cardId){
+    public ResponseEntity<Object> detailFlashcardById(@PathVariable("id") Long cardId) {
         try {
             if (flashcardService.findByCardId(cardId) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Flashcard not found");
@@ -77,10 +77,6 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-<<<<<<< HEAD
-=======
-
->>>>>>> 76c78c3d77cc5ca52ad7a6e6e45324f3faa13547
             flashcardService.addFlashcard(request.getQuestion(),
                     request.getAnswer(),
                     request.getImageLink(),
@@ -95,14 +91,14 @@ public class FlashcardController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> deleteFlashcardById(@PathVariable("id") Long cardId) {
-        if(flashcardService.findByCardId(cardId) != null) {
+        if (flashcardService.findByCardId(cardId) != null) {
             try {
                 flashcardService.deleteFlashcard(cardId);
                 return new ResponseEntity<>("Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the flashcard");
             }
-        }else{
+        } else {
             return new ResponseEntity<>("Flashcard not found", HttpStatus.NOT_FOUND);
         }
     }
@@ -120,7 +116,7 @@ public class FlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            if(flashcardService.findByCardId(request.getCardId()) == null) {
+            if (flashcardService.findByCardId(request.getCardId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Flashcard not found");
             }
             flashcardService.updateFlashcard(request);
