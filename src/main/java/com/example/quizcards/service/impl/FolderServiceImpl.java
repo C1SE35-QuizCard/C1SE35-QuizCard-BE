@@ -16,30 +16,37 @@ public class FolderServiceImpl implements IFolderService {
     @Autowired
     private IFolderRepository folderRepository;
 
+    @Override
     public IFolderDTO getFolderById(Long folderId) {
         return folderRepository.findFolderById(folderId);
     }
 
+    @Override
     public List<IFolderDTO> getFoldersByUserId(Long userId) {
         return folderRepository.findFoldersByUserId(userId);
     }
 
+    @Override
     public List<IFolderDTO> searchFolderByTitle(String title) {
         return folderRepository.searchFolderByTitle(title);
     }
 
+    @Override
     public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
         return folderRepository.findSetByFolderId(folderId);
     }
 
+    @Override
     public void addFolder(String title, Long userId) {
         folderRepository.createFolder(title, userId);
     }
 
+    @Override
     public void deleteFolder(Long folderId) {
         folderRepository.deleteFolderById(folderId);
     }
 
+    @Override
     public void updateFolder(FolderCreationRequest request){
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
     }

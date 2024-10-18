@@ -11,6 +11,7 @@ public interface ISetFlashcardDTO {
     Boolean getIsApproved();
     Boolean getIsAnonymous();
     Boolean getSharingMode();
-    String getFullName();
+    String getFirstName();
+    String getLastName();
     String getCategoryName();
 }

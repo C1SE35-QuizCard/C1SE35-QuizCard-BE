@@ -22,28 +22,28 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id); // cho tất cả mọi người
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards(); // cho tất cả mọi người
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id
             """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.user_id = :user_id
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetByUserId(@Param("user_id") Long userId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and s.user_id = :user_id
             """, nativeQuery = true)
@@ -88,14 +88,14 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                           @Param ("category_id") Long categoryId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.title like %:title% and s.sharing_mode = true
             """, nativeQuery = true)
     List<ISetFlashcardDTO> searchByTitle(@Param("title") String title);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
             order by s.updated_at DESC
@@ -103,7 +103,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
     List<ISetFlashcardDTO> sortByUpdatedDate();
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.full_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
             from set_flashcards s, app_users a, category_set_flashcards c
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
             """, nativeQuery = true)

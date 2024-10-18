@@ -79,7 +79,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
     int existsByUserIdAndSetId(@Param("user_id") Long userId, @Param("set_id") Long setId);
 
     @Query(value = """
-            SELECT COUNT(*)
+            SELECT COUNT(deadline_reminders_id)
             FROM deadline_reminders
             WHERE user_id = :user_id AND set_id = :set_id AND deadline_reminders_id <> :deadline_reminders_id
             """, nativeQuery = true)

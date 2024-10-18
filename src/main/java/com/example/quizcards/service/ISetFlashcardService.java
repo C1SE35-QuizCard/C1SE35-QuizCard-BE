@@ -9,7 +9,6 @@ import java.util.List;
 public interface ISetFlashcardService {
     List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
     List<ISetFlashcardDTO> getAll();
-    ISetFlashcardDTO findBySetId(Long setId);
     void addSetFlashcard(String title,
                          String descriptionSet,
                          Boolean isApproved,
@@ -19,6 +18,7 @@ public interface ISetFlashcardService {
                          Long categoryId);
     void deleteSetFlashcard(Long setId);
     void updateSetFlashcard(SetFlashcardCreationRequest request);
+    ISetFlashcardDTO findBySetId(Long setId);
     List<ISetFlashcardDTO> searchByTitle(String title);
     List<ISetFlashcardDTO> sortByUpdatedDate();
     List<ISetFlashcardDTO> getAllSetByUserId(Long userId);

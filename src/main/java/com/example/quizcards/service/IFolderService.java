@@ -11,7 +11,6 @@ public interface IFolderService {
     List<IFolderDTO> searchFolderByTitle(String title);
     List<ISetFlashcardDTO> getSetByFolderId(Long folderId);
     void addFolder(String title, Long userId);
-
     void deleteFolder(Long folderId);
     void updateFolder(FolderCreationRequest request);
 }
