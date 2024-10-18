@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CategorySetFlashcardCreationRequest {
 
-    private int categoryId;
+    private Long categoryId;
 
     @NotBlank(message = "Name of the Category is empty.")
     private String categoryName;

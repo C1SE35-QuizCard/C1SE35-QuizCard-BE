@@ -22,6 +22,6 @@ public class FlashcardCreationRequest {
     private Boolean isApproved;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private int setId;
+    private Long setId;
 
 }
