@@ -1,21 +1,24 @@
 package com.example.quizcards.entities;
 import lombok.*;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "category_subscriptions")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "category_subscriptions")
 public class CategorySubscription {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_subscriptions_id")
-    private int id;
+    private Long id;
 
     @Column(name = "category_subscriptions_name", length = 100, nullable = false)
     private String name;
@@ -37,9 +40,12 @@ public class CategorySubscription {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

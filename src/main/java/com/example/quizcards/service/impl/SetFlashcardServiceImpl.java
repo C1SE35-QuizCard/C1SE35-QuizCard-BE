@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
@@ -16,19 +16,19 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Autowired
     private ISetFlashcardRepository setFlashcardRepository ;
 
-    public List<IFlashcardDTO> getAllFlashcardBySetId(int setId){
+    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId){
         return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
     public List<ISetFlashcardDTO> getAll(){
         return setFlashcardRepository.findAllSetFlashcards();
     }
-    public ISetFlashcardDTO findBySetId(int setId){
+    public ISetFlashcardDTO findBySetId(Long setId){
         return setFlashcardRepository.findSetFlashcardsById(setId);
     }
-    public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, int categoryId){
+    public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, Long categoryId){
         setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, userId, categoryId);
     }
-    public void deleteSetFlashcard(int setId){
+    public void deleteSetFlashcard(Long setId){
         setFlashcardRepository.deleteSetFlashcardById(setId);
     }
     public void updateSetFlashcard(SetFlashcardCreationRequest request){

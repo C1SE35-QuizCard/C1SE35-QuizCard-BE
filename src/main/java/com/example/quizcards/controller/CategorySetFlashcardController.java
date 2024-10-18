@@ -38,7 +38,7 @@ public class CategorySetFlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") int categoryId){
+    public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") Long categoryId){
         try {
             if (!categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId).isEmpty()) {
                 List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId);
@@ -52,7 +52,7 @@ public class CategorySetFlashcardController {
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> detailCategorySetFlashcardById(@PathVariable("id") int categoryId){
+    public ResponseEntity<Object> detailCategorySetFlashcardById(@PathVariable("id") Long categoryId){
         try {
             if (categorySetFlashcardService.getCategorySetFlashcardById(categoryId) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Category Set Flashcard not found");
@@ -85,7 +85,7 @@ public class CategorySetFlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteCategorySetFlashcardById(@PathVariable("id") int categoryId) {
+    public ResponseEntity<Object> deleteCategorySetFlashcardById(@PathVariable("id") Long categoryId) {
         if(categorySetFlashcardService.getCategorySetFlashcardById(categoryId) != null) {
             try {
                 categorySetFlashcardService.deleteCategorySetFlashcard(categoryId);

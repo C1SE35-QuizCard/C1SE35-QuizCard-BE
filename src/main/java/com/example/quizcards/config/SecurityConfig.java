@@ -1,15 +1,9 @@
 package com.example.quizcards.config;
 import com.example.quizcards.security.JwtAuthenticationFilter;
-import com.example.quizcards.service.ICustomUserDetailsService;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,7 +20,7 @@ import java.util.List;
 @EnableWebSecurity
 @Configuration
 @EnableMethodSecurity
-public class SecurityConfig  {
+public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -41,7 +35,7 @@ public class SecurityConfig  {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            http
+        http
                 .csrf(csrf -> csrf.disable())  // Sử dụng phương pháp mới để vô hiệu hóa CSRF
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()
@@ -57,7 +51,7 @@ public class SecurityConfig  {
         return http.build();
     }
 
-////
+    ////
 ////    @Bean
 ////    public CorsConfigurationSource corsConfigurationSource() {
 ////        CorsConfiguration configuration = new CorsConfiguration();

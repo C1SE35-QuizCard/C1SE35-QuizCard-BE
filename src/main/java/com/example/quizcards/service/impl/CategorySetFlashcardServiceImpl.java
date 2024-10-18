@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
@@ -15,7 +15,7 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
 
-    public ICategorySetFlashcardDTO getCategorySetFlashcardById(int categoryId){
+    public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId){
         return categoryRepository.findCategorySetFlashcardById(categoryId);
     }
 
@@ -23,7 +23,7 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
         return categoryRepository.findAllCategorySetFlashcard();
     }
 
-    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(int categoryId){
+    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId){
         return categoryRepository.findAllSetFlashcardsByCategoryId(categoryId);
     }
 
@@ -31,11 +31,15 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
         categoryRepository.createCategorySetFlashcard(categoryName);
     }
 
-    public void deleteCategorySetFlashcard(int categoryId){
+    public void deleteCategorySetFlashcard(Long categoryId){
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
+<<<<<<< HEAD:src/main/java/com/example/quizcards/service/implement/CategorySetFlashcardServiceImpl.java
     public void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request){
+=======
+    public void updateCategorySetFlashcard(CategorySetFlashcardUpdateRequest request){
+>>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e:src/main/java/com/example/quizcards/service/impl/CategorySetFlashcardServiceImpl.java
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }

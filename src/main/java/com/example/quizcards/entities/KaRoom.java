@@ -51,7 +51,8 @@ public class KaRoom {
     private Timestamp createdAt;
 
     @Column(name = "current_question_id")
-    private Integer currentQuestionId;
+    private Long currentQuestionId;
+
 
     // Enum for Room Status
     public enum RoomStatus {

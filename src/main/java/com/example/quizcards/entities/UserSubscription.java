@@ -8,7 +8,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_subscriptions")
+@Table(name = "user_subscriptions", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_category_subscriptions_id", columnList = "category_subscriptions_id"),
+        @Index(name = "idx_expired_date", columnList = "expired_date"),
+        @Index(name = "idx_status_paid", columnList = "status_paid")
+})
 public class UserSubscription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,8 +1,10 @@
 package com.example.quizcards.database;
 
 import com.example.quizcards.entities.AppRole;
+import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.repository.AppRoleRepository;
+import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -35,6 +37,32 @@ public class Database {
                         AppRole roleEntity = new AppRole();
                         roleEntity.setRoleName(role);
                         logger.info("Insert data: " + repo.save(roleEntity));
+                    }
+                }
+            }
+        };
+    }
+
+    @Bean
+    CommandLineRunner initCategory(ICategorySetFlashcardRepository repo) {
+        return new CommandLineRunner() {
+            @Override
+            public void run(String... args) throws Exception {
+                List<String> categories = List.of(
+                        "Math",
+                        "LOL",
+                        "Valorant",
+                        "CSGO",
+                        "Pubg",
+                        "Dota2");
+                for (String category : categories) {
+                    Optional<CategorySetFlashcard> chkCategory = repo.findByCategoryName(category);
+                    if (chkCategory.isPresent()) {
+                        logger.info(String.format("Category: %s valid", category));
+                    } else {
+                        CategorySetFlashcard categoryEntity = new CategorySetFlashcard();
+                        categoryEntity.setCategoryName(category);
+                        logger.info("Insert data: " + repo.save(categoryEntity));
                     }
                 }
             }

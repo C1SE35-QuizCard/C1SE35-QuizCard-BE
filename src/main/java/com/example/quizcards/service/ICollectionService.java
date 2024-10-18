@@ -8,9 +8,9 @@ import java.util.List;
 public interface ICollectionService {
     ICollectionDTO getCollectionById(Long id);
     List<ICollectionDTO> getAllCollection();
-    List<ICollectionDTO> getCollectionBySetId(int setId);
-    List<ICollectionDTO> getCollectionByFolderId(int folderId);
-    void addCollection(int folderId, int setId);
+    List<ICollectionDTO> getCollectionBySetId(Long setId);
+    List<ICollectionDTO> getCollectionByFolderId(Long folderId);
+    void addCollection(Long folderId, Long setId);
     void deleteCollection(Long id);
     void updateCollection(CollectionCreationRequest request);
 

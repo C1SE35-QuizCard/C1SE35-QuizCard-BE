@@ -1,8 +1,11 @@
 package com.example.quizcards.security;
 
 import com.example.quizcards.entities.RefreshToken;
+import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.service.ICustomUserDetailsService;
 import com.example.quizcards.service.IRefreshTokenService;
+import com.example.quizcards.utils.CookieSetter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -11,8 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseCookie;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +27,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -38,18 +43,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private IRefreshTokenService refreshTokenService;
 
+    @Autowired
+    private CookieSetter cs;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    @Value("${jwt.jwtExpirationInMs}")
-    private Long jwtExpirationInMs;
-
-    @Value("${jwt.refreshTokenExpirationInMs}")
-    private Long refreshTokenExpirationInMs;
-
     private final List<String> excludeUrlPatterns = List.of(
+<<<<<<< HEAD
             "/api/v1/auth/**",
             "/ws/**",
             "/api/**"
+=======
+            "/api/v1/auth/signup",
+            "/api/v1/auth/login",
+            "/api/v1/auth/logout",
+            "/api/**",
+            "/ws/**"
+>>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -58,14 +68,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            String bearer =  request.getHeader("Authorization");
+            if (!StringUtils.hasText(bearer) || bearer.startsWith("Bearer")) {
+                throw new Exception("Token must be start by Bearer");
+            }
+
             String rft = null;
+            String jwt = null;
             final String email;
-            String jwt = getJwtFromRequest(request);
 
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    if ("rft".equals(cookie.getName())) {
+                    if ("token".equals(cookie.getName())) {
+                        jwt = cookie.getValue();
+                    } else if ("rft".equals(cookie.getName())) {
                         rft = cookie.getValue();
                     }
                 }
@@ -76,24 +93,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            Optional<RefreshToken> refreshToken = refreshTokenService.findByToken(rft);
+            Optional<RefreshToken> tokenData = refreshTokenService.findByToken(rft);
 
-            if (refreshToken.isEmpty()) {
+            if (tokenData.isEmpty()) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            RefreshToken refresh = refreshToken.get();
-            email = refresh.getUser().getEmail();
+            RefreshToken refreshToken = tokenData.get();
 
-            String oauth2Code = refresh.getUser().getUserCode();
+            if (!refreshToken.getUser().getEnabled()) {
+                throw new AccessDeniedException("User is disabled");
+            }
 
-            UserDetails userDetails;
+            email = refreshToken.getUser().getEmail();
+
+            String oauth2Code = refreshToken.getUser().getUserCode();
 
             if (!((email != null || oauth2Code != null) && SecurityContextHolder.getContext().getAuthentication() == null)) {
                 filterChain.doFilter(request, response);
                 return;
             }
+
+            UserDetails userDetails;
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String userName = tokenProvider.getUsernameFromJWT(jwt);
@@ -103,46 +125,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (email == null) {
                     userDetails = customUserDetailsService.loadUserByUserCodeOnly(oauth2Code);
                 } else {
-                    userDetails = customUserDetailsService.loadUserByUsername(email);
+                    userDetails = customUserDetailsService.loadUserByEmailOnly(email);
                 }
 
-                if (refreshTokenService.verifyExpiration(refresh) == null) {
+                if (refreshTokenService.verifyExpiration(refreshToken) == null) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 } else {
                     if (userDetails instanceof UserPrincipal) {
                         UserPrincipal up = (UserPrincipal) userDetails;
                         String newAccessToken = tokenProvider.generateAccessToken(up);
-                        refreshTokenService.updateRefreshTokenWithCurrentExpiredDate(refresh);
+                        refreshTokenService.updateRefreshTokenWithCurrentExpiredDate(refreshToken);
 
-                        ResponseCookie newAccessTokenCookie = ResponseCookie.from("token", newAccessToken)
-                                .httpOnly(true)
-                                .secure(true)
-                                .sameSite("None")
-                                .path("/")
-                                .maxAge(jwtExpirationInMs)
-                                .build(); // Thời gian tồn tại của cookie (0)
-
-                        ResponseCookie newRefreshTokenCookie = ResponseCookie.from("rft", refresh.getToken())
-                                .httpOnly(true)
-                                .secure(true)
-                                .sameSite("None")
-                                .path("/")
-                                .maxAge(refreshTokenExpirationInMs)
-                                .build();
-
-                        response.addHeader("Set-Cookie", newAccessTokenCookie.toString());
-                        response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
+                        cs.generateTokenToCookie(response, newAccessToken, refreshToken.getToken(), "ok");
+                    } else {
+                        filterChain.doFilter(request, response);
+                        return;
                     }
                 }
             }
 
             setAuthentication(request, userDetails);
+            filterChain.doFilter(request, response);
         } catch (Exception ex) {
             LOGGER.error("Could not set user authentication in security context", ex);
+            Map<String, Object> errors = new HashMap<>();
+            errors.put("success", false);
+            errors.put("message", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write(new ObjectMapper().writeValueAsString(errors));
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

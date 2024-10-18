@@ -30,5 +30,4 @@ public class ErrorDetail {
     public String getMessage() {
         return message;
     }
-
 }

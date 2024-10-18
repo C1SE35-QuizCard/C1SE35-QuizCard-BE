@@ -52,7 +52,7 @@ public class CollectionControllder {
     }
 
     @GetMapping("/set/{set_id}")
-    public ResponseEntity<Object> getCollectionBySetId(@PathVariable("set_id") int setId){
+    public ResponseEntity<Object> getCollectionBySetId(@PathVariable("set_id") Long setId){
         try {
             if (collectionService.getCollectionBySetId(setId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No collection found for set ID " + setId);
@@ -66,7 +66,7 @@ public class CollectionControllder {
     }
 
     @GetMapping("/folder/{folder_id}")
-    public ResponseEntity<Object> getCollectionByFolderId(@PathVariable("folder_id") int folderId){
+    public ResponseEntity<Object> getCollectionByFolderId(@PathVariable("folder_id") Long folderId){
         try {
             if (collectionService.getCollectionByFolderId(folderId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No collection found for folder ID " + folderId);

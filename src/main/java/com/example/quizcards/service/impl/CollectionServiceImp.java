@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.request.CollectionCreationRequest;
 import com.example.quizcards.dto.ICollectionDTO;
@@ -21,13 +21,13 @@ public class CollectionServiceImp implements ICollectionService {
     public List<ICollectionDTO> getAllCollection(){
         return collectionRepository.findAllCollection();
     }
-    public List<ICollectionDTO> getCollectionBySetId(int setId){
+    public List<ICollectionDTO> getCollectionBySetId(Long setId){
         return collectionRepository.findCollectionBySetId(setId);
     }
-    public List<ICollectionDTO> getCollectionByFolderId(int folderId){
+    public List<ICollectionDTO> getCollectionByFolderId(Long folderId){
         return collectionRepository.findCollectionByFolderId(folderId);
     }
-    public void addCollection(int folderId, int setId){
+    public void addCollection(Long folderId, Long setId){
         collectionRepository.createCollection(folderId, setId);
     }
     public void deleteCollection(Long id){

@@ -20,7 +20,7 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
             from folders f, app_users s
             where f.folder_id = :folder_id and f.user_id = s.user_id
             """, nativeQuery = true)
-    IFolderDTO findFolderById(@Param("folder_id") int folderId);
+    IFolderDTO findFolderById(@Param("folder_id") Long folderId);
 
     @Query(value = """
             select f.folder_id, f.title, f.created_at, f.updated_at, s.full_name
@@ -41,7 +41,7 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
             from set_flashcards s, app_users a, category_set_flashcards m, folders f, collection l
             where f.user_id = a.user_id and f.folder_id = l.folder_id and l.set_id = s.set_id and s.category_id = m.category_id and f.folder_id = :folder_id
             """, nativeQuery = true)
-    List<ISetFlashcardDTO> findSetByFolderId(@Param("folder_id") int folderId);
+    List<ISetFlashcardDTO> findSetByFolderId(@Param("folder_id") Long folderId);
 
     @Modifying
     @Transactional
@@ -59,7 +59,7 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
             delete from folders f
             where f.folder_id = :folder_id
             """, nativeQuery = true)
-    void deleteFolderById(@Param("folder_id") int folderId);
+    void deleteFolderById(@Param("folder_id") Long folderId);
 
     @Modifying
     @Transactional
@@ -68,7 +68,7 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
             set f.title = :title, f.updated_at = now(), f.user_id = :user_id
             where f.folder_id = :folder_id
             """, nativeQuery = true)
-    void updateFolder(@Param ("folder_id") int folderId,
+    void updateFolder(@Param ("folder_id") Long folderId,
                       @Param ("title") String title,
                       @Param ("user_id") Long userId);
 }

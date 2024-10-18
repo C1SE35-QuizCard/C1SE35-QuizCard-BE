@@ -7,7 +7,10 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "exam_details")
+@Table(name = "exam_details", indexes = {
+        @Index(name = "idx_test_id", columnList = "test_id"),
+        @Index(name = "idx_flashcard_id", columnList = "flashcard_id")
+})
 public class ExamDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public interface ICollectionDTO {
     Long getId();
-    int getFolderId();
-    int getSetId();
+    Long getFolderId();
+    Long getSetId();
     LocalDateTime getCreatedAt();
     LocalDateTime getUpdatedAt();
 }

@@ -8,9 +8,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_progress")
+@Table(name = "user_progress", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_card_id", columnList = "card_id"),
+        @Index(name = "idx_progress_type", columnList = "progress_type"),
+        @Index(name = "idx_marked_for_attention", columnList = "marked_for_attention")
+})
 public class UserProgress {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "progress_id")
@@ -26,4 +30,7 @@ public class UserProgress {
 
     @Column(name = "progress_type")
     private Boolean progressType;
+
+    @Column(name = "marked_for_attention")
+    private Boolean isAttention;
 }

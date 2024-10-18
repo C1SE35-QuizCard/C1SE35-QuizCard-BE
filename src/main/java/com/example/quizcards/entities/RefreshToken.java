@@ -16,10 +16,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "refresh_tokens", indexes = {
+        @Index(name = "idx_token", columnList = "token"),
+        @Index(name = "idx_user_id", columnList = "user_id")
+})
 public class RefreshToken implements Serializable {
     private static final long serialVersionUID = 1L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "token_id", nullable = false)
@@ -31,7 +33,6 @@ public class RefreshToken implements Serializable {
 
     @Column(name = "token", nullable = false, length = 255)
     private String token;
-
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
