@@ -1,4 +1,4 @@
-package com.example.quizcards.service.implement;
+package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.CategorySetFlashcardUpdateRequest;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
