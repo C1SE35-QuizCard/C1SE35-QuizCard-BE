@@ -25,6 +25,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
         return flashcardRepository.findAllFlashcards();
     }
 
+    @Override
     public void addFlashcard(String question, String answer, String imageLink, Boolean isApproved, Long setId) {
         flashcardRepository.createFlashcards(question, answer, imageLink, isApproved, setId);
     }

@@ -60,10 +60,10 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
 
     @Override
     @Transactional
-    public void updateRefreshTokenWithCurrentExpiredDate(RefreshToken refreshToken) {
+    public RefreshToken updateRefreshTokenWithCurrentExpiredDate(RefreshToken refreshToken) {
         refreshToken.setExpiryDate(
                 Instant.now().plusMillis(refreshTokenDurationSec).atZone(ZoneId.systemDefault()).toLocalDateTime()
         );
-        IRefreshTokenRepository.save(refreshToken);
+        return  IRefreshTokenRepository.save(refreshToken);
     }
 }

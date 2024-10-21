@@ -35,7 +35,7 @@ public class JwtTokenProvider {
     // Tạo Access Token
     public String generateAccessToken(UserPrincipal userPrincipal) {
         Map<String, String> claims = new HashMap<>();
-        claims.put("email", userPrincipal.getUsername());
+        claims.put("user_name", userPrincipal.getUsername());
         String roles = userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));

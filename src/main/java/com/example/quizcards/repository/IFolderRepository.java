@@ -1,6 +1,5 @@
 package com.example.quizcards.repository;
 
-import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.entities.Folder;
@@ -22,12 +21,15 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
             """, nativeQuery = true)
     IFolderDTO findFolderById(@Param("folder_id") Long folderId);
 
+    
     @Query(value = """
             select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
             from folders f, app_users s
             where f.user_id = :user_id and f.user_id = s.user_id
             """, nativeQuery = true)
-    List<IFolderDTO> findFoldersByIdUserId(@Param("user_id") Long userId);
+
+    List<IFolderDTO> findFoldersByUserId(@Param("user_id") Long userId);
+
 
     @Query(value = """
             select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name

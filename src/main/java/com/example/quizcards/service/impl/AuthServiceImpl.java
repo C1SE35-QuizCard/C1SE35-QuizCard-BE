@@ -1,6 +1,7 @@
 package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.request.LoginRequest;
+import com.example.quizcards.dto.request.RefreshTokenRequest;
 import com.example.quizcards.dto.request.SignupRequest;
 import com.example.quizcards.dto.request.UpdatePasswordRequest;
 import com.example.quizcards.dto.response.ApiResponse;
@@ -10,6 +11,7 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.TokenRefreshException;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.IRefreshTokenRepository;
@@ -32,6 +34,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements IAuthService {
@@ -147,6 +151,30 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         return ResponseEntity.ok(new ApiResponse(true, "User logout successfully"));
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request,
+                                                                    HttpServletResponse response) {
+        String requestRefreshToken = request.getRefreshToken();
+        return rfService.findByToken(requestRefreshToken)
+                .map(rfService::verifyExpiration)
+                .map(rfService::updateRefreshTokenWithCurrentExpiredDate)
+                .flatMap(refreshToken -> {
+                    AppUser user = refreshToken.getUser();
+                    UserPrincipal up = UserPrincipal.create(user);
+                    String token = jwtTokenProvider.generateAccessToken(up);
+
+                    JwtAuthenticationResponse jwtResponse = cs.generateTokenToCookie(response,
+                            token,
+                            refreshToken.getToken(),
+                            "Get access token succesfully!").getBody();
+
+                    return Optional.of(jwtResponse);
+                })
+                .map(responseEntity -> ResponseEntity.ok(responseEntity))
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Invalid refresh token!"));
     }
 
     @Override

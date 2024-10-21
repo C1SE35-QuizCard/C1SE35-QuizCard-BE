@@ -1,6 +1,7 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.request.LoginRequest;
+import com.example.quizcards.dto.request.RefreshTokenRequest;
 import com.example.quizcards.dto.request.SignupRequest;
 import com.example.quizcards.dto.request.UpdatePasswordRequest;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
@@ -16,4 +17,6 @@ public interface IAuthService {
     ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response);
 
     ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
+
+    ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request, HttpServletResponse response);
 }
