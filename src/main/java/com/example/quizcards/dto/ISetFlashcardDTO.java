@@ -13,5 +13,8 @@ public interface ISetFlashcardDTO {
     Boolean getSharingMode();
     String getFirstName();
     String getLastName();
+    String getUserName();
+    String getAvatar();
     String getCategoryName();
+    int getCardCount();
 }

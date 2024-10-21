@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @Table(name = "set_flashcards", indexes = {
         @Index(name = "idx_category_id", columnList = "category_id"),
         @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_title_fulltext", columnList = "title", unique = false)
 })
 public class SetFlashcard implements Serializable {
     @Id

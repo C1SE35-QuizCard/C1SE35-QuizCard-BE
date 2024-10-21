@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface IFolderRepository extends JpaRepository<Folder, Integer> {
+public interface IFolderRepository extends JpaRepository<Folder, Long> {
     @Query(value = """
             select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
             from folders f, app_users s
@@ -27,7 +27,9 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
             from folders f, app_users s
             where f.user_id = :user_id and f.user_id = s.user_id
             """, nativeQuery = true)
+
     List<IFolderDTO> findFoldersByUserId(@Param("user_id") Long userId);
+
 
     @Query(value = """
             select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
@@ -37,9 +39,10 @@ public interface IFolderRepository extends JpaRepository<Folder, Integer> {
     List<IFolderDTO> searchFolderByTitle(@Param("title") String title);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name
-            from set_flashcards s, app_users a, category_set_flashcards m, folders f, collection l
-            where f.user_id = a.user_id and f.folder_id = l.folder_id and l.set_id = s.set_id and s.category_id = m.category_id and f.folder_id = :folder_id
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name, a.avatar, a.user_name, COUNT(c.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards m, folders f, collection l, flashcards c
+            where f.user_id = a.user_id and f.folder_id = l.folder_id and l.set_id = s.set_id and s.category_id = m.category_id and f.folder_id = :folder_id and c.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findSetByFolderId(@Param("folder_id") Long folderId);
 
