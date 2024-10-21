@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IFolderService {
     IFolderDTO getFolderById(Long folderId);
-    IFolderDTO getFolderByUserId(Long userId);
+    List<IFolderDTO> getFoldersByUserId(Long userId);
     List<IFolderDTO> searchFolderByTitle(String title);
     List<ISetFlashcardDTO> getSetByFolderId(Long folderId);
     void addFolder(String title, Long userId);

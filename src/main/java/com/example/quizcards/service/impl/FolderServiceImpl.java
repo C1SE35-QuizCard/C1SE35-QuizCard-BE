@@ -22,8 +22,8 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public IFolderDTO getFolderByUserId(Long userId) {
-        return folderRepository.findFolderByIdUserId(userId);
+    public List<IFolderDTO> getFoldersByUserId(Long userId) {
+        return folderRepository.findFoldersByIdUserId(userId);
     }
 
     @Override
