@@ -83,9 +83,9 @@ public class DeadlineReminderControllder {
             if (request.getReminderTime().before(Timestamp.valueOf(LocalDateTime.now()))) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Reminder time must be at least the current time.");
             }
-            if (deadlineReminderService.existsByUserIdAndSetId(request.getUserId(), request.getSetId())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("A reminder for this user and set already exists.");
-            }
+//            if (deadlineReminderService.existsByUserIdAndSetId(request.getUserId(), request.getSetId())) {
+//                return ResponseEntity.status(HttpStatus.CONFLICT).body("A reminder for this user and set already exists.");
+//            }
             deadlineReminderService.addDeadlineReminder(request.getReminderTime(), request.getUserId(), request.getSetId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Deadline reminder created successfully");
         } catch (Exception e) {
@@ -126,9 +126,9 @@ public class DeadlineReminderControllder {
             if (request.getReminderTime().before(Timestamp.valueOf(LocalDateTime.now()))) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Reminder time must be at least the current time.");
             }
-            if (deadlineReminderService.existsByUserIdAndSetIdAndNotId(request.getUserId(), request.getSetId(), request.getDeadlineRemindersId())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("A reminder for this user and set already exists.");
-            }
+//            if (deadlineReminderService.existsByUserIdAndSetIdAndNotId(request.getUserId(), request.getSetId(), request.getDeadlineRemindersId())) {
+//                return ResponseEntity.status(HttpStatus.CONFLICT).body("A reminder for this user and set already exists.");
+//            }
             deadlineReminderService.updateDeadlineReminder(request);
             return new ResponseEntity<>("Deadline reminder updated successfully", HttpStatus.OK);
         } catch (Exception e) {

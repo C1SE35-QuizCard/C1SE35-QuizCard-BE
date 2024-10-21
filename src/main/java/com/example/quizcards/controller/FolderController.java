@@ -40,10 +40,10 @@ public class FolderController {
     @GetMapping("/user/{id}")
     public ResponseEntity<Object> getFolderByUserId(@PathVariable("id") Long userId){
         try {
-            if (folderService.getFolderByUserId(userId) == null) {
+            if (folderService.getFoldersByUserId(userId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for user ID " + userId);
             } else {
-                IFolderDTO folder = folderService.getFolderByUserId(userId);
+                List<IFolderDTO> folder = folderService.getFoldersByUserId(userId);
                 return ResponseEntity.ok(folder);
             }
         } catch (Exception e) {
