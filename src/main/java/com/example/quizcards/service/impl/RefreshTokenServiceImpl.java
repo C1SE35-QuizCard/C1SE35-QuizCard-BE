@@ -64,6 +64,11 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
         refreshToken.setExpiryDate(
                 Instant.now().plusMillis(refreshTokenDurationSec).atZone(ZoneId.systemDefault()).toLocalDateTime()
         );
-        return  IRefreshTokenRepository.save(refreshToken);
+        return IRefreshTokenRepository.save(refreshToken);
+    }
+
+    @Override
+    public void deleteByToken(String refreshToken) {
+        IRefreshTokenRepository.deleteByToken(refreshToken);
     }
 }

@@ -40,6 +40,6 @@ public class CookieSetter {
         response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
 
         return new ResponseEntity<>(new JwtAuthenticationResponse(
-                accessToken, refreshToken, message), HttpStatus.OK);
+                accessToken, refreshToken, message), HttpStatus.CREATED);
     }
 }

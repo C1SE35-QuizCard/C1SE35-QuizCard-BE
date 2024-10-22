@@ -11,12 +11,12 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
-import com.example.quizcards.repository.IAppRoleRepository;
-import com.example.quizcards.repository.IAppUserRepository;
-import com.example.quizcards.repository.IRefreshTokenRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
+import com.example.quizcards.service.IAppRoleService;
+import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.IAuthService;
 import com.example.quizcards.service.IRefreshTokenService;
 import com.example.quizcards.utils.CodeRandom;
@@ -40,10 +40,10 @@ import java.util.Optional;
 @Service
 public class AuthServiceImpl implements IAuthService {
     @Autowired
-    private IAppUserRepository IAppUserRepository;
+    private IAppRoleService appRoleService;
 
     @Autowired
-    private IAppRoleRepository IAppRoleRepository;
+    private IAppUserService appUserService;
 
     @Autowired
     private IRefreshTokenService rfService;
@@ -60,20 +60,17 @@ public class AuthServiceImpl implements IAuthService {
     @Autowired
     private CookieSetter cs;
 
-    @Autowired
-    private IRefreshTokenRepository IRefreshTokenRepository;
-
     @Override
     @Transactional
     public ResponseEntity<JwtAuthenticationResponse> registerUser(SignupRequest signupRequest, HttpServletResponse response) {
-        if (IAppUserRepository.existsByUsername(signupRequest.getUsername())) {
+        if (appUserService.existsByUsername(signupRequest.getUsername())) {
             throw new BadRequestException("Username is already taken");
         }
-        if (IAppUserRepository.existsByEmail(signupRequest.getEmail())) {
+        if (appUserService.existsByEmail(signupRequest.getEmail())) {
             throw new BadRequestException("Email is already registered");
         }
-        AppRole role = IAppRoleRepository.findByRoleName(RoleName.ROLE_FREE_USER.name())
-                .orElseThrow(() -> new BadRequestException("Role not found"));
+        AppRole role = appRoleService.findByRoleName(RoleName.ROLE_FREE_USER.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "Free user"));
 
         AppUser user = new AppUser();
         user.setFirstName(signupRequest.getFirstName());
@@ -87,7 +84,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setGender(true);
         user.setEnabled(true);
 
-        IAppUserRepository.save(user);
+        appUserService.save(user);
 
         UserPrincipal up = UserPrincipal.create(user);
 
@@ -147,7 +144,7 @@ public class AuthServiceImpl implements IAuthService {
             response.addHeader("Set-Cookie", cookie.toString());
             response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
 
-            IRefreshTokenRepository.deleteByToken(rft);
+            rfService.deleteByToken(rft);
         }
 
         return ResponseEntity.ok(new ApiResponse(true, "User logout successfully"));
@@ -180,7 +177,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     @Transactional
     public ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response) {
-        AppUser user = IAppUserRepository.findById(id).orElseThrow();
+        AppUser user = appUserService.findById(id).orElseThrow();
 
         if ((user.getHashPassword() != null && !user.getHashPassword().isEmpty()) &&
                 !passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getHashPassword())) {
@@ -189,7 +186,7 @@ public class AuthServiceImpl implements IAuthService {
 
         user.setHashPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
 
-        IAppUserRepository.save(user);
+        appUserService.save(user);
 
         return ResponseEntity.ok().body(new ApiResponse(true,
                 "User password has been updated successfully"));
@@ -200,7 +197,7 @@ public class AuthServiceImpl implements IAuthService {
         String newUserCode;
         do {
             newUserCode = CodeRandom.generateRandomCode(24);
-        } while (IAppUserRepository.existsByUserCode(newUserCode));
+        } while (appUserService.existsByUserCode(newUserCode));
         return newUserCode;
     }
 }
