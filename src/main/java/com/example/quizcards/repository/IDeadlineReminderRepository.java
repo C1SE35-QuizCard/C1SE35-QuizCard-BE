@@ -24,7 +24,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
             where d.deadline_reminders_id = :deadline_reminders_id
-            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             """, nativeQuery = true)
     IDeadlineReminderDTO findDeadlineReminderById(@Param("deadline_reminders_id") Long deadlineRemindersId);
 
@@ -37,7 +37,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             where d.reminder_time >= utc_timestamp() 
               and (s.user_id = :user_id or s.sharing_mode = true)
               and a.user_id = :user_id
-            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
     List<IDeadlineReminderDTO> findDeadlineReminderByUserId(@Param("user_id") Long userId);
@@ -49,7 +49,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
             where s.set_id = :set_id and d.reminder_time >= utc_timestamp()
-            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
     List<IDeadlineReminderDTO> findDeadlineReminderBySetId(@Param("set_id") Long setId);

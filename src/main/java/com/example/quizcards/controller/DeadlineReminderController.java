@@ -1,12 +1,9 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IDeadlineReminderDTO;
-import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.request.DeadlineReminderCreationRequest;
-import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IDeadlineReminderService;
-import com.example.quizcards.service.IFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +19,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/api/deadline")
-public class DeadlineReminderControllder {
+public class DeadlineReminderController {
 
     @Autowired
     private IDeadlineReminderService deadlineReminderService;
