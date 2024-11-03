@@ -48,13 +48,13 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
         deadlineReminderRepository.updateDeadlineReminder(request.getDeadlineRemindersId(), request.getReminderTime(), request.getUserId(), request.getSetId());
     }
 
-    @Override
-    public boolean existsByUserIdAndSetId(Long userId, Long setId){
-        return deadlineReminderRepository.existsByUserIdAndSetId(userId, setId) != 0;
-    }
-
-    @Override
-    public boolean existsByUserIdAndSetIdAndNotId(Long userId, Long setId, Long deadlineRemindersId) {
-        return deadlineReminderRepository.existsByUserIdAndSetIdAndNotId(userId, setId, deadlineRemindersId) > 0;
-    }
+//    @Override
+//    public boolean existsByUserIdAndSetId(Long userId, Long setId){
+//        return deadlineReminderRepository.existsByUserIdAndSetId(userId, setId) != 0;
+//    }
+//
+//    @Override
+//    public boolean existsByUserIdAndSetIdAndNotId(Long userId, Long setId, Long deadlineRemindersId) {
+//        return deadlineReminderRepository.existsByUserIdAndSetIdAndNotId(userId, setId, deadlineRemindersId) > 0;
+//    }
 }

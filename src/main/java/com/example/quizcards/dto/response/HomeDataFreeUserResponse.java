@@ -1,5 +1,6 @@
 package com.example.quizcards.dto.response;
 
+import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class HomeDataFreeUserResponse {
     private List<ISetFlashcardDTO> setsRelevantCategory;
     private List<ISetFlashcardDTO> setsPopular;
     private List<TopCreatorsResponse> topCreators;
-//    private List<Map<String, Object>> deadlines;
-//    private Map<String, Object> homePersonData;
+    private List<IDeadlineReminderDTO> deadlines;
+    private FreeUserProfileResponse personData;
     private String relevantCategory;
+    private String roleName;
 }

@@ -8,4 +8,6 @@ public interface IDeadlineReminderDTO {
     Timestamp getReminderTime();
     Long getUserId();
     Long getSetId();
+    String getTitle();
+    int getCardCount();
 }

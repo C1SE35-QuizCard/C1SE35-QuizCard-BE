@@ -1,9 +1,6 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.request.LoginRequest;
-import com.example.quizcards.dto.request.RefreshTokenRequest;
-import com.example.quizcards.dto.request.SignupRequest;
-import com.example.quizcards.dto.request.UpdatePasswordRequest;
+import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.security.UserPrincipal;
@@ -16,11 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -52,8 +47,19 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
-            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest, HttpServletResponse response) {
-        return authService.getAccessToken(refreshTokenRequest, response);
+            RefreshTokenRequest request, HttpServletResponse response) {
+        return authService.getAccessToken(request, response);
+    }
+
+    @PostMapping("/oauth2-login")
+    public ResponseEntity<JwtAuthenticationResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request, HttpServletResponse response) throws Exception {
+        return authService.googleLogin(request, response);
+    }
+
+    @GetMapping("/user-role")
+    public ResponseEntity<?> getUserRole() {
+        return authService.getUserRole();
     }
 
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")

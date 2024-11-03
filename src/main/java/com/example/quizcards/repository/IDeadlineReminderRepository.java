@@ -15,37 +15,51 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface IDeadlineReminderRepository extends JpaRepository<DeadlineReminder, Integer> {
+public interface IDeadlineReminderRepository extends JpaRepository<DeadlineReminder, Long> {
 
     @Query(value = """
-            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
-            from deadline_reminders d, app_users a, set_flashcards s
-            where d.deadline_reminders_id = :deadline_reminders_id and d.user_id = a.user_id and d.set_id = s.set_id
+            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title, COUNT(f.card_id) as card_count
+            from deadline_reminders d
+            join app_users a on d.user_id = a.user_id
+            join set_flashcards s on d.set_id = s.set_id
+            left join flashcards f on f.set_id = s.set_id
+            where d.deadline_reminders_id = :deadline_reminders_id
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             """, nativeQuery = true)
     IDeadlineReminderDTO findDeadlineReminderById(@Param("deadline_reminders_id") Long deadlineRemindersId);
 
     @Query(value = """
-            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
-            from deadline_reminders d, app_users a, set_flashcards s
-            where a.user_id = :user_id and d.user_id = a.user_id and d.set_id = s.set_id
+            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title, COUNT(f.card_id) as card_count
+            from deadline_reminders d
+            join app_users a on d.user_id = a.user_id
+            join set_flashcards s on d.set_id = s.set_id
+            left join flashcards f on f.set_id = s.set_id
+            where d.reminder_time >= utc_timestamp() 
+              and (s.user_id = :user_id or s.sharing_mode = true)
+              and a.user_id = :user_id
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
-    List<IDeadlineReminderDTO> findDeadlineReminderByUserId(@Param("user_id") Long UserId);
+    List<IDeadlineReminderDTO> findDeadlineReminderByUserId(@Param("user_id") Long userId);
 
     @Query(value = """
-            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id
-            from deadline_reminders d, app_users a, set_flashcards s
-            where s.set_id = :set_id and d.user_id = a.user_id and d.set_id = s.set_id
+            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title, COUNT(f.card_id) as card_count
+            from deadline_reminders d
+            join app_users a on d.user_id = a.user_id
+            join set_flashcards s on d.set_id = s.set_id
+            left join flashcards f on f.set_id = s.set_id
+            where s.set_id = :set_id and d.reminder_time >= utc_timestamp()
+            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
-    List<IDeadlineReminderDTO> findDeadlineReminderBySetId(@Param("set_id") Long SetId);
+    List<IDeadlineReminderDTO> findDeadlineReminderBySetId(@Param("set_id") Long setId);
 
 
     @Modifying
     @Transactional
     @Query(value = """
             insert into deadline_reminders(reminder_time, user_id, set_id)
-            values (:reminder_time, :user_id, :set_id)
+values (:reminder_time, :user_id, :set_id)
             """, nativeQuery = true)
     void createDeadlineReminder(@Param("reminder_time") Timestamp reminderTime,
                                 @Param("user_id") Long userId,
@@ -67,21 +81,21 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             where d.deadline_reminders_id = :deadline_reminders_id
             """, nativeQuery = true)
     void updateDeadlineReminder(@Param("deadline_reminders_id") Long deadlineRemindersId,
-                                    @Param("reminder_time") Timestamp reminderTime,
-                                    @Param("user_id") Long userId,
-                                    @Param("set_id") Long setId);
+                                @Param("reminder_time") Timestamp reminderTime,
+                                @Param("user_id") Long userId,
+                                @Param("set_id") Long setId);
 
-    @Query(value = """
-            select count(d.deadline_reminders_id)
-            from deadline_reminders d
-            where d.user_id = :user_id and d.set_id = :set_id
-            """, nativeQuery = true)
-    int existsByUserIdAndSetId(@Param("user_id") Long userId, @Param("set_id") Long setId);
-
-    @Query(value = """
-            SELECT COUNT(deadline_reminders_id)
-            FROM deadline_reminders
-            WHERE user_id = :user_id AND set_id = :set_id AND deadline_reminders_id <> :deadline_reminders_id
-            """, nativeQuery = true)
-    int existsByUserIdAndSetIdAndNotId(@Param("user_id") Long userId, @Param("set_id") Long setId, @Param("deadline_reminders_id") Long deadlineRemindersId);
+//    @Query(value = """
+//            select count(d.deadline_reminders_id)
+//            from deadline_reminders d
+//            where d.user_id = :user_id and d.set_id = :set_id
+//            """, nativeQuery = true)
+//    int existsByUserIdAndSetId(@Param("user_id") Long userId, @Param("set_id") Long setId);
+//
+//    @Query(value = """
+//            SELECT COUNT(deadline_reminders_id)
+//            FROM deadline_reminders
+//            WHERE user_id = :user_id AND set_id = :set_id AND deadline_reminders_id <> :deadline_reminders_id
+//            """, nativeQuery = true)
+//    int existsByUserIdAndSetIdAndNotId(@Param("user_id") Long userId, @Param("set_id") Long setId, @Param("deadline_reminders_id") Long deadlineRemindersId);
 }

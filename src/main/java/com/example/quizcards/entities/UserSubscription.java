@@ -1,4 +1,5 @@
 package com.example.quizcards.entities;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import jakarta.persistence.*;
 import java.sql.Timestamp;
@@ -36,5 +37,16 @@ public class UserSubscription {
     private StatusPaid statusPaid;
     public enum StatusPaid {
         UNPAID, PENDING, PAID
+    }
+
+    @NotNull
+    @Column(name = "token_payment", nullable = false, unique = true)
+    private String tokenPayment;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "token_type", nullable = false)
+    private TokenType type;
+    public enum TokenType {
+        PAYPAL, GOOGLE
     }
 }

@@ -6,6 +6,7 @@ import com.example.quizcards.service.ICustomUserDetailsService;
 import com.example.quizcards.service.IRefreshTokenService;
 import com.example.quizcards.utils.CookieSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -19,10 +20,13 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -43,13 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final List<String> excludeUrlPatterns = List.of(
-
-            "/api/v1/auth/**",
             "/ws/**",
-            "/api/**",
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/logout",
+            "/api/v1/auth/oauth2-login",
             "/api/v1/auth/refresh-token",
             "/ws/**"
     );
@@ -59,20 +61,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        try {
-            String jwt = getJwtFromRequest(request);
+        String jwt = getJwtFromRequest(request);
+        if (StringUtils.hasText(jwt)) {
             UserDetails userDetails;
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            try {
                 String userName = tokenProvider.getUsernameFromJWT(jwt);
 
                 userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
 
-                if (userDetails.isEnabled()) {
-                    setAuthentication(request, userDetails);
+                if (!userDetails.isEnabled()) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Username is banned");
+                    return;
                 }
+
+                setAuthentication(request, userDetails);
+            } catch (JwtException e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                return;
+            } catch (UsernameNotFoundException e) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Username not found");
+                return;
+            } catch (Exception ex) {
+                LOGGER.error("Could not set user authentication in security context", ex);
             }
-        } catch (Exception ex) {
-            LOGGER.error("Could not set user authentication in security context", ex);
         }
         filterChain.doFilter(request, response);
     }

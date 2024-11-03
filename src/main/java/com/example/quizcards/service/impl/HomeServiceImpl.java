@@ -3,7 +3,9 @@ package com.example.quizcards.service.impl;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.response.FreeUserProfileResponse;
 import com.example.quizcards.dto.response.HomeDataFreeUserResponse;
+import com.example.quizcards.dto.response.HomeDataGuessUserResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
@@ -16,7 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class HomeServiceImpl implements IHomeService {
@@ -48,12 +52,25 @@ public class HomeServiceImpl implements IHomeService {
         }
         List<ISetFlashcardDTO> setsPopular = setService.loadTop10PopularFlashcardSets(userId);
         List<TopCreatorsResponse> topCreators = setService.loadTop10PopularCreators();
-        List<IDeadlineReminderDTO> deadlineReminderDTOS = deadlineReminderService.getDeadlineReminderByUserId(userId);
+        List<IDeadlineReminderDTO> deadlines = deadlineReminderService.getDeadlineReminderByUserId(userId);
+
+        AppUser au = appUserService.findById(userId).get();
+
+        FreeUserProfileResponse personalData = new FreeUserProfileResponse(au.getUserId(), au.getFirstName(),
+                au.getLastName(), au.getEmail(), au.getUsername(), au.getAvatar());
 
         HomeDataFreeUserResponse homeDataFreeUserResponse = new HomeDataFreeUserResponse(setsRecentAccessed,
-                setsRelevantCategory, setsPopular, topCreators, relevantCategory);
+                setsRelevantCategory, setsPopular, topCreators, deadlines, personalData, relevantCategory,
+                au.getRole().getRoleName());
         return ResponseEntity.ok(homeDataFreeUserResponse);
     }
+
+    @Override
+    public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
+        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
+        return ResponseEntity.ok(response);
+    }
+
 
     @Override
     public ResponseEntity<?> getHomeData(Authentication authentication, HttpServletResponse response) {

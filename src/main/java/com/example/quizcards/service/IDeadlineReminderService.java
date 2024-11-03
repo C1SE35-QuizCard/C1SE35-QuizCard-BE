@@ -14,6 +14,6 @@ public interface IDeadlineReminderService {
     void addDeadlineReminder(Timestamp reminderTime, Long userId, Long setId);
     void deleteDeadlineReminder(Long deadlineRemindersId);
     void updateDeadlineReminder(DeadlineReminderCreationRequest request);
-    boolean existsByUserIdAndSetId(Long userId, Long setId);
-    boolean existsByUserIdAndSetIdAndNotId(Long userId, Long setId, Long deadlineRemindersId);
+//    boolean existsByUserIdAndSetId(Long userId, Long setId);
+//    boolean existsByUserIdAndSetIdAndNotId(Long userId, Long setId, Long deadlineRemindersId);
 }

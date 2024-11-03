@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Integer> {
+public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Long> {
     @Query(value = """
             select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f, set_flashcards s
@@ -23,30 +23,34 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id); // cho tất cả mọi người
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and f.set_id = s.set_id and s.sharing_mode = true
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards(); // cho tất cả mọi người
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id and f.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.user_id = :user_id
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.user_id = :user_id and f.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetByUserId(@Param("user_id") Long userId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and s.user_id = :user_id
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and s.user_id = :user_id and f.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublicByUserId(@Param("user_id") Long userId);
 
@@ -89,48 +93,59 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                             @Param("category_id") Long categoryId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.title like %:title% and s.sharing_mode = true
-            """, nativeQuery = true)
+        select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+        from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+        where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and MATCH(s.title) AGAINST(:title IN BOOLEAN MODE) and f.set_id = s.set_id
+        group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+        """, nativeQuery = true)
     List<ISetFlashcardDTO> searchByTitle(@Param("title") String title);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             order by s.updated_at DESC
             """, nativeQuery = true)
     List<ISetFlashcardDTO> sortByUpdatedDate();
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
-            from set_flashcards s, app_users a, category_set_flashcards c
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublic();
 
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved,
-                   s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name 
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                   s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name,
+                   COUNT(f.card_id) as card_count
             from set_flashcards s
             join app_users au on s.user_id = au.user_id
             join category_set_flashcards c on s.category_id = c.category_id
             join user_flashcard_settings ufs on s.set_id = ufs.set_id
+            join flashcards f on f.set_id = s.set_id
             where ufs.user_id = :user_id and (s.user_id = :user_id or s.sharing_mode = true)
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                     s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             order by ufs.last_accessed desc
             limit 10;
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findTop10RecentSetFlashcards(@Param("user_id") Long userId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved,
-                   s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                   s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name,
+                   COUNT(f.card_id) as card_count
             from set_flashcards s
             join app_users au on s.user_id = au.user_id
             join category_set_flashcards c on s.category_id = c.category_id
+            join flashcards f on f.set_id = s.set_id
             where s.category_id = :category_id and (s.user_id = :user_id or s.sharing_mode = true)
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                     s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             order by (
                 select count(ufs.user_id)
                 from user_flashcard_settings ufs
@@ -142,11 +157,13 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                                                        @Param("user_id") Long userId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved,
-                   s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, c.category_name
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                   s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name,
+                   COUNT(f.card_id) as card_count
             from set_flashcards s
             join app_users au on s.user_id = au.user_id
             join category_set_flashcards c on s.category_id = c.category_id
+            join flashcards f on f.set_id = s.set_id
             LEFT JOIN
                 (
                     SELECT set_id, COUNT(*) AS access_count
@@ -158,19 +175,22 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Int
                     SELECT category_id, COUNT(*) AS category_count
                     FROM set_flashcards
                     GROUP BY category_id
-                ) cc ON s.category_id = cc.category_id
+                ) cc ON s.category_id = cc.category_id            
             where (s.user_id = :user_id or s.sharing_mode = true)
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, 
+                     s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             order by (0.4 * IFNULL(ac.access_count, 0) + 0.1 * IFNULL(cc.category_count, 0)) DESC
             limit 10;
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findTop10PopularFlashcardSets(@Param("user_id") Long userId);
 
     @Query(value = """
-            select au.user_id, au.user_name, au.avatar,
-                   (select count(s.set_id) from set_flashcards s where s.sharing_mode = true)
-                       as total_sets
+            select au.user_id, au.user_name, au.avatar, count(s.user_id) as set_count 
             from app_users au
-            order by total_sets desc
+            join set_flashcards s on s.user_id = au.user_id
+            where s.sharing_mode = true
+            group by au.user_id, au.user_name, au.avatar
+            order by set_count desc
             limit 10;
             """, nativeQuery = true)
     List<TopCreatorsResponse> findTop10PopularCreators();
