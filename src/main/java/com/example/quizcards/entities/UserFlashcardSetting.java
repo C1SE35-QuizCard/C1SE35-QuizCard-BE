@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_flashcard_setting", indexes = {
+@Table(name = "user_flashcard_settings", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_set_id", columnList = "set_id"),
         @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id"),

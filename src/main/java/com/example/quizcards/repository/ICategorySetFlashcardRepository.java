@@ -38,6 +38,19 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             """, nativeQuery = true)
     List<ICategorySetFlashcardDTO> findAllCategorySetFlashcard();
 
+
+    @Query(value = """
+            select c.category_id, c.category_name
+            from category_set_flashcards c
+            join set_flashcards s on s.category_id = c.category_id
+            join user_flashcard_settings ufs on s.set_id = ufs.set_id
+            where ufs.user_id = :user_id
+            group by c.category_id, c.category_name
+            order by (count(c.category_id)) desc, ufs.last_accessed desc
+            limit 1;
+            """, nativeQuery = true)
+    List<ICategorySetFlashcardDTO> findTop1MostAccessedCategory(@Param("user_id") Long userId);
+
     @Modifying
     @Transactional
     @Query(value = """

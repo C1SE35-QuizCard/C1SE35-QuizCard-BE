@@ -15,13 +15,4 @@ public class FlashcardSettingResponse {
     private boolean shuffleMode;
     private boolean flipCardMode;
     private LocalDateTime lastAccessed;
-
-    public static FlashcardSettingResponse buildResponse(UserFlashcardSetting setting) {
-        FlashcardSettingResponse flashcardSettingResponse = new FlashcardSettingResponse();
-        flashcardSettingResponse.setShuffleMode(setting.isShuffleMode());
-        flashcardSettingResponse.setFlipCardMode(setting.isFlipCardMode());
-        flashcardSettingResponse.setLastCardIndex(setting.getLastCardIndex());
-        flashcardSettingResponse.setLastAccessed(setting.getLastAccessed());
-        return flashcardSettingResponse;
-    }
 }

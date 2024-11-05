@@ -117,6 +117,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(ErrorsDataException.class)
+    public ResponseEntity<?> resolveErrorsData(ErrorsDataException exception) {
+        return new ResponseEntity<>(exception, exception.getHttpStatus());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> resolveException(Exception ex) {
         System.out.println(ex.getMessage());

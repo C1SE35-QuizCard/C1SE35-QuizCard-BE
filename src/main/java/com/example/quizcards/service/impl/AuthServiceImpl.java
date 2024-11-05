@@ -1,9 +1,7 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.LoginRequest;
-import com.example.quizcards.dto.request.RefreshTokenRequest;
-import com.example.quizcards.dto.request.SignupRequest;
-import com.example.quizcards.dto.request.UpdatePasswordRequest;
+import com.example.quizcards.dto.GoogleInfoUser;
+import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.entities.AppRole;
@@ -11,14 +9,12 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ErrorsDataException;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
-import com.example.quizcards.repository.IAppRoleRepository;
-import com.example.quizcards.repository.IAppUserRepository;
-import com.example.quizcards.repository.IRefreshTokenRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
-import com.example.quizcards.service.IAuthService;
-import com.example.quizcards.service.IRefreshTokenService;
+import com.example.quizcards.service.*;
 import com.example.quizcards.utils.CodeRandom;
 import com.example.quizcards.utils.CookieSetter;
 import jakarta.servlet.http.Cookie;
@@ -30,20 +26,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements IAuthService {
     @Autowired
-    private IAppUserRepository IAppUserRepository;
+    private IGoogleHandleService googleHandleService;
 
     @Autowired
-    private IAppRoleRepository IAppRoleRepository;
+    private IAppRoleService appRoleService;
+
+    @Autowired
+    private IAppUserService appUserService;
 
     @Autowired
     private IRefreshTokenService rfService;
@@ -60,20 +64,20 @@ public class AuthServiceImpl implements IAuthService {
     @Autowired
     private CookieSetter cs;
 
-    @Autowired
-    private IRefreshTokenRepository IRefreshTokenRepository;
 
     @Override
     @Transactional
     public ResponseEntity<JwtAuthenticationResponse> registerUser(SignupRequest signupRequest, HttpServletResponse response) {
-        if (IAppUserRepository.existsByUsername(signupRequest.getUsername())) {
-            throw new BadRequestException("Username is already taken");
+        if (appUserService.existsByUsername(signupRequest.getUsername())) {
+            throw new ErrorsDataException("Register failed", Map.of("username", "Username is already taken"),
+                    HttpStatus.BAD_REQUEST);
         }
-        if (IAppUserRepository.existsByEmail(signupRequest.getEmail())) {
-            throw new BadRequestException("Email is already registered");
+        if (appUserService.existsByEmail(signupRequest.getEmail())) {
+            throw new ErrorsDataException("Register failed", Map.of("email", "Email is already registered"),
+                    HttpStatus.BAD_REQUEST);
         }
-        AppRole role = IAppRoleRepository.findByRoleName(RoleName.ROLE_FREE_USER.name())
-                .orElseThrow(() -> new BadRequestException("Role not found"));
+        AppRole role = appRoleService.findByRoleName(RoleName.ROLE_FREE_USER.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "Free user"));
 
         AppUser user = new AppUser();
         user.setFirstName(signupRequest.getFirstName());
@@ -87,7 +91,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setGender(true);
         user.setEnabled(true);
 
-        IAppUserRepository.save(user);
+        appUserService.save(user);
 
         UserPrincipal up = UserPrincipal.create(user);
 
@@ -121,14 +125,14 @@ public class AuthServiceImpl implements IAuthService {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("rft".equals(cookie.getName())) {
+                if ("refresh_token".equals(cookie.getName())) {
                     rft = cookie.getValue();
                 }
             }
         }
 
         if (rft != null) {
-            ResponseCookie cookie = ResponseCookie.from("token", "")
+            ResponseCookie cookie = ResponseCookie.from("access_token", "")
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
@@ -136,7 +140,7 @@ public class AuthServiceImpl implements IAuthService {
                     .maxAge(0)
                     .build(); // Thời gian tồn tại của cookie (0)
 
-            ResponseCookie newRefreshTokenCookie = ResponseCookie.from("rft", "")
+            ResponseCookie newRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
@@ -144,21 +148,38 @@ public class AuthServiceImpl implements IAuthService {
                     .maxAge(0)
                     .build();
 
-            response.addHeader("Set-Cookie", cookie.toString());
-            response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
+            response.addHeader("set-Cookie", cookie.toString());
+            response.addHeader("set-Cookie", newRefreshTokenCookie.toString());
 
-            IRefreshTokenRepository.deleteByToken(rft);
+            rfService.deleteByToken(rft);
         }
 
         return ResponseEntity.ok(new ApiResponse(true, "User logout successfully"));
     }
 
     @Override
+    public ResponseEntity<?> getUserRole() {
+        String role = "ROLE_GUEST";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            String username = authentication.getName();
+            if (username != null && !username.equals("anonymousUser")) {
+                Optional<AppUser> user = appUserService.findByUsername(username);
+
+                if (user.isPresent()) {
+                    role = user.get().getRole().getRoleName();
+                }
+            }
+        }
+        return ResponseEntity.status(200).body(role);
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request,
                                                                     HttpServletResponse response) {
-        String requestRefreshToken = request.getRefreshToken();
-        return rfService.findByToken(requestRefreshToken)
+        String rft = request.getRefreshToken();
+        return rfService.findByToken(rft)
                 .map(rfService::verifyExpiration)
                 .map(rfService::updateRefreshTokenWithCurrentExpiredDate)
                 .flatMap(refreshToken -> {
@@ -174,13 +195,77 @@ public class AuthServiceImpl implements IAuthService {
                     return Optional.of(jwtResponse);
                 })
                 .map(responseEntity -> ResponseEntity.ok(responseEntity))
-                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Invalid refresh token!"));
+                .orElseThrow(() -> new TokenRefreshException(rft, "Invalid refresh token!"));
+    }
+
+    private ResponseEntity<JwtAuthenticationResponse> authenOAuth2Login(String email,
+                                                                        HttpServletResponse response) {
+        AppUser user = appUserService.findByEmail(email).get();
+
+        if (!user.getEnabled()) {
+            throw new DisabledException("User is disabled");
+        }
+
+        UserPrincipal up = UserPrincipal.create(user);
+
+        String accessToken = jwtTokenProvider.generateAccessToken(up);
+
+        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User login successfully!");
+    }
+
+    private ResponseEntity<JwtAuthenticationResponse> registerByGoogleInfo(GoogleInfoUser g_user,
+                                                                           HttpServletResponse response) {
+        AppRole role = appRoleService.findByRoleName(RoleName.ROLE_FREE_USER.name())
+                .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "Free user"));
+
+        AppUser user = new AppUser();
+        user.setFirstName(g_user.getFirstName());
+        user.setLastName(g_user.getLastName());
+        user.setAvatar(g_user.getAvatarUrl());
+        user.setEmail(g_user.getEmail());
+        user.setHashPassword("");
+        user.setUserCode(g_user.getUserCode());
+        user.setRole(role);
+        user.setGender(true);
+        user.setEnabled(g_user.getEnabled());
+
+        String username = g_user.getUserName();
+
+        while (appUserService.existsByUsername(username)) {
+            username = g_user.getUserName() + "-" + UUID.randomUUID().toString().substring(0, 6);
+        }
+
+        user.setUsername(username);
+
+        appUserService.save(user);
+
+        UserPrincipal up = UserPrincipal.create(user);
+
+        String accessToken = jwtTokenProvider.generateAccessToken(up);
+
+        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User register successfully!");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<JwtAuthenticationResponse> googleLogin(GoogleLoginRequest request, HttpServletResponse response)
+            throws Exception {
+        GoogleInfoUser user = googleHandleService.extractDataFromCode(request);
+        if (appUserService.existsByEmail(user.getEmail())) {
+            return authenOAuth2Login(user.getEmail(), response);
+        } else {
+            return registerByGoogleInfo(user, response);
+        }
     }
 
     @Override
     @Transactional
     public ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response) {
-        AppUser user = IAppUserRepository.findById(id).orElseThrow();
+        AppUser user = appUserService.findById(id).orElseThrow();
 
         if ((user.getHashPassword() != null && !user.getHashPassword().isEmpty()) &&
                 !passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getHashPassword())) {
@@ -189,7 +274,7 @@ public class AuthServiceImpl implements IAuthService {
 
         user.setHashPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
 
-        IAppUserRepository.save(user);
+        appUserService.save(user);
 
         return ResponseEntity.ok().body(new ApiResponse(true,
                 "User password has been updated successfully"));
@@ -200,7 +285,7 @@ public class AuthServiceImpl implements IAuthService {
         String newUserCode;
         do {
             newUserCode = CodeRandom.generateRandomCode(24);
-        } while (IAppUserRepository.existsByUserCode(newUserCode));
+        } while (appUserService.existsByUserCode(newUserCode));
         return newUserCode;
     }
 }

@@ -1,9 +1,6 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.request.LoginRequest;
-import com.example.quizcards.dto.request.RefreshTokenRequest;
-import com.example.quizcards.dto.request.SignupRequest;
-import com.example.quizcards.dto.request.UpdatePasswordRequest;
+import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +11,12 @@ public interface IAuthService {
 
     ResponseEntity<JwtAuthenticationResponse> loginUser(LoginRequest loginRequest, HttpServletResponse response);
 
+    ResponseEntity<JwtAuthenticationResponse> googleLogin(GoogleLoginRequest googleLoginRequest, HttpServletResponse response)
+            throws Exception;
+
     ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response);
+
+    ResponseEntity<?> getUserRole();
 
     ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
 

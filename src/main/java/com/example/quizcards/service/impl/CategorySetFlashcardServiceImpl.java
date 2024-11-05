@@ -31,6 +31,11 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     }
 
     @Override
+    public List<ICategorySetFlashcardDTO> findTop1MostAccessedCategory(Long userId) {
+        return categoryRepository.findTop1MostAccessedCategory(userId);
+    }
+
+    @Override
     public void addCategorySetFlashcard(String categoryName){
         categoryRepository.createCategorySetFlashcard(categoryName);
     }

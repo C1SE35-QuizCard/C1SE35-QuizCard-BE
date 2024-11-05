@@ -3,6 +3,7 @@ package com.example.quizcards.service.impl;
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.SetFlashcardCreationRequest;
+import com.example.quizcards.dto.response.TopCreatorsResponse;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.service.ISetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,5 +71,25 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId) {
         return setFlashcardRepository.findAllSetPublicByUserId(userId);
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> loadTop10RecentSetFlashcards(Long userId) {
+        return setFlashcardRepository.findTop10RecentSetFlashcards(userId);
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> loadTop10RelevantByCategory(Long categoryId, Long userId) {
+        return setFlashcardRepository.findTop10RelevantByCategory(categoryId, userId);
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId) {
+        return setFlashcardRepository.findTop10PopularFlashcardSets(userId);
+    }
+
+    @Override
+    public List<TopCreatorsResponse> loadTop10PopularCreators() {
+        return setFlashcardRepository.findTop10PopularCreators();
     }
 }
