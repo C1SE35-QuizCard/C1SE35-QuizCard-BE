@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "folders")
+@Table(name = "folders", indexes = {
+        @Index(name = "idx_folder_title_fulltext", columnList = "title", unique = false)
+})
 public class Folder implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

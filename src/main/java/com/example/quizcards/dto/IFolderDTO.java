@@ -9,4 +9,5 @@ public interface IFolderDTO {
     LocalDateTime getUpdatedAt();
     String getFirstName();
     String getLastName();
+    int getSetCount();
 }
