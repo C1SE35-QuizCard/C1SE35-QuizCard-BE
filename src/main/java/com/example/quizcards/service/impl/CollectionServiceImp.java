@@ -1,9 +1,12 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.CollectionCreationRequest;
+import com.example.quizcards.dto.request.CollectionParamRequest;
+import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.dto.ICollectionDTO;
+import com.example.quizcards.helpers.CollectionHelpers.ICollectionHelpers;
 import com.example.quizcards.repository.ICollectionRepository;
 import com.example.quizcards.service.ICollectionService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +14,11 @@ import java.util.List;
 
 @Service
 public class CollectionServiceImp implements ICollectionService {
-
     @Autowired
     private ICollectionRepository collectionRepository;
+
+    @Autowired
+    private ICollectionHelpers collectionHelpers;
 
     @Override
     public ICollectionDTO getCollectionById(Long id){
@@ -46,7 +51,21 @@ public class CollectionServiceImp implements ICollectionService {
     }
 
     @Override
-    public void updateCollection(CollectionCreationRequest request){
+    public void updateCollection(CollectionRequest request){
         collectionRepository.updateCollection(request.getId(), request.getFolderId(), request.getSetId());
+    }
+
+    @Override
+    @Transactional
+    public void addCollection_2(CollectionParamRequest request) {
+        collectionHelpers.handleAddCollection(request);
+        collectionRepository.createCollection(request.getFolderId(), request.getSetId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteCollection_2(CollectionParamRequest request) {
+        collectionHelpers.handleDeleteCollection(request);
+        collectionRepository.deleteCollectionByFolderIdAndSetId(request.getFolderId(), request.getSetId());
     }
 }

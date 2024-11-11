@@ -47,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
-            RefreshTokenRequest request, HttpServletResponse response) {
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletResponse response) {
         return authService.getAccessToken(request, response);
     }
 

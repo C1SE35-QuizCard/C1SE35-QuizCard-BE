@@ -2,20 +2,42 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
-import com.example.quizcards.dto.request.SetFlashcardCreationRequest;
+import com.example.quizcards.dto.request.FlashcardInitializeRequest;
+import com.example.quizcards.dto.request.SetFlashcardRequest;
+import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
+import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.entities.CategorySetFlashcard;
+import com.example.quizcards.entities.Flashcard;
+import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
+import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Autowired
+    private ISetFlashcardHelpers setFlashcardHelpers;
+
+    @Autowired
     private ISetFlashcardRepository setFlashcardRepository;
+
+    @Autowired
+    private IFlashcardRepository flashcardRepository;
 
     @Override
     public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
@@ -25,6 +47,39 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public List<ISetFlashcardDTO> getAll() {
         return setFlashcardRepository.findAllSetFlashcards();
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> createNewSetFlashcards(SetFlashcardInitializeRequest request) {
+        setFlashcardHelpers.handleAddSetFlashcard(request);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        SetFlashcard set = SetFlashcard.builder()
+                .title(request.getTitle())
+                .descriptionSet(request.getDescriptionSet())
+                .isApproved(true)
+                .isAnonymous(request.getIsAnonymous())
+                .sharingMode(request.getSharingMode())
+                .user(AppUser.builder().userId(up.getId()).build())
+                .category(CategorySetFlashcard.builder().categoryId(request.getCategoryId()).build())
+                .build();
+
+        setFlashcardRepository.save(set);
+
+        List<Flashcard> flashcards = request.getFlashcards()
+                .stream().map(dto -> Flashcard.builder()
+                        .question(dto.getQuestion())
+                        .answer(dto.getAnswer())
+                        .imageLink(dto.getImageData())
+                        .isApproved(true)
+                        .set(SetFlashcard.builder().setId(set.getSetId()).build())
+                        .build()).toList();
+
+        flashcardRepository.saveAll(flashcards);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse(true, "Created set successfully"));
     }
 
 
@@ -40,12 +95,24 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     public void deleteSetFlashcard(Long setId) {
+        setFlashcardHelpers.handleDeleteSetFlashcard(setId);
         setFlashcardRepository.deleteSetFlashcardById(setId);
     }
 
     @Override
-    public void updateSetFlashcard(SetFlashcardCreationRequest request) {
-        setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(), request.getIsApproved(), request.getIsAnonymous(), request.getSharingMode(), request.getUserId(), request.getCategoryId());
+    public void updateSetFlashcard(SetFlashcardRequest request) {
+        setFlashcardHelpers.handleUpdateSetFlashcard(request);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
+        setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(),
+                true,
+                request.getIsAnonymous(),
+                request.getSharingMode(),
+                up.getId(),
+                request.getCategoryId()
+        );
     }
 
     @Override

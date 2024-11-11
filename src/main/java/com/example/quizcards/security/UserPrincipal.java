@@ -55,4 +55,9 @@ public class UserPrincipal implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities == null ? null : new ArrayList<>(authorities);
     }
+
+    public List<String> getRolesBaseAuthorities() {
+        return authorities == null ? new ArrayList<>() :
+                authorities.stream().map(GrantedAuthority::getAuthority).toList();
+    }
 }

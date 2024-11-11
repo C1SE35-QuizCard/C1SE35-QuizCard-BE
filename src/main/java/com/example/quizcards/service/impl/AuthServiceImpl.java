@@ -12,6 +12,7 @@ import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
+import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.*;
@@ -47,7 +48,7 @@ public class AuthServiceImpl implements IAuthService {
     private IAppRoleService appRoleService;
 
     @Autowired
-    private IAppUserService appUserService;
+    private IAppUserRepository appUserService;
 
     @Autowired
     private IRefreshTokenService rfService;
@@ -161,14 +162,12 @@ public class AuthServiceImpl implements IAuthService {
     public ResponseEntity<?> getUserRole() {
         String role = "ROLE_GUEST";
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() != null
+                && authentication.getPrincipal() instanceof UserPrincipal) {
             String username = authentication.getName();
-            if (username != null && !username.equals("anonymousUser")) {
-                Optional<AppUser> user = appUserService.findByUsername(username);
-
-                if (user.isPresent()) {
-                    role = user.get().getRole().getRoleName();
-                }
+            Optional<AppUser> user = appUserService.findByUsername(username);
+            if (user.isPresent()) {
+                role = user.get().getRole().getRoleName();
             }
         }
         return ResponseEntity.status(200).body(role);

@@ -1,5 +1,6 @@
 package com.example.quizcards.security;
 
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.service.ICustomUserDetailsService;
@@ -70,16 +71,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
 
                 if (!userDetails.isEnabled()) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Username is banned");
+                    ApiResponse apiResponse = new ApiResponse(false, "Username is banned");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
                     return;
                 }
 
-                setAuthentication(request, userDetails);
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    setAuthentication(request, userDetails);
+                }
             } catch (JwtException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                ApiResponse apiResponse = new ApiResponse(false, "Invalid JWT token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
                 return;
             } catch (UsernameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Username not found");
+                ApiResponse apiResponse = new ApiResponse(false, "Username not found");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
                 return;
             } catch (Exception ex) {
                 LOGGER.error("Could not set user authentication in security context", ex);

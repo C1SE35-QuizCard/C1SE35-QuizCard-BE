@@ -29,11 +29,20 @@ public class CategorySubscription {
     @Column(name = "subscriptions_description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "max_flashcards")
-    private Integer maxFlashcards;
+    @Column(name = "max_sets_flashcards")
+    private Integer maxSetsFlashcards;
 
-    @Column(name = "max_set_per_session")
-    private Integer maxSetPerSession;
+    @Column(name = "max_flashcards_per_set")
+    private Integer maxFlashcardsPerSet;
+
+    @Column(name = "max_sets_per_day")
+    private Integer maxSetsPerDay;
+
+    @Column(name = "max_rooms_create_per_day")
+    private Integer maxRoomsCreatePerDay;
+
+    @Column(name = "max_terms_per_room")
+    private Integer maxTermsPerRoom;
 
     @Column(name = "expired_month", nullable = false)
     private int expiredMonth;

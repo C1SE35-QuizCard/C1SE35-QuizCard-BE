@@ -40,11 +40,12 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
             insert into flashcards(question, answer, image_url, is_approved, created_at, updated_at, set_id)
             values (:question, :answer, :image_url, :is_approved, now(), now(),:set_id )
             """, nativeQuery = true)
-    void createFlashcards(@Param ("question") String question,
-                          @Param ("answer") String answer,
-                          @Param ("image_url") String imageLink,
-                          @Param ("is_approved") Boolean isApproved,
-                          @Param ("set_id") Long setId);
+    void createFlashcards(@Param("question") String question,
+                          @Param("answer") String answer,
+                          @Param("image_url") String imageLink,
+                          @Param("is_approved") Boolean isApproved,
+                          @Param("set_id") Long setId);
+
 
     @Modifying
     @Transactional
@@ -61,11 +62,25 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
             set f.question = :question, f.answer = :answer, f.image_url = :image_url, f.is_approved = :is_approved, f.updated_at = now(), f.set_id = :set_id
             where f.card_id = :card_id
             """, nativeQuery = true)
-    void updateFlashcards(@Param ("card_id") Long cardId,
-                          @Param ("question") String question,
-                          @Param ("answer") String answer,
-                          @Param ("image_url") String imageLink,
-                          @Param ("is_approved") Boolean isApproved,
-                          @Param ("set_id") Long setId);
+    void updateFlashcards(@Param("card_id") Long cardId,
+                          @Param("question") String question,
+                          @Param("answer") String answer,
+                          @Param("image_url") String imageLink,
+                          @Param("is_approved") Boolean isApproved,
+                          @Param("set_id") Long setId);
+
+    @Query(value = """
+            select count(f.card_id) 
+            from flashcards f
+            where f.set_id = :set_id
+            """, nativeQuery = true)
+    Integer countNumberOfCardsInSet(@Param("set_id") Long setId);
+
+    @Query(value = """
+            select count(1)
+            from flashcards f
+            where f.card_id = :card_id and f.set_id = :set_id
+            """, nativeQuery = true)
+    Integer countCardsByIdAndSetId(@Param("card_id") Long cardId, @Param("set_id") Long setId);
 }
 
