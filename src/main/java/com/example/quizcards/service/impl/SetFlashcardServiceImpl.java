@@ -54,6 +54,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    public List<ISetFlashcardDTO> searchMySetsByTitle(String title, Long userId){
+        return setFlashcardRepository.searchMySetsByTitle(title, userId);
+    }
+
+    @Override
     public List<ISetFlashcardDTO> sortByUpdatedDate() {
         return setFlashcardRepository.sortByUpdatedDate();
     }

@@ -27,14 +27,15 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<IFolderDTO> searchFolderByTitle(String title) {
-        return folderRepository.searchFolderByTitle(title);
+    public List<IFolderDTO> searchFolderByTitle(String title, Long userId) {
+        return folderRepository.searchFolderByTitle(title, userId);
     }
 
     @Override
-    public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
-        return folderRepository.findSetByFolderId(folderId);
+    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId, Long userId) {
+        return folderRepository.findSetByFolderIdAndUserId(folderId, userId);
     }
+
 
     @Override
     public void addFolder(String title, Long userId) {

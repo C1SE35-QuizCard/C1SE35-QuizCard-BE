@@ -21,10 +21,12 @@ public interface ISetFlashcardService {
     void updateSetFlashcard(SetFlashcardCreationRequest request);
     ISetFlashcardDTO findBySetId(Long setId);
     List<ISetFlashcardDTO> searchByTitle(String title);
+    List<ISetFlashcardDTO> searchMySetsByTitle(String title, Long userId);
     List<ISetFlashcardDTO> sortByUpdatedDate();
     List<ISetFlashcardDTO> getAllSetByUserId(Long userId);
     List<ISetFlashcardDTO> getAllSetPublic();
     List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId);
+
 
     List<ISetFlashcardDTO> loadTop10RecentSetFlashcards(Long userId);
     List<ISetFlashcardDTO> loadTop10RelevantByCategory(Long categoryId, Long userId);

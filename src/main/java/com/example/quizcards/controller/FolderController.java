@@ -54,13 +54,13 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/search/{title}")
-    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title){
+    @GetMapping("/search/{userId}/{title}")
+    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title, @PathVariable("userId") Long userId){
         try {
-            if (folderService.searchFolderByTitle(title).isEmpty()) {
+            if (folderService.searchFolderByTitle(title, userId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for title " + title);
             } else {
-                List<IFolderDTO> folders = folderService.searchFolderByTitle(title);
+                List<IFolderDTO> folders = folderService.searchFolderByTitle(title, userId);
                 return ResponseEntity.ok(folders);
             }
         } catch (Exception e) {
@@ -68,19 +68,20 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/set/{folder_id}")
-    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId) {
+    @GetMapping("/set/{userId}/{folder_id}")
+    public ResponseEntity<Object> findSetByFolderIdAndUserId(@PathVariable("folder_id") Long folderId, @PathVariable("userId") Long userId) {
         try {
-            if (folderService.getSetByFolderId(folderId).isEmpty()) {
+            if (folderService.findSetByFolderIdAndUserId(folderId, userId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No set found for folder ID " + folderId);
             } else {
-                List<ISetFlashcardDTO> sets = folderService.getSetByFolderId(folderId);
+                List<ISetFlashcardDTO> sets = folderService.findSetByFolderIdAndUserId(folderId, userId);
                 return ResponseEntity.ok(sets);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
+
 
     @PostMapping("/create")
     public ResponseEntity<Object> addFolder(@RequestBody @Validated FolderCreationRequest request, BindingResult bindingResult) {

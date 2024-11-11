@@ -142,6 +142,20 @@ public class SetFlashcardController {
         }
     }
 
+    @GetMapping("/search/{userId}/{title}")
+    public ResponseEntity<Object> searchMySetsByTitle(@PathVariable("title") String title, @PathVariable("userId") Long userId){
+        try {
+            if (setFlashcardService.searchMySetsByTitle(title, userId).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+            } else {
+                List<ISetFlashcardDTO> set = setFlashcardService.searchMySetsByTitle(title, userId);
+                return ResponseEntity.ok(set);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+        }
+    }
+
     @GetMapping("/sort")
     public ResponseEntity<Object> sortByUpdatedDate(){
         try {
