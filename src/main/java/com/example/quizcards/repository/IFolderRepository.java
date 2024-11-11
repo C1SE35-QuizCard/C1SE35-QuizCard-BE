@@ -15,26 +15,40 @@ import java.util.List;
 @Repository
 public interface IFolderRepository extends JpaRepository<Folder, Long> {
     @Query(value = """
-            select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
-            from folders f, app_users s
-            where f.folder_id = :folder_id and f.user_id = s.user_id
+            select f.folder_id, f.title, f.created_at, f.updated_at, s.first_name, s.last_name,
+                   (select count(*) from collection c where c.folder_id = f.folder_id) as set_count
+            from folders f
+            join app_users s on f.user_id = s.user_id
+            left join collection c on f.folder_id = c.folder_id
+            where f.folder_id = :folder_id
+            group by f.folder_id, s.first_name, s.last_name
             """, nativeQuery = true)
     IFolderDTO findFolderById(@Param("folder_id") Long folderId);
 
-    
-    @Query(value = """
-            select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
-            from folders f, app_users s
-            where f.user_id = :user_id and f.user_id = s.user_id
-            """, nativeQuery = true)
-
-    List<IFolderDTO> findFoldersByUserId(@Param("user_id") Long userId);
-
 
     @Query(value = """
-            select f.folder_id, f.title, f.created_at, f.updated_at, s.last_name, s.first_name
-            from folders f, app_users s
-            where f.title like %:title% and f.user_id = s.user_id
+    select f.folder_id, f.title, 
+           f.created_at, f.updated_at, 
+           a.first_name, a.last_name, 
+           count(l.set_id) as setCount
+    from folders f
+    join app_users a on f.user_id = a.user_id
+    left join collection l on f.folder_id = l.folder_id
+    where f.user_id = :userId
+    group by f.folder_id, f.title, f.created_at, f.updated_at, a.first_name, a.last_name
+    """, nativeQuery = true)
+    List<IFolderDTO> findFoldersByUserId(@Param("userId") Long userId);
+
+
+
+    @Query(value = """
+            select f.folder_id, f.title, f.created_at, f.updated_at, s.first_name, s.last_name,
+                   (select count(*) from collection c where c.folder_id = f.folder_id) as set_count
+            from folders f
+            join app_users s on f.user_id = s.user_id
+            left join collection c on f.folder_id = c.folder_id
+            where MATCH(f.title) AGAINST(:title IN BOOLEAN MODE)
+            group by f.folder_id, s.first_name, s.last_name
             """, nativeQuery = true)
     List<IFolderDTO> searchFolderByTitle(@Param("title") String title);
 
