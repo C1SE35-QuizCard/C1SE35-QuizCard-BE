@@ -2,7 +2,7 @@ package com.example.quizcards.helpers.FlashcardHelpers;
 
 import com.example.quizcards.dto.request.FlashcardCreateRequest;
 import com.example.quizcards.dto.request.FlashcardRequest;
-import com.example.quizcards.dto.response.CategorySubscriptionResponse;
+import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
@@ -58,7 +58,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
         }
     }
 
-    private void checkLimitCardForSpecificUser(FlashcardCreateRequest request, CategorySubscriptionResponse currentCs) {
+    private void checkLimitCardForSpecificUser(FlashcardCreateRequest request, CategorySubscription currentCs) {
         Integer numCards = flashcardRepository.countNumberOfCardsInSet(request.getSetId());
         if (numCards >= currentCs.getMaxFlashcardsPerSet()) {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
@@ -67,7 +67,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     private void checkAddForFreeUser(FlashcardCreateRequest request, UserPrincipal up,
-                                     CategorySubscriptionResponse currentCs) {
+                                     CategorySubscription currentCs) {
         checkLimitCardForSpecificUser(request, currentCs);
         if (request.getImageData() != null && !request.getImageData().isEmpty()) {
             throw new BadRequestException("User cannot be update any images.");
@@ -75,7 +75,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     private void checkAddForRemainingUser(FlashcardCreateRequest request, UserPrincipal up,
-                                          CategorySubscriptionResponse currentCs) {
+                                          CategorySubscription currentCs) {
         checkLimitCardForSpecificUser(request, currentCs);
     }
 
@@ -94,7 +94,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     public void handleAddFlashcard(FlashcardCreateRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        CategorySubscriptionResponse currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
+        CategorySubscription currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
         if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
             checkSetFlashcardOwner(request.getSetId(), up);
             checkAddForFreeUser(request, up, currentCs);

@@ -99,7 +99,7 @@ public class CategorySetFlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody CategorySetFlashcardCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateCategorySetFlashcard(@Validated @RequestBody CategorySetFlashcardCreationRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

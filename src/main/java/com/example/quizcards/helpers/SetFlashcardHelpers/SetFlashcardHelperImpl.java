@@ -3,7 +3,7 @@ package com.example.quizcards.helpers.SetFlashcardHelpers;
 import com.example.quizcards.dto.request.FlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
-import com.example.quizcards.dto.response.CategorySubscriptionResponse;
+import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
@@ -15,14 +15,8 @@ import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
 import com.example.quizcards.service.ICustomUserDetailsService;
-import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
@@ -55,7 +49,7 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     }
 
     private void checkAddForFreeUser(SetFlashcardInitializeRequest request, Long userId,
-                                     CategorySubscriptionResponse currentCs) {
+                                     CategorySubscription currentCs) {
         if (setFlashcardRepository.countNumberOfSetCreated(userId) >= currentCs.getMaxSetsFlashcards()) {
             throw new BadRequestException(String.format("The number of card sets is %d sets per user.",
                     currentCs.getMaxSetsFlashcards()));
@@ -79,7 +73,7 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     }
 
     private void checkAddForRemainingUser(SetFlashcardInitializeRequest request, Long userId,
-                                          CategorySubscriptionResponse currentCs) {
+                                          CategorySubscription currentCs) {
         if (request.getFlashcards().size() > currentCs.getMaxFlashcardsPerSet()) {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
                     currentCs.getMaxFlashcardsPerSet()));
@@ -96,7 +90,7 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     public void handleAddSetFlashcard(SetFlashcardInitializeRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        CategorySubscriptionResponse currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
+        CategorySubscription currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
         if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
             checkAddForFreeUser(request, up.getId(), currentCs);
         } else if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER.name())) {
