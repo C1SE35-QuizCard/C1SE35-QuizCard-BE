@@ -14,5 +14,4 @@ public class BenefitPlanResponse {
     private Integer maxRoomsCreatePerDay;
     private Integer maxTermsPerRoom;
     private int expiredMonth;
-    private Boolean notFreeUser;
 }

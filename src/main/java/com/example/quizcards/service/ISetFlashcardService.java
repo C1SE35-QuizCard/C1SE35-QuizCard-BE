@@ -30,6 +30,10 @@ public interface ISetFlashcardService {
 
     ISetFlashcardDTO findBySetId(Long setId);
 
+    ResponseEntity<?> countSetFlashcardCreatedInCurrentUser();
+
+    ResponseEntity<?> countSetFlashcardCreatedPerDayInCurrentUser();
+
     List<ISetFlashcardDTO> searchByTitle(String title);
 
     List<ISetFlashcardDTO> sortByUpdatedDate();

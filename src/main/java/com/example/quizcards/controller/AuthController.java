@@ -62,6 +62,12 @@ public class AuthController {
         return authService.getUserRole();
     }
 
+    @GetMapping("/is-free-user")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> isFreeUser() {
+        return authService.isFreeUser();
+    }
+
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     @PostMapping("update-password")
     public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,

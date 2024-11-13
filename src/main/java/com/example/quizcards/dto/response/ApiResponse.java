@@ -45,4 +45,11 @@ public class ApiResponse implements Serializable {
         this.message = message;
         this.status = httpStatus;
     }
+
+    public ApiResponse(Boolean success, String message, HttpStatus httpStatus, Object data) {
+        this.success = success;
+        this.message = message;
+        this.status = httpStatus;
+        this.data = data;
+    }
 }

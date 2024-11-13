@@ -70,6 +70,18 @@ public class SetFlashcardController {
         }
     }
 
+    @GetMapping("/count-set")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> countSetFlashcardCreated() {
+        return setFlashcardService.countSetFlashcardCreatedInCurrentUser();
+    }
+
+    @GetMapping("/count-set-in-current-date")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> countSetFlashcardCreatedPerDate() {
+        return setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser();
+    }
+
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> createSetFlashcard(@RequestBody @Validated SetFlashcardRequest request, BindingResult bindingResult) {

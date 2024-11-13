@@ -174,6 +174,23 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
+    public ResponseEntity<?> isFreeUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        boolean isFreeUser = false;
+        if (!up.getRolesBaseAuthorities().contains(RoleName.ROLE_ADMIN)
+                && !up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER)) {
+            if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER)) {
+                isFreeUser = true;
+            } else {
+                throw new RuntimeException("Invalid role");
+            }
+        }
+        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK, isFreeUser);
+        return ResponseEntity.status(200).body(apiResponse);
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request,
                                                                     HttpServletResponse response) {

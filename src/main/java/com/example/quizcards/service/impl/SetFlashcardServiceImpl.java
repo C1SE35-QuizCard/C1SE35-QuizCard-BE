@@ -89,6 +89,28 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    public ResponseEntity<?> countSetFlashcardCreatedInCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
+        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
+                setFlashcardRepository.countNumberOfSetCreated(up.getId()));
+
+        return ResponseEntity.status(200).body(apiResponse);
+    }
+
+    @Override
+    public ResponseEntity<?> countSetFlashcardCreatedPerDayInCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
+        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
+                setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(up.getId()));
+
+        return ResponseEntity.status(200).body(apiResponse);
+    }
+
+    @Override
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
         setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, userId, categoryId);
     }
