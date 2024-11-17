@@ -79,7 +79,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         flashcardRepository.saveAll(flashcards);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Created set successfully"));
+                .body(new ApiResponse(true, "Created set successfully",
+                        HttpStatus.OK, set.getSetId()));
     }
 
 

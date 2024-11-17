@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FlashcardInitializeRequest {
     @NotBlank(message = "Question of the flashcard is empty.")
-    @Size(max = 930, message = "Length of question must not be greater than 930")
+    @Size(max = 500, message = "Max length question is 500.")
     private String question;
 
     @NotBlank(message = "Answer of the flashcard is empty.")
-    @Size(max = 1850, message = "Length of answer must not be greater than 1850")
+    @Size(max = 500, message = "Max length answer is 500.")
     private String answer;
 
     //    private MultipartFile imageData;
