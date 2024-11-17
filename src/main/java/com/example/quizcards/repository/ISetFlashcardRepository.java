@@ -203,4 +203,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             limit 10;
             """, nativeQuery = true)
     List<TopCreatorsResponse> findTop10PopularCreators();
+
+    @Query(value = "select count(set_id) from flashcards where set_id = :setId", nativeQuery = true)
+    int countFlashcardsBySetId(@Param("setId") Long setId);
 }

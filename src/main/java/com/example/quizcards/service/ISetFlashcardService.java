@@ -26,6 +26,7 @@ public interface ISetFlashcardService {
     List<ISetFlashcardDTO> getAllSetByUserId(Long userId);
     List<ISetFlashcardDTO> getAllSetPublic();
     List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId);
+    int countFlashcardsBySetId(Long setId);
 
 
     List<ISetFlashcardDTO> loadTop10RecentSetFlashcards(Long userId);
