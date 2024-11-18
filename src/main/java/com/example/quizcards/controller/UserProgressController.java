@@ -2,7 +2,7 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
-import com.example.quizcards.dto.request.UserProgressCreationRequest;
+import com.example.quizcards.dto.request.UserProgressAdminRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class UserProgressController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressAdminRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -93,7 +93,7 @@ public class UserProgressController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateUserProgress(@Validated @RequestBody UserProgressCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateUserProgress(@Validated @RequestBody UserProgressAdminRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

@@ -1,6 +1,5 @@
 package com.example.quizcards.dto.response;
 
-import com.example.quizcards.entities.UserFlashcardSetting;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

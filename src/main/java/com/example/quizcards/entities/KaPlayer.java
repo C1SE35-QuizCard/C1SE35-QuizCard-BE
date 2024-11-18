@@ -26,7 +26,7 @@ public class KaPlayer {
     private Integer userScore;
 
     @Column(name = "answered_correctly", nullable = false)
-    private Integer answeredCorrectly ;
+    private Integer answeredCorrectly;
 
     @Column(name = "rounds_won")
     private Integer roundsWon;

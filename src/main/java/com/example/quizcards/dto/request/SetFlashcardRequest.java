@@ -20,6 +20,6 @@ public class SetFlashcardRequest {
     private Boolean isApproved;
     private Boolean isAnonymous;
     private Boolean sharingMode;
-    
+
     private Long categoryId;
 }

@@ -1,6 +1,5 @@
 package com.example.quizcards.helpers;
 
-import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;

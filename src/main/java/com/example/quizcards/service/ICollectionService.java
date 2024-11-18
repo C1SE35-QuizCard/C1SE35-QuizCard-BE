@@ -1,8 +1,7 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.request.CollectionParamRequest;
-import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.dto.ICollectionDTO;
+import com.example.quizcards.dto.request.CollectionRequest;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ public interface ICollectionService {
 
     void updateCollection(CollectionRequest request);
 
-    void addCollection_2(CollectionParamRequest request);
+    void addCollection_2(CollectionRequest request);
 
-    void deleteCollection_2(CollectionParamRequest request);
+    void deleteCollection_2(Long folderId, Long setId);
 }

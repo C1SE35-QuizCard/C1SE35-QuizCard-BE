@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlashcardRequest {
-    @NotNull(message = "Missing card id")
     private Long cardId;
 
     @NotBlank(message = "Question of the flashcard is empty.")
@@ -31,4 +30,6 @@ public class FlashcardRequest {
 
     @NotNull(message = "Missing set id")
     private Long setId;
+
+    private Long userId;
 }

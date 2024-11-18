@@ -2,7 +2,6 @@ package com.example.quizcards.helpers.FolderHelpers;
 
 import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.entities.Folder;
-import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.AuthenticationHelpers;
@@ -44,13 +43,8 @@ public class FolderHelpersImpl implements IFolderHelpers {
     }
 
     @Override
-    public void handleDeleteFolder(Long folderId) {
+    public void handleFolderOwner(Long folderId) {
         checkCurrentUserOwnerFolder(folderId);
-    }
-
-    @Override
-    public void handleUpdateFolder(FolderRequest request) {
-        checkCurrentUserOwnerFolder(request.getFolderId());
     }
 
     @Override

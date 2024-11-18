@@ -1,6 +1,5 @@
 package com.example.quizcards.helpers.FlashcardHelpers;
 
-import com.example.quizcards.dto.request.FlashcardCreateRequest;
 import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.entities.SetFlashcard;
@@ -58,7 +57,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
         }
     }
 
-    private void checkLimitCardForSpecificUser(FlashcardCreateRequest request, CategorySubscription currentCs) {
+    private void checkLimitCardForSpecificUser(FlashcardRequest request, CategorySubscription currentCs) {
         Integer numCards = flashcardRepository.countNumberOfCardsInSet(request.getSetId());
         if (numCards >= currentCs.getMaxFlashcardsPerSet()) {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
@@ -66,15 +65,15 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
         }
     }
 
-    private void checkAddForFreeUser(FlashcardCreateRequest request, UserPrincipal up,
+    private void checkAddForFreeUser(FlashcardRequest request, UserPrincipal up,
                                      CategorySubscription currentCs) {
         checkLimitCardForSpecificUser(request, currentCs);
-        if (request.getImageData() != null && !request.getImageData().isEmpty()) {
+        if (request.getImageLink() != null && !request.getImageLink().isEmpty()) {
             throw new BadRequestException("User cannot be update any images.");
         }
     }
 
-    private void checkAddForRemainingUser(FlashcardCreateRequest request, UserPrincipal up,
+    private void checkAddForRemainingUser(FlashcardRequest request, UserPrincipal up,
                                           CategorySubscription currentCs) {
         checkLimitCardForSpecificUser(request, currentCs);
     }
@@ -91,7 +90,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     @Override
-    public void handleAddFlashcard(FlashcardCreateRequest request) {
+    public void handleAddFlashcard(FlashcardRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         CategorySubscription currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
@@ -128,7 +127,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     @Override
-    public void handleAdminAddFlashcard(FlashcardCreateRequest request, Long userId) {
+    public void handleAdminAddFlashcard(FlashcardRequest request, Long userId) {
 
     }
 

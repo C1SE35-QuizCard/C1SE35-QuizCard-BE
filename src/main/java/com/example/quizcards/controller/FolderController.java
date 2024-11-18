@@ -1,6 +1,7 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.IFolderDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
@@ -151,10 +152,10 @@ public class FolderController {
                 .body(new ApiResponse(true, "Folder created successfully"));
     }
 
-    @DeleteMapping("/delete-folder/{id}")
+    @DeleteMapping("/delete-folder")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> deleteFolder_2(@PathVariable("id") Long folderId) {
-        folderService.deleteFolder_2(folderId);
+    public ResponseEntity<Object> deleteFolder_2(@Valid @RequestBody FolderRequest request) {
+        folderService.deleteFolder_2(request.getFolderId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(true, "Folder deleted successfully"));
     }

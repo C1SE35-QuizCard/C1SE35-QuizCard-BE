@@ -1,6 +1,7 @@
 package com.example.quizcards.helpers.CollectionHelpers;
 
 import com.example.quizcards.dto.request.CollectionParamRequest;
+import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.entities.Folder;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.AccessDeniedException;
@@ -62,14 +63,14 @@ public class CollectionHelpersImpl implements ICollectionHelpers {
     }
 
     @Override
-    public void handleDeleteCollection(CollectionParamRequest request) {
+    public void handleDeleteCollection(Long folderId) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        checkFolderOwner(request.getFolderId(), up);
+        checkFolderOwner(folderId, up);
     }
 
     @Override
-    public void handleAddCollection(CollectionParamRequest request) {
+    public void handleAddCollection(CollectionRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         checkFolderOwner(request.getFolderId(), up);

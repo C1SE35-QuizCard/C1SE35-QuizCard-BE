@@ -1,8 +1,8 @@
 package com.example.quizcards.validation;
 
-import org.passay.*;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.passay.*;
 
 import java.util.Arrays;
 

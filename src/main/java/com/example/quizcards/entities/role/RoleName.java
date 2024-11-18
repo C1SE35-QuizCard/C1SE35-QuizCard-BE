@@ -1,7 +1,7 @@
 package com.example.quizcards.entities.role;
 
 public enum RoleName {
-//    GUEST("Guest"),
+    //    GUEST("Guest"),
     ROLE_FREE_USER("ROLE_FREE_USER"),
     ROLE_PREMIUM_USER("ROLE_PREMIUM_USER"),
     ROLE_ADMIN("ROLE_ADMIN");

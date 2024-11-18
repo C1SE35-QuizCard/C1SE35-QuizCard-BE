@@ -1,6 +1,7 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.*;
+import com.example.quizcards.dto.IFolderDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.FolderRequest;
 
 import java.util.List;

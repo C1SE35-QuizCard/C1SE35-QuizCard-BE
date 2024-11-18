@@ -1,11 +1,12 @@
 package com.example.quizcards.helpers.CollectionHelpers;
 
 import com.example.quizcards.dto.request.CollectionParamRequest;
+import com.example.quizcards.dto.request.CollectionRequest;
 
 public interface ICollectionHelpers {
-    void handleDeleteCollection(CollectionParamRequest request);
+    void handleDeleteCollection(Long folderId);
 
-    void handleAddCollection(CollectionParamRequest request);
+    void handleAddCollection(CollectionRequest request);
 
     void handleAdminDeleteCollection(CollectionParamRequest request, Long userId);
 

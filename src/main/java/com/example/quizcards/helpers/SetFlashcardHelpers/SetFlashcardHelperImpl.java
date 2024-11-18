@@ -1,6 +1,6 @@
 package com.example.quizcards.helpers.SetFlashcardHelpers;
 
-import com.example.quizcards.dto.request.FlashcardInitializeRequest;
+import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.entities.CategorySubscription;
@@ -65,8 +65,8 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
                     currentCs.getMaxFlashcardsPerSet()));
         }
-        for (FlashcardInitializeRequest flashcards : request.getFlashcards()) {
-            if (flashcards.getImageData() != null && !flashcards.getImageData().isEmpty()) {
+        for (FlashcardRequest flashcards : request.getFlashcards()) {
+            if (flashcards.getImageLink() != null && !flashcards.getImageLink().isEmpty()) {
                 throw new BadRequestException("User cannot be update any images.");
             }
         }

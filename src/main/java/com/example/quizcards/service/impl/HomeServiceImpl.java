@@ -7,8 +7,6 @@ import com.example.quizcards.dto.response.FreeUserProfileResponse;
 import com.example.quizcards.dto.response.HomeDataFreeUserResponse;
 import com.example.quizcards.dto.response.HomeDataGuessUserResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
-import com.example.quizcards.entities.AppUser;
-import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,9 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class HomeServiceImpl implements IHomeService {

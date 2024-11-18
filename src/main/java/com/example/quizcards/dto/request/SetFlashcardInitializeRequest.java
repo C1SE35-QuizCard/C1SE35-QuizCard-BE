@@ -24,5 +24,5 @@ public class SetFlashcardInitializeRequest {
 
     @NotNull
     @Size(min = 2, message = "Need at least two flashcards for create set.")
-    private List<FlashcardInitializeRequest> flashcards;
+    private List<FlashcardRequest> flashcards;
 }

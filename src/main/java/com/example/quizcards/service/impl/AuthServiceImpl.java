@@ -8,14 +8,16 @@ import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.entities.role.RoleName;
-import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
-import com.example.quizcards.service.*;
+import com.example.quizcards.service.IAppRoleService;
+import com.example.quizcards.service.IAuthService;
+import com.example.quizcards.service.IGoogleHandleService;
+import com.example.quizcards.service.IRefreshTokenService;
 import com.example.quizcards.utils.CodeRandom;
 import com.example.quizcards.utils.CookieSetter;
 import jakarta.servlet.http.Cookie;
@@ -36,7 +38,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
