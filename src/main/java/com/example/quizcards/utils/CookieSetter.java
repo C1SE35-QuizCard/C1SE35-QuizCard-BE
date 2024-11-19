@@ -1,7 +1,6 @@
 package com.example.quizcards.utils;
 
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,10 +16,10 @@ public class CookieSetter {
     @Value("${jwt.refreshTokenExpirationInSec}")
     private Long refreshTokenDurationSec;
 
-    public  ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
-                                                                                  String accessToken,
-                                                                                  String refreshToken,
-                                                                                  String message) {
+    public ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
+                                                                           String accessToken,
+                                                                           String refreshToken,
+                                                                           String message) {
         ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
                 .secure(true)

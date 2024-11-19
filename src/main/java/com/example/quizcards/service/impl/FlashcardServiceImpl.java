@@ -1,9 +1,7 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.FlashcardCreateRequest;
-import com.example.quizcards.dto.request.FlashcardInitializeRequest;
-import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.helpers.FlashcardHelpers.IFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.service.IFlashcardService;
@@ -48,14 +46,14 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
-    public void addFlashcard_2(FlashcardCreateRequest request) {
+    public void addFlashcard_2(FlashcardRequest request) {
         flashcardHelpers.handleAddFlashcard(request);
-        flashcardRepository.createFlashcards(request.getQuestion(), request.getAnswer(), request.getImageData(),
+        flashcardRepository.createFlashcards(request.getQuestion(), request.getAnswer(), request.getImageLink(),
                 true, request.getSetId());
     }
 
     @Override
-    public void deleteFlashcard_2(Long setId, Long cardId) {
+    public void deleteFlashcard_2(Long cardId, Long setId) {
         flashcardHelpers.handleDeleteFlashcard(cardId, setId);
         flashcardRepository.deleteFlashcardById(cardId);
     }

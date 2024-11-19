@@ -9,10 +9,12 @@ import java.util.Map;
 public class ErrorDetail {
     private String message;
     private Map<String, String> errors;
+
     public ErrorDetail(String message) {
         this.message = message;
         this.errors = new HashMap<>();
     }
+
     public ErrorDetail(String message, List<FieldError> fieldErrors) {
         this.message = message;
         this.errors = new HashMap<>();

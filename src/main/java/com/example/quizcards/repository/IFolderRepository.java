@@ -27,18 +27,17 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
 
 
     @Query(value = """
-    select f.folder_id, f.title, 
-           f.created_at, f.updated_at, 
-           a.first_name, a.last_name, 
-           count(l.set_id) as setCount
-    from folders f
-    join app_users a on f.user_id = a.user_id
-    left join collection l on f.folder_id = l.folder_id
-    where f.user_id = :userId
-    group by f.folder_id, f.title, f.created_at, f.updated_at, a.first_name, a.last_name
-    """, nativeQuery = true)
+            select f.folder_id, f.title, 
+                   f.created_at, f.updated_at, 
+                   a.first_name, a.last_name, 
+                   count(l.set_id) as setCount
+            from folders f
+            join app_users a on f.user_id = a.user_id
+            left join collection l on f.folder_id = l.folder_id
+            where f.user_id = :userId
+            group by f.folder_id, f.title, f.created_at, f.updated_at, a.first_name, a.last_name
+            """, nativeQuery = true)
     List<IFolderDTO> findFoldersByUserId(@Param("userId") Long userId);
-
 
 
     @Query(value = """
@@ -66,8 +65,8 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
             insert into folders(title, created_at, updated_at, user_id)
             values (:title, now(), now(), :user_id)
             """, nativeQuery = true)
-    void createFolder(@Param ("title") String title,
-                      @Param ("user_id") Long userId);
+    void createFolder(@Param("title") String title,
+                      @Param("user_id") Long userId);
 
 
     @Modifying
@@ -85,7 +84,7 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
             set f.title = :title, f.updated_at = now(), f.user_id = :user_id
             where f.folder_id = :folder_id
             """, nativeQuery = true)
-    void updateFolder(@Param ("folder_id") Long folderId,
-                      @Param ("title") String title,
-                      @Param ("user_id") Long userId);
+    void updateFolder(@Param("folder_id") Long folderId,
+                      @Param("title") String title,
+                      @Param("user_id") Long userId);
 }

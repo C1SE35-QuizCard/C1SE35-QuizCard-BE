@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ICategorySetFlashcardRepository extends JpaRepository<CategorySetFlashcard, Long> {
@@ -57,7 +56,7 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             insert into category_set_flashcards(category_name)
             values (:category_name)
             """, nativeQuery = true)
-    void createCategorySetFlashcard(@Param ("category_name") String categoryName);
+    void createCategorySetFlashcard(@Param("category_name") String categoryName);
 
 
     @Modifying
@@ -75,6 +74,6 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             set c.category_name = :category_name
             where c.category_id = :category_id
             """, nativeQuery = true)
-    void updateCategorySetFlashcard(@Param ("category_id") Long categoryId,
-                                    @Param ("category_name") String categoryName);
+    void updateCategorySetFlashcard(@Param("category_id") Long categoryId,
+                                    @Param("category_name") String categoryName);
 }

@@ -1,6 +1,10 @@
 package com.example.quizcards.entities;
-import lombok.*;
+
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder

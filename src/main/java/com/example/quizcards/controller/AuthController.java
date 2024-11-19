@@ -2,7 +2,6 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
-import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,10 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -63,28 +60,12 @@ public class AuthController {
         return authService.getUserRole();
     }
 
-//    @GetMapping("/is-free-user")
-//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-//    public ResponseEntity<?> isFreeUser() {
-//        return authService.isFreeUser();
-//    }
-
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    @PostMapping("update-password")
-    public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
-                                                HttpServletResponse response) {
-        updatePasswordRequest.validate();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-
-        return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
-    }
     @GetMapping("/user-info")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getUserInfo() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
         Map<String, Object> results = new HashMap<>();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
         results.put("username", up.getUsername());
         results.put("role", up.getRolesBaseAuthorities());
         results.put("id", up.getId());
@@ -92,8 +73,17 @@ public class AuthController {
         results.put("avatar", up.getAvatar());
         results.put("firstname", up.getFirstName());
         results.put("lastname", up.getLastName());
-//        FreeUserProfileResponse personalData = new FreeUserProfileResponse(up.getId(), up.getFirstName(),
-//                up.getLastName(), up.getEmail(), up.getUsername(), up.getAvatar());
         return ResponseEntity.ok(results);
+    }
+
+    @PostMapping("update-password")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
+                                                HttpServletResponse response) {
+        updatePasswordRequest.validate();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
+        return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
     }
 }

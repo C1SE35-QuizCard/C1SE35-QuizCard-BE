@@ -3,9 +3,8 @@ package com.example.quizcards.helpers.FolderHelpers;
 import com.example.quizcards.dto.request.FolderRequest;
 
 public interface IFolderHelpers {
-    void handleDeleteFolder(Long folderId);
 
-    void handleUpdateFolder(FolderRequest request);
+    void handleFolderOwner(Long folderId);
 
     void handleAdminDeleteFolder(Long folderId, Long userId);
 

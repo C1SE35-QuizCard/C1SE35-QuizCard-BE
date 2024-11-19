@@ -1,10 +1,8 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.request.FlashcardCreateRequest;
-import com.example.quizcards.dto.request.FlashcardInitializeRequest;
-import com.example.quizcards.dto.request.FlashcardRequest;
-import com.example.quizcards.dto.IFlashcardDTO;
 
+import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.request.FlashcardRequest;
 
 import java.util.List;
 
@@ -19,9 +17,9 @@ public interface IFlashcardService {
 
     void updateFlashcard(FlashcardRequest request);
 
-    void addFlashcard_2(FlashcardCreateRequest request);
+    void addFlashcard_2(FlashcardRequest request);
 
-    void deleteFlashcard_2(Long setId, Long cardId);
+    void deleteFlashcard_2(Long cardId, Long setId);
 
     IFlashcardDTO findByCardId(Long cardId);
 }

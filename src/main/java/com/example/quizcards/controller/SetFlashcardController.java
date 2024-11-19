@@ -1,8 +1,9 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.SetFlashcardRequest;
+import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
+import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.security.UserPrincipal;
@@ -57,6 +58,11 @@ public class SetFlashcardController {
         }
     }
 
+    @GetMapping("/detail/cards/{id}")
+    public ResponseEntity<?> findAllFlashcardBySetId_2(@PathVariable("id") Long setId) {
+        return setFlashcardService.getAllFlashcardBySetId_2(setId);
+    }
+
     @GetMapping("/detail/{id}")
     public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") Long setId) {
         try {
@@ -68,6 +74,16 @@ public class SetFlashcardController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
+    }
+
+    @GetMapping("/set-detail/{id}")
+    public ResponseEntity<?> detailSetFlashcardById_2(@PathVariable("id") Long setId) {
+        return setFlashcardService.findBySetId_2(setId);
+    }
+
+    @GetMapping("/count-public-set/{id}")
+    public ResponseEntity<?> countSetFlashcardCreatedPublicByUserName(@PathVariable("id") Long userId) {
+        return setFlashcardService.countSetFlashcardCreatedPublic(userId);
     }
 
     @GetMapping("/count-set")
@@ -169,10 +185,10 @@ public class SetFlashcardController {
                 .body(new ApiResponse(true, "Set Flashcard updated successfully"));
     }
 
-    @DeleteMapping("/delete-set/{id}")
+    @DeleteMapping("/delete-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> deleteSetFlashcardById_2(@PathVariable("id") Long setId) {
-        setFlashcardService.deleteSetFlashcard(setId);
+    public ResponseEntity<?> deleteSetFlashcardById_2(@Valid @RequestBody SetFlashcardRequest request) {
+        setFlashcardService.deleteSetFlashcard(request.getSetId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(true, "Set Flashcard deleted successfully"));
     }
