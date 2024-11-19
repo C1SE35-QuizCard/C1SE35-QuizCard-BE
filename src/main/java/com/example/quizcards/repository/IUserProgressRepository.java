@@ -61,7 +61,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             where 
                 f.set_id = :set_id
             """, nativeQuery = true)
-    List<IFlashcardProgressDTO>findFlashcardsProgressBySetId(@Param("set_id") Long setId, @Param("user_id") Long userId);
+    List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(@Param("set_id") Long setId, @Param("user_id") Long userId);
 
 
     @Modifying
@@ -70,10 +70,10 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             insert into user_progress(progress_type, marked_for_attention, user_id, card_id)
             values (:progress_type, :marked_for_attention, :user_id, :card_id)
             """, nativeQuery = true)
-    void createUserProgress(@Param ("progress_type") Boolean progressType,
-                            @Param ("marked_for_attention") Boolean isAttention,
-                            @Param ("user_id") Long userId,
-                            @Param ("card_id") Long cardId);
+    void createUserProgress(@Param("progress_type") Boolean progressType,
+                            @Param("marked_for_attention") Boolean isAttention,
+                            @Param("user_id") Long userId,
+                            @Param("card_id") Long cardId);
 
     @Modifying
     @Transactional
@@ -91,10 +91,10 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             where u.progress_id = :progress_id
             """, nativeQuery = true)
     void updateUserProgress(@Param("progress_id") Long progressId,
-                            @Param ("progress_type") Boolean progressType,
-                            @Param ("marked_for_attention") Boolean isAttention,
-                            @Param ("user_id") Long userId,
-                            @Param ("card_id") Long cardId);
+                            @Param("progress_type") Boolean progressType,
+                            @Param("marked_for_attention") Boolean isAttention,
+                            @Param("user_id") Long userId,
+                            @Param("card_id") Long cardId);
 
 
     @Query(value = """

@@ -1,7 +1,8 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
+import com.example.quizcards.dto.ICategorySetFlashcardDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.CategorySetFlashcardAdminRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ICategorySetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/category")
+@RequestMapping("/api/v1/category")
 public class CategorySetFlashcardController {
 
     @Autowired
@@ -24,7 +25,7 @@ public class CategorySetFlashcardController {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching category set flashcards";
 
     @GetMapping("/list")
-    public ResponseEntity<Object> findAllCategorySetFlashcard(){
+    public ResponseEntity<Object> findAllCategorySetFlashcard() {
         try {
             if (categorySetFlashcardService.getAll().isEmpty()) {
                 return new ResponseEntity<>("No Categories Found", HttpStatus.NO_CONTENT);
@@ -38,7 +39,7 @@ public class CategorySetFlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") Long categoryId){
+    public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") Long categoryId) {
         try {
             if (!categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId).isEmpty()) {
                 List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId);
@@ -52,7 +53,7 @@ public class CategorySetFlashcardController {
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> detailCategorySetFlashcardById(@PathVariable("id") Long categoryId){
+    public ResponseEntity<Object> detailCategorySetFlashcardById(@PathVariable("id") Long categoryId) {
         try {
             if (categorySetFlashcardService.getCategorySetFlashcardById(categoryId) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Category Set Flashcard not found");
@@ -65,7 +66,7 @@ public class CategorySetFlashcardController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createCategorySetFlashcard(@RequestBody @Validated CategorySetFlashcardCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> createCategorySetFlashcard(@RequestBody @Validated CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -86,20 +87,20 @@ public class CategorySetFlashcardController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> deleteCategorySetFlashcardById(@PathVariable("id") Long categoryId) {
-        if(categorySetFlashcardService.getCategorySetFlashcardById(categoryId) != null) {
+        if (categorySetFlashcardService.getCategorySetFlashcardById(categoryId) != null) {
             try {
                 categorySetFlashcardService.deleteCategorySetFlashcard(categoryId);
                 return new ResponseEntity<>("Category Set Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the Category set flashcard:");
             }
-        }else{
+        } else {
             return new ResponseEntity<>("Category Set Flashcard not found", HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody CategorySetFlashcardCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateCategorySetFlashcard(@Validated @RequestBody CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -111,7 +112,7 @@ public class CategorySetFlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            if(categorySetFlashcardService.getCategorySetFlashcardById(request.getCategoryId()) == null) {
+            if (categorySetFlashcardService.getCategorySetFlashcardById(request.getCategoryId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Category Set Flashcard not found");
             }
             categorySetFlashcardService.updateCategorySetFlashcard(request);

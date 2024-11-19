@@ -1,8 +1,8 @@
 package com.example.quizcards.validation;
 
-import org.passay.*;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.passay.*;
 
 import java.util.Arrays;
 
@@ -28,8 +28,10 @@ public class PasswordConstraintValidator implements ConstraintValidator<ValidPas
         }
 
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(
-                        String.join(" ", validator.getMessages(result)))
+//        context.buildConstraintViolationWithTemplate(
+//                        String.join(" ", validator.getMessages(result)))
+//                .addConstraintViolation();
+        context.buildConstraintViolationWithTemplate(validator.getMessages(result).get(0))
                 .addConstraintViolation();
         return false;
     }

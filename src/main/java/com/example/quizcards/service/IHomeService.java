@@ -1,15 +1,15 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.response.HomeDataFreeUserResponse;
-import com.example.quizcards.dto.response.HomeDataGuessUserResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 public interface IHomeService {
-    ResponseEntity<HomeDataFreeUserResponse> getFreeUserHomeData(Long userId);
+    ResponseEntity<?> getHomeDataFreeUser(Authentication authentication, HttpServletResponse response);
 
-    ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId);
+    ResponseEntity<?> getHomeDataPremiumUser(Authentication authentication, HttpServletResponse response);
 
-    ResponseEntity<?> getHomeData(Authentication authentication, HttpServletResponse response);
+    ResponseEntity<?> getHomeDataAdmin(Authentication authentication, HttpServletResponse response);
+
+    ResponseEntity<?> getHomeDataGuest(HttpServletResponse response);
 }

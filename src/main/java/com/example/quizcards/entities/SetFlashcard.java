@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -33,11 +35,15 @@ public class SetFlashcard implements Serializable {
     @Column(name = "description_set", columnDefinition = "TEXT")
     private String descriptionSet;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Generated(GenerationTime.INSERT)
+    @Column(name = "created_at", nullable = false, updatable = false, insertable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Generated(GenerationTime.ALWAYS)
+    @Column(name = "updated_at", insertable = false, updatable = false, nullable = false,
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 

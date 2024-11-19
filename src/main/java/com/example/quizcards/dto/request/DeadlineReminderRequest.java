@@ -1,6 +1,5 @@
 package com.example.quizcards.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +11,7 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeadlineReminderCreationRequest {
+public class DeadlineReminderRequest {
     private Long deadlineRemindersId;
 
     @NotNull(message = "Reminder time cannot be null.")

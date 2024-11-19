@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategorySetFlashcardCreationRequest {
+public class CategorySetFlashcardAdminRequest {
 
     private Long categoryId;
 

@@ -2,7 +2,6 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
-import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -47,7 +46,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
-            RefreshTokenRequest request, HttpServletResponse response) {
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletResponse response) {
         return authService.getAccessToken(request, response);
     }
 
@@ -62,8 +61,24 @@ public class AuthController {
         return authService.getUserRole();
     }
 
+    @GetMapping("/user-info")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, Object> results = new HashMap<>();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        results.put("username", up.getUsername());
+        results.put("role", up.getRolesBaseAuthorities());
+        results.put("id", up.getId());
+        results.put("email", up.getEmail());
+        results.put("avatar", up.getAvatar());
+        results.put("firstname", up.getFirstName());
+        results.put("lastname", up.getLastName());
+        return ResponseEntity.ok(results);
+    }
+
     @PostMapping("update-password")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
                                                 HttpServletResponse response) {
         updatePasswordRequest.validate();

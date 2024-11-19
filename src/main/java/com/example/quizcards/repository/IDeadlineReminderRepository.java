@@ -1,9 +1,10 @@
 package com.example.quizcards.repository;
 
 import com.example.quizcards.dto.IDeadlineReminderDTO;
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.DeadlineReminder;
+import com.example.quizcards.entities.SetFlashcard;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -34,7 +34,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join app_users a on d.user_id = a.user_id
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
-            where d.reminder_time >= utc_timestamp() 
+            where d.reminder_time >= utc_timestamp()
               and (s.user_id = :user_id or s.sharing_mode = true)
               and a.user_id = :user_id
             group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
@@ -59,7 +59,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
     @Transactional
     @Query(value = """
             insert into deadline_reminders(reminder_time, user_id, set_id)
-values (:reminder_time, :user_id, :set_id)
+            values (:reminder_time, :user_id, :set_id)
             """, nativeQuery = true)
     void createDeadlineReminder(@Param("reminder_time") Timestamp reminderTime,
                                 @Param("user_id") Long userId,
@@ -84,6 +84,8 @@ values (:reminder_time, :user_id, :set_id)
                                 @Param("reminder_time") Timestamp reminderTime,
                                 @Param("user_id") Long userId,
                                 @Param("set_id") Long setId);
+
+    boolean existsBySetFlashcardsAndUser(SetFlashcard setFlashcard, AppUser user);
 
 //    @Query(value = """
 //            select count(d.deadline_reminders_id)

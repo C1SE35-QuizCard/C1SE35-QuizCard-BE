@@ -1,14 +1,14 @@
 package com.example.quizcards.config;
+
 import com.example.quizcards.security.JwtAuthenticationFilter;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
-
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,16 +40,42 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())  // Sử dụng phương pháp mới để vô hiệu hóa CSRF
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/user-info").authenticated()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/auth/update-password").authenticated()
+                        .requestMatchers("/api/v1/set/count-set").authenticated()
+                        .requestMatchers("/api/v1/set/count-set-in-current-date").authenticated()
+                        .requestMatchers("/api/v1/set/create-new-set").authenticated()
+                        .requestMatchers("/api/v1/set/update-set").authenticated()
+                        .requestMatchers("/api/v1/set/delete-set/").authenticated()
+                        .requestMatchers("/api/v1/flashcards/create-new-flashcard").authenticated()
+                        .requestMatchers("/api/v1/flashcards/update-flashcard").authenticated()
+                        .requestMatchers("/api/v1/flashcards/delete-flashcard").authenticated()
+                        .requestMatchers("/api/v1/folder/create-new-folder").authenticated()
+                        .requestMatchers("/api/v1/folder/update-folder").authenticated()
+                        .requestMatchers("/api/v1/folder/delete-folder").authenticated()
+                        .requestMatchers("/api/v1/collection/create-new-collection").authenticated()
+                        .requestMatchers("/api/v1/collection/delete-collection").authenticated()
+                        .requestMatchers("/api/v1/deadline/create-deadline").authenticated()
+                        .requestMatchers("/api/v1/deadline/update-deadline").authenticated()
+                        .requestMatchers("/api/v1/deadline/delete-deadline/").authenticated()
+                        .requestMatchers("/api/v1/category-subscription/current-benefit").authenticated()
+                        .requestMatchers("/api/v1/category-subscription/current-subscription").authenticated()
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(h -> h.disable())
-                .formLogin(f -> f.disable());
+                .formLogin(f -> f.disable())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Authentication required!\"}");
+                    response.getWriter().flush();
+                }));
 
         return http.build();
     }

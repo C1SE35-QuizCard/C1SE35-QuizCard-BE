@@ -1,7 +1,8 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.request.FlashcardRequest;
+import com.example.quizcards.helpers.FlashcardHelpers.IFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.service.IFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ public class FlashcardServiceImpl implements IFlashcardService {
 
     @Autowired
     private IFlashcardRepository flashcardRepository;
+
+    @Autowired
+    private IFlashcardHelpers flashcardHelpers;
 
     @Override
     public List<IFlashcardDTO> getAllBySetId(Long id) {
@@ -36,8 +40,22 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
-    public void updateFlashcard(FlashcardCreationRequest request) {
+    public void updateFlashcard(FlashcardRequest request) {
+        flashcardHelpers.handleUpdateFlashcard(request);
         flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getIsApproved(), request.getSetId());
+    }
+
+    @Override
+    public void addFlashcard_2(FlashcardRequest request) {
+        flashcardHelpers.handleAddFlashcard(request);
+        flashcardRepository.createFlashcards(request.getQuestion(), request.getAnswer(), request.getImageLink(),
+                true, request.getSetId());
+    }
+
+    @Override
+    public void deleteFlashcard_2(Long cardId, Long setId) {
+        flashcardHelpers.handleDeleteFlashcard(cardId, setId);
+        flashcardRepository.deleteFlashcardById(cardId);
     }
 
     @Override

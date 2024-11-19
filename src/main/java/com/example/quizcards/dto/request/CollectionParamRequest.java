@@ -1,18 +1,17 @@
 package com.example.quizcards.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CollectionCreationRequest {
-    private Long id;
+public class CollectionParamRequest {
+    @NotNull(message = "Missing folder id")
     private Long folderId;
+
+    @NotNull(message = "Missing set id")
     private Long setId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

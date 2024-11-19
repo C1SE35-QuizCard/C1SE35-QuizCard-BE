@@ -18,6 +18,8 @@ public interface IAuthService {
 
     ResponseEntity<?> getUserRole();
 
+    ResponseEntity<?> isFreeUser();
+
     ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
 
     ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request, HttpServletResponse response);

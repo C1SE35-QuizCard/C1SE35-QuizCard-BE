@@ -1,9 +1,7 @@
 package com.example.quizcards.repository;
 
 import com.example.quizcards.dto.ICollectionDTO;
-import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.entities.Collection;
-import com.example.quizcards.entities.Folder;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -50,7 +48,7 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             values (:folder_id, :set_id, now(), now())
             """, nativeQuery = true)
     void createCollection(@Param("folder_id") Long folderId,
-                          @Param ("set_id") Long setId);
+                          @Param("set_id") Long setId);
 
 
     @Modifying
@@ -68,7 +66,26 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             set c.folder_id = :folder_id, c.set_id = :set_id, c.updated_at = now()
             where c.id = :id
             """, nativeQuery = true)
-    void updateCollection(@Param ("id") Long id,
+    void updateCollection(@Param("id") Long id,
                           @Param("folder_id") Long folderId,
-                          @Param ("set_id") Long setId);
+                          @Param("set_id") Long setId);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            delete from collection c
+            where c.folder_id = :folder_id and c.set_id = :set_id
+            """, nativeQuery = true)
+    void deleteCollectionByFolderIdAndSetId(@Param("folder_id") Long folderId,
+                                            @Param("set_id") Long setId);
+
+
+    @Query(value = """
+            select count(1)
+            from collection c
+            where c.folder_id = :folder_id and c.set_id = :set_id
+            """, nativeQuery = true)
+    Integer countSetsByFolderIdAndSetId(@Param("folder_id") Long folderId,
+                                        @Param("set_id") Long setId);
 }
