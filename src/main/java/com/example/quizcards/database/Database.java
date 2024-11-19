@@ -54,12 +54,27 @@ public class Database {
             @Override
             public void run(String... args) throws Exception {
                 List<String> categories = List.of(
-                        "Math",
-                        "LOL",
-                        "Valorant",
-                        "CSGO",
-                        "Pubg",
-                        "Dota2");
+                        "Mathematics",
+                        "Physics",
+                        "Chemistry",
+                        "Biology",
+                        "History",
+                        "Geography",
+                        "English Literature",
+                        "Computer Science",
+                        "Physical Education",
+                        "Economics",
+                        "Sociology",
+                        "Psychology",
+                        "Music",
+                        "Art",
+                        "Philosophy",
+                        "Political Science",
+                        "Law",
+                        "Vietnamese Language",
+                        "Environmental Science",
+                        "Astronomy"
+                );
                 for (String category : categories) {
                     List<ICategorySetFlashcardDTO> chkCategory = repo.findByCategoryName(category);
                     if (!chkCategory.isEmpty()) {
@@ -73,6 +88,7 @@ public class Database {
             }
         };
     }
+
 
     @Bean
     CommandLineRunner initCategorySubscription(ICategorySubscriptionRepository repo) {

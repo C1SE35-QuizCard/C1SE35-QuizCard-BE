@@ -15,6 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -75,5 +78,22 @@ public class AuthController {
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
         return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
+    }
+    @GetMapping("/user-info")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        Map<String, Object> results = new HashMap<>();
+        results.put("username", up.getUsername());
+        results.put("role", up.getRolesBaseAuthorities());
+        results.put("id", up.getId());
+        results.put("email", up.getEmail());
+        results.put("avatar", up.getAvatar());
+        results.put("firstname", up.getFirstName());
+        results.put("lastname", up.getLastName());
+//        FreeUserProfileResponse personalData = new FreeUserProfileResponse(up.getId(), up.getFirstName(),
+//                up.getLastName(), up.getEmail(), up.getUsername(), up.getAvatar());
+        return ResponseEntity.ok(results);
     }
 }
