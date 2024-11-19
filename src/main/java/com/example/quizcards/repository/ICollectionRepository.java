@@ -71,16 +71,6 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
                           @Param("set_id") Long setId);
 
 
-    @Modifying
-    @Transactional
-    @Query(value = """
-            delete from collection c
-            where c.folder_id = :folder_id and c.set_id = :set_id
-            """, nativeQuery = true)
-    void deleteCollectionByFolderIdAndSetId(@Param("folder_id") Long folderId,
-                                            @Param("set_id") Long setId);
-
-
     @Query(value = """
             select count(1)
             from collection c

@@ -63,6 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/deadline/delete-deadline/").authenticated()
                         .requestMatchers("/api/v1/category-subscription/current-benefit").authenticated()
                         .requestMatchers("/api/v1/category-subscription/current-subscription").authenticated()
+                        .requestMatchers("/api/v1/flashcard-settings/update").authenticated()
+                        .requestMatchers("/api/v1/flashcard-settings/").authenticated()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().permitAll()
                 )

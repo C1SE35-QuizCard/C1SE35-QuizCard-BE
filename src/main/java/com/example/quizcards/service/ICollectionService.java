@@ -22,5 +22,5 @@ public interface ICollectionService {
 
     void addCollection_2(CollectionRequest request);
 
-    void deleteCollection_2(Long folderId, Long setId);
+    void deleteCollection_2(Long collectionId);
 }

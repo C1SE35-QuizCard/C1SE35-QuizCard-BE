@@ -17,6 +17,7 @@ import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal up = (UserPrincipal) auth.getPrincipal();
             userId = up.getId();
         }
@@ -119,7 +120,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public ResponseEntity<?> findBySetId_2(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal up = (UserPrincipal) auth.getPrincipal();
             userId = up.getId();
         }
@@ -130,7 +131,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                             HttpStatus.NOT_FOUND, null)
             );
         }
-        Map<String, Object> c = (new ObjectMapper()).convertValue(result, Map.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        Map c = mapper.convertValue(result, Map.class);
         AppUser ac = appUserService.findByUsername(result.getUserName()).orElseThrow();
         c.put("userId", ac.getUserId());
         return ResponseEntity.status(HttpStatus.OK).body(

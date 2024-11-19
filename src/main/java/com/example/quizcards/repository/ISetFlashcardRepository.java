@@ -30,15 +30,13 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             """, nativeQuery = true)
     List<IFlashcardDTO> findAllFlashcardsBySetId_2(@Param("set_id") Long setId); // cho Admin sử dụng
 
-    /* Cho tất cả User sử dụng, chỉ những set card public hoặc của người sở hữu nó,
-     * và các card đã phê duyệt
+    /* Cho tất cả User sử dụng, chỉ những set card public hoặc của người sở hữu nó
      *  */
     @Query(value = """
             select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
             where s.set_id = :set_id and (s.user_id = :user_id or s.sharing_mode = true)
-                and f.is_approved = true
             """, nativeQuery = true)
     List<IFlashcardDTO> findAllFlashcardsBySetId_3(@Param("set_id") Long setId, @Param("user_id") Long userId);
 

@@ -2,12 +2,13 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
-import com.example.quizcards.dto.request.UserProgressAdminRequest;
+import com.example.quizcards.dto.request.UserProgressRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -52,8 +53,15 @@ public class UserProgressController {
         }
     }
 
+    @GetMapping("/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getAllProgressBySetIdInCurrentUser(@PathVariable("set_id") Long setId) {
+        return userProgressService.findAllProgressByUserAndSet(setId);
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressAdminRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -79,6 +87,7 @@ public class UserProgressController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> deleteUserProgressById(@PathVariable("id") Long progressId) {
         if (userProgressService.findUserProgressById(progressId) != null) {
             try {
@@ -93,7 +102,65 @@ public class UserProgressController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateUserProgress(@Validated @RequestBody UserProgressAdminRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> updateUserProgress(@Validated @RequestBody UserProgressRequest request, BindingResult bindingResult) {
+        if (request == null) {
+            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
+        }
+        if (bindingResult.hasErrors()) {
+            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorDetail.addError(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(errorDetail);
+        }
+        try {
+            if (userProgressService.findUserProgressById(request.getProgressId()) == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Progress not found");
+            }
+            if (userProgressService.existsByUserIdAndCardIdAndNotId(request.getUserId(), request.getCardId(), request.getProgressId())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("A progress for this user and card already exists.");
+            }
+            userProgressService.updateUserProgress(request);
+            return new ResponseEntity<>("User Progress updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the User Progress");
+        }
+    }
+
+    @PostMapping("/create-new-progress")
+    public ResponseEntity<Object> addUserProgress_2(@RequestBody @Validated UserProgressRequest request, BindingResult bindingResult) {
+        try {
+            if (userProgressService.existsByUserIdAndCardId(request.getUserId(), request.getCardId())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("A progress for this user and card already exists.");
+            }
+            userProgressService.addUserProgress(request.getProgressType(),
+                    request.getIsAttention(),
+                    request.getUserId(),
+                    request.getCardId());
+            return ResponseEntity.status(HttpStatus.CREATED).body("User Progress created successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the User Progress");
+        }
+    }
+
+    @DeleteMapping("/delete-progress/{id}")
+    public ResponseEntity<Object> deleteUserProgressById_2(@PathVariable("id") Long progressId) {
+        if (userProgressService.findUserProgressById(progressId) != null) {
+            try {
+                userProgressService.deleteUserProgressById(progressId);
+                return new ResponseEntity<>("User Progress deleted successfully", HttpStatus.OK);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the User Progress");
+            }
+        } else {
+            return new ResponseEntity<>("User Progress not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/update-progress")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<Object> updateUserProgress_2(@Validated @RequestBody UserProgressRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

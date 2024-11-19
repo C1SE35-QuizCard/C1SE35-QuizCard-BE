@@ -3,6 +3,7 @@ package com.example.quizcards.repository;
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
+import com.example.quizcards.dto.response.ProgressResponse;
 import com.example.quizcards.entities.UserProgress;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,6 +41,9 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             """, nativeQuery = true)
     List<IUserProgressDTO> findUserSetProgress(@Param("user_id") Long userId);
 
+    // What !?
+    // Cái này cho admin đúng không ?
+    // Chỉ có trả về các trường như username, avatar, ..., mới cho admin thôi, cho user thì chắc không cần
     @Query(value = """
             select 
                 s.set_id,
@@ -104,6 +108,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             """, nativeQuery = true)
     IProgressDTO findUserProgressById(@Param("progress_id") Long progressId);
 
+
     @Query(value = """
             select count(u.progress_id)
             from user_progress u
@@ -118,4 +123,15 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             """, nativeQuery = true)
     int existsByUserIdAndCardIdAndNotId(@Param("user_id") Long userId, @Param("card_id") Long cardId, @Param("progress_id") Long progressId);
 
+
+    // Không truy vấn các bảng không liên quan
+    // Việc lọc set có sharing mode, hoặc người dùng sở hữu set đó sẽ ở bên logic be xử lý để tăng tốc truy vấn
+    @Query(value = """
+        select up.progress_id, up.card_id, au.user_id, up.progress_type, up.marked_for_attention
+        from UserProgress up
+        join flashcards f on up.card_id = f.card_id
+        join app_users au on up.user_id = au.user_id
+        where up.user_id = :user_id and f.set_id = :set_id
+    """, nativeQuery = true)
+    List<ProgressResponse> findAllProgressByUserAndSet_Performance(@Param("user_id") Long userId, @Param("set_id") Long setId);
 }
