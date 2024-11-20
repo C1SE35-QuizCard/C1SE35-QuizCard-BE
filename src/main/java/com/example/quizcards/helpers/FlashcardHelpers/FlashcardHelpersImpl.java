@@ -41,6 +41,9 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     private void checkSetFlashcardOwner(Long setId, UserPrincipal up) throws AccessDeniedException, ResourceNotFoundException {
+        if (setId == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
         SetFlashcard set = setFlashcardRepository.findById(setId).
                 orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
 
@@ -50,6 +53,12 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     private void checkFlashcardExists(Long cardId, Long setId) throws ResourceNotFoundException {
+        if (setId == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
+        if (cardId == null) {
+            throw new BadRequestException("Card id cannot be null");
+        }
         Integer flashcardExists = flashcardRepository.countCardsByIdAndSetId(cardId, setId);
 
         if (flashcardExists == null || flashcardExists == 0) {
@@ -58,6 +67,9 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     }
 
     private void checkLimitCardForSpecificUser(FlashcardRequest request, CategorySubscription currentCs) {
+        if (request.getSetId() == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
         Integer numCards = flashcardRepository.countNumberOfCardsInSet(request.getSetId());
         if (numCards >= currentCs.getMaxFlashcardsPerSet()) {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
@@ -128,17 +140,41 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
 
     @Override
     public void handleAdminAddFlashcard(FlashcardRequest request, Long userId) {
-
+        if (request.getSetId() == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
+        if (request.getCardId() == null) {
+            throw new BadRequestException("Card id cannot be null");
+        }
+        if (request.getUserId() == null) {
+            throw new BadRequestException("User id cannot be null");
+        }
     }
 
     @Override
     public void handleAdminUpdateFlashcard(FlashcardRequest request, Long userId) {
-
+        if (request.getSetId() == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
+        if (request.getCardId() == null) {
+            throw new BadRequestException("Card id cannot be null");
+        }
+        if (request.getUserId() == null) {
+            throw new BadRequestException("User id cannot be null");
+        }
     }
 
     @Override
     public void handleAdminDeleteFlashcard(Long cardId, Long setId, Long userId) {
-
+        if (cardId == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
+        if (setId == null) {
+            throw new BadRequestException("Card id cannot be null");
+        }
+        if (userId == null) {
+            throw new BadRequestException("User id cannot be null");
+        }
     }
 
 }

@@ -40,6 +40,9 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     }
 
     private void checkSetExists(Long setId) {
+        if (setId == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
         SetFlashcard set = setRepository.findById(setId).
                 orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
     }
@@ -54,6 +57,9 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     }
 
     private void checkDeadlineOwner(Long deadlineId, UserPrincipal up) {
+        if (deadlineId == null) {
+            throw new BadRequestException("Deadline id cannot be null");
+        }
         DeadlineReminder reminder = deadlineRepository.findById(deadlineId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder", "id", deadlineId));
 

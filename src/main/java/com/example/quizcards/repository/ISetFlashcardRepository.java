@@ -250,6 +250,4 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             limit 10;
             """, nativeQuery = true)
     List<TopCreatorsResponse> findTop10PopularCreators();
-
-
 }
