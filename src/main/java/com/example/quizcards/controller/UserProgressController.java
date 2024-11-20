@@ -54,7 +54,7 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/{set_id}")
+    @GetMapping("/set/{set_id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getAllProgressBySetIdInCurrentUser(@PathVariable("set_id") Long setId) {
         return userProgressService.findAllProgressByUserAndSet(setId);

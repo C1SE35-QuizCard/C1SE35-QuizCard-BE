@@ -4,14 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProgressResponse {
-    private Long progressId;
-    private Long cardId;
+public interface ProgressResponse {
+    Long getProgressId();
+    Long getCardId();
 //    private Long setId;
-    private Long userId;
-    private Integer progress;
-    private Integer mark;
+    Long getUserId();
+    Integer getProgress();
+    Integer getMark();
 }

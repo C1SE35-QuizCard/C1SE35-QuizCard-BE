@@ -4,6 +4,7 @@ import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ProgressResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Flashcard;
@@ -19,6 +20,7 @@ import com.example.quizcards.repository.IUserProgressRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,7 +63,9 @@ public class UserProgressServiceImpl implements IUserProgressService {
         }
         List<ProgressResponse> progressResponses = userProgressRepository.findAllProgressByUserAndSet_Performance(
                 up.getId(), setId);
-        return ResponseEntity.ok().body(progressResponses);
+        return ResponseEntity.ok().body(
+                new ApiResponse(true, "ok", HttpStatus.OK, progressResponses)
+        );
     }
 
     @Override
