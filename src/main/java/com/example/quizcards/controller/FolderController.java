@@ -1,7 +1,8 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.FolderCreationRequest;
+import com.example.quizcards.dto.request.FolderRequest;
+import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFolderService;
@@ -54,8 +55,8 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/search/{userId}/{title}")
-    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title, @PathVariable("userId") Long userId){
+    @GetMapping("/search/{title}")
+    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title, @PathVariable("title") Long userId){
         try {
             if (folderService.searchFolderByTitle(title, userId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for title " + title);
@@ -68,13 +69,15 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/set/{userId}/{folder_id}")
-    public ResponseEntity<Object> findSetByFolderIdAndUserId(@PathVariable("folder_id") Long folderId, @PathVariable("userId") Long userId) {
+    @GetMapping("/set/{folder_id}")
+    public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         try {
-            if (folderService.findSetByFolderIdAndUserId(folderId, userId).isEmpty()) {
+            if (folderService.findSetByFolderIdAndUserId(folderId, up.getId()).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No set found for folder ID " + folderId);
             } else {
-                List<ISetFlashcardDTO> sets = folderService.findSetByFolderIdAndUserId(folderId, userId);
+                List<ISetFlashcardDTO> sets = folderService.findSetByFolderIdAndUserId(folderId, up.getId());
                 return ResponseEntity.ok(sets);
             }
         } catch (Exception e) {
@@ -82,9 +85,8 @@ public class FolderController {
         }
     }
 
-
     @PostMapping("/create")
-    public ResponseEntity<Object> addFolder(@RequestBody @Validated FolderCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> addFolder(@RequestBody @Validated FolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -118,7 +120,7 @@ public class FolderController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderCreationRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

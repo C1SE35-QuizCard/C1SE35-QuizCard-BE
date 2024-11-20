@@ -18,8 +18,8 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/deadline")
-public class DeadlineReminderController {
+@RequestMapping("/api/v1/deadline")
+public class DeadlineReminderControllder {
 
     @Autowired
     private IDeadlineReminderService deadlineReminderService;

@@ -1,7 +1,6 @@
 package com.example.quizcards.repository;
 
 import com.example.quizcards.dto.ITestDTO;
-import com.example.quizcards.dto.ITestingDTO;
 import com.example.quizcards.entities.Test;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,31 +46,12 @@ public interface ITestRepository extends JpaRepository<Test, Long> {
     Test findTestId(@Param("test_id") Long testId);
 
     @Query(value = """
-            WITH RandomWrongAnswers AS (
-                SELECT
-                    f1.card_id AS flashcard_id,
-                    f1.question,
-                    f1.answer AS correct_answer,
-                    f2.answer AS wrong_answer,
-                    ROW_NUMBER() OVER (PARTITION BY f1.card_id ORDER BY RAND()) AS row_num
-                FROM
-                    flashcards f1
-                JOIN
-                    flashcards f2
-                ON
-                    f1.set_id = f2.set_id AND f1.card_id != f2.card_id
-            )
-            SELECT
-                flashcard_id,
-                question,
-                answer,
-                GROUP_CONCAT(wrong_answer SEPARATOR ', ') AS wrong_answers
-            FROM
-                RandomWrongAnswers
-            WHERE
-                row_num <= 3
-            GROUP BY
-                flashcard_id, question, answer
+            select count(1)
+            from test t
+            where t.test_id = :test_id
             """, nativeQuery = true)
-    List<ITestingDTO> createMultipleChoicesTest();
+    Integer countTestsById(@Param("test_id") Long testId);
+
+
+
 }

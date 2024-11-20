@@ -1,5 +1,6 @@
 package com.example.quizcards.security;
 
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.service.ICustomUserDetailsService;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -53,10 +55,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/auth/logout",
             "/api/v1/auth/oauth2-login",
             "/api/v1/auth/refresh-token",
-            "/ws/**"
+            "/api/v1/category/list",
+            "/api/v1/category/list/{{id}}",
+            "/api/v1/category/detail/{{id}}"
+    );
+
+    private final List<String> excludeIfThrows = List.of(
+            "/api/v1/auth/user-role"
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -70,17 +79,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
 
                 if (!userDetails.isEnabled()) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Username is banned");
+                    setResponseApiReturn(response, "Username is banned", HttpStatus.FORBIDDEN);
                     return;
                 }
 
-                setAuthentication(request, userDetails);
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    setAuthentication(request, userDetails);
+                }
             } catch (JwtException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-                return;
+                if (!byPassFilterIfThrows(request)) {
+                    setResponseApiReturn(response, "Invalid JWT Token", HttpStatus.UNAUTHORIZED);
+                    return;
+                }
             } catch (UsernameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Username not found");
-                return;
+                if (!byPassFilterIfThrows(request)) {
+                    setResponseApiReturn(response, "Username not found", HttpStatus.UNAUTHORIZED);
+                    return;
+                }
             } catch (Exception ex) {
                 LOGGER.error("Could not set user authentication in security context", ex);
             }
@@ -104,6 +119,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         );
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
+    }
+
+    private void setResponseApiReturn(HttpServletResponse response,
+                                      String message,
+                                      HttpStatus status) throws IOException {
+        ApiResponse apiResponse = new ApiResponse(false, message);
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+        new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
+    }
+
+    private boolean byPassFilterIfThrows(HttpServletRequest request) throws ServletException {
+        return excludeIfThrows.stream()
+                .anyMatch(p -> pathMatcher.match(p, request.getServletPath()));
     }
 
     @Override

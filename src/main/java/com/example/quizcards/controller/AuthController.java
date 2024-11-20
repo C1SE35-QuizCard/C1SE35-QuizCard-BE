@@ -15,8 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -47,7 +45,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
-            RefreshTokenRequest request, HttpServletResponse response) {
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletResponse response) {
         return authService.getAccessToken(request, response);
     }
 
@@ -61,6 +59,12 @@ public class AuthController {
     public ResponseEntity<?> getUserRole() {
         return authService.getUserRole();
     }
+
+//    @GetMapping("/is-free-user")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+//    public ResponseEntity<?> isFreeUser() {
+//        return authService.isFreeUser();
+//    }
 
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     @PostMapping("update-password")

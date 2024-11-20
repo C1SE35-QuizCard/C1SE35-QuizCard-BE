@@ -27,6 +27,8 @@ public class UserPrincipal implements UserDetails {
 
     private String username;
 
+    private String avatar;
+
     @JsonIgnore
     private String userCode;
 
@@ -46,13 +48,18 @@ public class UserPrincipal implements UserDetails {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getRoleName()));
 
         return new UserPrincipal(user.getUserId(),
-                user.getFirstName(), user.getLastName(), user.getUsername(), user.getUserCode(),
-                user.getEmail(), user.getHashPassword(), user.getEnabled(),
+                user.getFirstName(), user.getLastName(), user.getUsername(), user.getAvatar(),
+                user.getUserCode(), user.getEmail(), user.getHashPassword(), user.getEnabled(),
                 authorities);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities == null ? null : new ArrayList<>(authorities);
+    }
+
+    public List<String> getRolesBaseAuthorities() {
+        return authorities == null ? new ArrayList<>() :
+                authorities.stream().map(GrantedAuthority::getAuthority).toList();
     }
 }

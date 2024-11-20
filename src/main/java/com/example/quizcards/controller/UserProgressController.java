@@ -1,12 +1,9 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
-import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.request.UserProgressCreationRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
-import com.example.quizcards.service.IFlashcardService;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +17,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/progress/user")
+@RequestMapping("/api/v1/progress/user")
 public class UserProgressController {
 
     @Autowired

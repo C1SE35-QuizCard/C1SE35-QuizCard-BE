@@ -1,12 +1,17 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.request.FlashcardCreationRequest;
+import com.example.quizcards.dto.request.FlashcardCreateRequest;
+import com.example.quizcards.dto.request.FlashcardInitializeRequest;
+import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IFlashcardService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -16,7 +21,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/flashcards")
+@RequestMapping("/api/v1/flashcards")
 public class FlashcardController {
 
     @Autowired
@@ -65,7 +70,8 @@ public class FlashcardController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createFlashcard(@RequestBody @Validated FlashcardCreationRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> createFlashcard(@RequestBody @Validated FlashcardRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -90,6 +96,7 @@ public class FlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> deleteFlashcardById(@PathVariable("id") Long cardId) {
         if (flashcardService.findByCardId(cardId) != null) {
             try {
@@ -104,7 +111,8 @@ public class FlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateFlashcard(@Validated @RequestBody FlashcardCreationRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> updateFlashcard(@Validated @RequestBody FlashcardRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -124,5 +132,30 @@ public class FlashcardController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the flashcard");
         }
+    }
+
+    @PostMapping("/create-new-flashcard")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> createFlashcard_2(@Valid @RequestBody FlashcardCreateRequest request) {
+        flashcardService.addFlashcard_2(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse(true, "Flashcard created successfully"));
+    }
+
+    @DeleteMapping("/delete-flashcard/{setId}/{cardId}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> deleteFlashcardById_2(@PathVariable("setId") Long setId, @PathVariable("cardId") Long cardId) {
+        flashcardService.deleteFlashcard_2(setId, cardId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(true, "Flashcard deleted successfully"));
+    }
+
+    @PutMapping("/update-flashcard")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> updateFlashcard_2(@Validated @RequestBody FlashcardRequest request, BindingResult bindingResult) {
+        flashcardService.updateFlashcard(request);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(true, "Flashcard updated successfully"));
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -50,7 +51,7 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
         setting.setLastCardIndex(request.getLastCardIndex());
         setting.setShuffleMode(request.isShuffleMode());
         setting.setFlipCardMode(request.isFlipCardMode());
-        setting.setLastAccessed(request.getLastAccessed());
+        setting.setLastAccessed(LocalDateTime.now());
         UserFlashcardSetting new_setting = flashcardSettingRepository.save(setting);
         return new FlashcardSettingResponse(new_setting.getLastCardIndex(), new_setting.isShuffleMode(),
                 new_setting.isFlipCardMode(), new_setting.getLastAccessed());
@@ -65,7 +66,7 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
                 .lastCardIndex(request.getLastCardIndex())
                 .shuffleMode(request.isShuffleMode())
                 .flipCardMode(request.isFlipCardMode())
-                .lastAccessed(request.getLastAccessed())
+                .lastAccessed(LocalDateTime.now())
                 .build());
         return new FlashcardSettingResponse(new_setting.getLastCardIndex(), new_setting.isShuffleMode(),
                 new_setting.isFlipCardMode(), new_setting.getLastAccessed());

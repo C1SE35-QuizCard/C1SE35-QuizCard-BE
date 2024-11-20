@@ -38,8 +38,8 @@ public class HomeServiceImpl implements IHomeService {
 
     private String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
-    @Override
-    public ResponseEntity<HomeDataFreeUserResponse> getFreeUserHomeData(Long userId) {
+    public ResponseEntity<HomeDataFreeUserResponse> getFreeUserHomeData(UserPrincipal up) {
+        Long userId = up.getId();
         List<ISetFlashcardDTO> setsRecentAccessed = setService.loadTop10RecentSetFlashcards(userId);
         String relevantCategory = null;
         List<ISetFlashcardDTO> setsRelevantCategory = new ArrayList<>();
@@ -54,44 +54,40 @@ public class HomeServiceImpl implements IHomeService {
         List<TopCreatorsResponse> topCreators = setService.loadTop10PopularCreators();
         List<IDeadlineReminderDTO> deadlines = deadlineReminderService.getDeadlineReminderByUserId(userId);
 
-        AppUser au = appUserService.findById(userId).get();
 
-        FreeUserProfileResponse personalData = new FreeUserProfileResponse(au.getUserId(), au.getFirstName(),
-                au.getLastName(), au.getEmail(), au.getUsername(), au.getAvatar());
+        FreeUserProfileResponse personalData = new FreeUserProfileResponse(up.getId(), up.getFirstName(),
+                up.getLastName(), up.getEmail(), up.getUsername(), up.getAvatar());
 
         HomeDataFreeUserResponse homeDataFreeUserResponse = new HomeDataFreeUserResponse(setsRecentAccessed,
                 setsRelevantCategory, setsPopular, topCreators, deadlines, personalData, relevantCategory,
-                au.getRole().getRoleName());
+                up.getRolesBaseAuthorities().get(0));
         return ResponseEntity.ok(homeDataFreeUserResponse);
     }
 
-    @Override
     public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
         HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
         return ResponseEntity.ok(response);
     }
 
+    @Override
+    public ResponseEntity<?> getHomeDataFreeUser(Authentication authentication, HttpServletResponse response) {
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return getFreeUserHomeData(up);
+    }
 
     @Override
-    public ResponseEntity<?> getHomeData(Authentication authentication, HttpServletResponse response) {
-        String userRole = ROLE_ANONYMOUS;
-        Long userId = null;
-        if (authentication != null) {
-            UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-            AppUser user = appUserService.findById(up.getId()).orElse(null);
-            if (user != null) {
-                userRole = user.getRole().getRoleName();
-                userId = up.getId();
-            }
-        }
-        if (userRole.equals(RoleName.ROLE_FREE_USER.name())) {
-            return getFreeUserHomeData(userId);
-        } else if (userRole.equals(RoleName.ROLE_PREMIUM_USER.name())) {
-            throw new UnsupportedOperationException("Not implemented yet");
-        } else if (userRole.equals(RoleName.ROLE_ADMIN.name())) {
-            throw new UnsupportedOperationException("Not implemented yet");
-        } else {
-            throw new UnsupportedOperationException("Not implemented yet");
-        }
+    public ResponseEntity<?> getHomeDataPremiumUser(Authentication authentication, HttpServletResponse response) {
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return getFreeUserHomeData(up);
+    }
+
+    @Override
+    public ResponseEntity<?> getHomeDataAdmin(Authentication authentication, HttpServletResponse response) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<?> getHomeDataGuest(HttpServletResponse response) {
+        return getGuestUserHomeData(-1L);
     }
 }
