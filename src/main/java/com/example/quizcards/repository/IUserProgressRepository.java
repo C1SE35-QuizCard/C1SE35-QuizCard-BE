@@ -117,6 +117,15 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
     int existsByUserIdAndCardId(@Param("user_id") Long userId, @Param("card_id") Long cardId);
 
     @Query(value = """
+            SELECT CASE WHEN EXISTS (
+                SELECT 1
+                FROM user_progress u
+                WHERE u.user_id = :user_id AND u.card_id = :card_id
+            ) THEN 1 ELSE 0 END AS result;
+            """, nativeQuery = true)
+    int existsByUserIdAndCardId_2(@Param("user_id") Long userId, @Param("card_id") Long cardId);
+
+    @Query(value = """
             select COUNT(u.progress_id)
             from user_progress u
             where u.user_id = :user_id and u.card_id = :card_id and u.progress_id <> :progress_id

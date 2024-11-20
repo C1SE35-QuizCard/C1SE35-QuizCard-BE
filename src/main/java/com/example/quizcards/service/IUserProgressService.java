@@ -25,6 +25,8 @@ public interface IUserProgressService {
 
     void updateUserProgress_2(UserProgressRequest request);
 
+    ResponseEntity<?> assignUserProgress(UserProgressRequest request);
+
     IProgressDTO findUserProgressById(Long progressId);
 
     boolean existsByUserIdAndCardId(Long userId, Long cardId);

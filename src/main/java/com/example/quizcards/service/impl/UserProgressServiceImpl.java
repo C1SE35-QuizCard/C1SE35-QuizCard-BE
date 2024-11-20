@@ -5,8 +5,15 @@ import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
 import com.example.quizcards.dto.response.ProgressResponse;
+import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.entities.UserProgress;
+import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ResourceConflictException;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.repository.IUserProgressRepository;
 import com.example.quizcards.security.UserPrincipal;
@@ -28,6 +35,9 @@ public class UserProgressServiceImpl implements IUserProgressService {
 
     @Autowired
     private ISetFlashcardRepository setRepository;
+
+    @Autowired
+    private IFlashcardRepository cardRepository;
 
     @Override
     public List<IUserProgressDTO> findUserSetProgress(Long userId) {
@@ -71,6 +81,9 @@ public class UserProgressServiceImpl implements IUserProgressService {
 
     @Override
     public void addUserProgress_2(UserProgressRequest request) {
+        if (request.getCardId() == null) {
+            throw new BadRequestException("Progress id is null");
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         userProgressRepository.createUserProgress(request.getProgressType(), request.getIsAttention(),
@@ -79,20 +92,70 @@ public class UserProgressServiceImpl implements IUserProgressService {
 
     @Override
     public void deleteUserProgressById_2(Long progressId) {
+        if (progressId == null) {
+            throw new BadRequestException("Progress id is null");
+        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        UserProgress ups = userProgressRepository.findById(progressId).orElseThrow(
+                () -> new ResourceNotFoundException("Progress", "id", progressId)
+        );
+        if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
+            throw new ResourceNotFoundException("Progress not owner", "id", progressId);
+        }
         userProgressRepository.deleteUserProgressById(progressId);
     }
 
     @Override
     public void updateUserProgress_2(UserProgressRequest request) {
         if (request.getProgressId() == null) {
-            throw new NullPointerException("Progress id is null");
+            throw new BadRequestException("Progress id is null");
+        }
+        if (request.getCardId() == null) {
+            throw new BadRequestException("Progress id is null");
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        UserProgress ups = userProgressRepository.findById(request.getProgressId()).orElseThrow(
+                () -> new ResourceNotFoundException("Progress", "id", request.getProgressId())
+        );
+        if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
+            throw new ResourceNotFoundException("Progress not owner", "id", request.getProgressId());
+        }
         userProgressRepository.updateUserProgress(request.getProgressId(), request.getProgressType(),
                 request.getIsAttention(), up.getId(), request.getCardId());
     }
 
+    @Override
+    public ResponseEntity<?> assignUserProgress(UserProgressRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        UserProgress ups = new UserProgress();
+        if (request.getProgressId() != null) {
+            // nếu id != null, mặc định là update
+            ups = userProgressRepository.findById(request.getProgressId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Progress", "id", request.getProgressId())
+            );
+            if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
+                throw new AccessDeniedException("Progress not owner");
+            }
+            ups.setProgressType(request.getProgressType() == null ? ups.getProgressType() : request.getProgressType());
+            ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
+        } else {
+            // nếu không thì add
+            if (!cardRepository.existsById(request.getCardId())) {
+                throw new ResourceNotFoundException("Card", "id", request.getCardId());
+            }
+            if (userProgressRepository.existsByUserIdAndCardId_2(up.getId(), request.getCardId()) == 1) {
+                throw new ResourceConflictException("Progress already assigned");
+            }
+            ups.setProgressType(request.getProgressType() == null ? false : request.getProgressType());
+            ups.setIsAttention(request.getIsAttention() == null ? false : request.getIsAttention());
+            ups.setFlashcard(Flashcard.builder().cardId(request.getCardId()).build());
+            ups.setAppUser(AppUser.builder().userId(request.getUserId()).build());
+        }
+        return ResponseEntity.ok().body(userProgressRepository.save(ups));
+    }
 
     @Override
     public IProgressDTO findUserProgressById(Long progressId) {

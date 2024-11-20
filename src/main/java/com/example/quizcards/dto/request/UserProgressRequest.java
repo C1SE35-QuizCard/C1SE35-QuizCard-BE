@@ -20,14 +20,4 @@ public class UserProgressRequest {
 
     @NotNull
     private Long cardId;
-
-    @JsonProperty("progressType")
-    public void setProgressType(Boolean progressType) {
-        this.progressType = (progressType != null) ? progressType : false;
-    }
-
-    @JsonProperty("isAttention")
-    public void setIsAttention(Boolean isAttention) {
-        this.isAttention = (isAttention != null) ? isAttention : false;
-    }
 }
