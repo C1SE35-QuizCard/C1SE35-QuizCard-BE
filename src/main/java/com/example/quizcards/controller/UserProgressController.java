@@ -38,7 +38,7 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/{user_id}/{set_id}")
+    @GetMapping("/{user_id}/set/{set_id}")
     public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("user_id") Long userId, @PathVariable("set_id") Long setId) {
         try {
             if (userProgressService.findFlashcardsProgressBySetId(setId, userId).isEmpty()) {
@@ -105,9 +105,7 @@ public class UserProgressController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            if (userProgressService.findUserProgressById(request.getProgressId()) == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Progress not found");
-            }
+
             if (userProgressService.existsByUserIdAndCardIdAndNotId(request.getUserId(), request.getCardId(), request.getProgressId())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("A progress for this user and card already exists.");
             }

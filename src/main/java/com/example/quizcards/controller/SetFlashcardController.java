@@ -8,6 +8,7 @@ import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.example.quizcards.service.IUserProgressService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -172,7 +173,7 @@ public class SetFlashcardController {
 //    }
 
     @PostMapping("/create-new-set")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
         return setFlashcardService.createNewSetFlashcards(request);
     }
