@@ -15,7 +15,7 @@ public class DeadlineReminderRequest {
     private Long deadlineRemindersId;
 
     @NotNull(message = "Reminder time cannot be null.")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
     private Timestamp reminderTime;
 
     private Long userId;

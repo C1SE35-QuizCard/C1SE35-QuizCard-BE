@@ -2,7 +2,6 @@ package com.example.quizcards.helpers.DeadlineHelpers;
 
 import com.example.quizcards.dto.request.DeadlineReminderRequest;
 import com.example.quizcards.dto.response.ApiResponse;
-import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.DeadlineReminder;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.BadRequestException;
@@ -49,9 +48,8 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
 
     private void checkNotDeadlineValid(DeadlineReminderRequest request, UserPrincipal up) {
         checkSetExists(request.getSetId());
-        SetFlashcard set = SetFlashcard.builder().setId(request.getSetId()).build();
-        AppUser au = AppUser.builder().userId(up.getId()).build();
-        if (deadlineRepository.existsBySetFlashcardsAndUser(set, au)) {
+        if (!deadlineRepository.getDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId())
+                .isEmpty()) {
             throw new BadRequestException("Deadline reminder already exists");
         }
     }
