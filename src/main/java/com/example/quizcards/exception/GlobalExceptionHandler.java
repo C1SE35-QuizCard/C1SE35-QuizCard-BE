@@ -132,6 +132,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<ApiResponse> resolveResourceConflict(ResourceConflictException exception) {
+        ApiResponse apiResponse = exception.getApiResponse();
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
+    }
+
 
     @ExceptionHandler(TokenRefreshException.class)
     public ResponseEntity<ApiResponse> resolveTokenRefresh(TokenRefreshException exception) {

@@ -4,7 +4,7 @@ import com.example.quizcards.dto.request.CollectionParamRequest;
 import com.example.quizcards.dto.request.CollectionRequest;
 
 public interface ICollectionHelpers {
-    void handleDeleteCollection(Long folderId);
+    void handleDeleteCollection(Long collectionId);
 
     void handleAddCollection(CollectionRequest request);
 

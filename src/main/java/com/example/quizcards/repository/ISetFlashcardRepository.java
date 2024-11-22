@@ -23,27 +23,6 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id); // cho tất cả mọi người
 
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
-            from flashcards f
-            join set_flashcards s on f.set_id = s.set_id
-            where f.set_id = :set_id
-            """, nativeQuery = true)
-    List<IFlashcardDTO> findAllFlashcardsBySetId_2(@Param("set_id") Long setId); // cho Admin sử dụng
-
-    /* Cho tất cả User sử dụng, chỉ những set card public hoặc của người sở hữu nó,
-     * và các card đã phê duyệt
-     *  */
-    @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
-            from flashcards f
-            join set_flashcards s on f.set_id = s.set_id
-            where s.set_id = :set_id and (s.user_id = :user_id or s.sharing_mode = true)
-                and f.is_approved = true
-            """, nativeQuery = true)
-    List<IFlashcardDTO> findAllFlashcardsBySetId_3(@Param("set_id") Long setId, @Param("user_id") Long userId);
-
-
-    @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and f.set_id = s.set_id and s.sharing_mode = true
@@ -252,6 +231,4 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             limit 10;
             """, nativeQuery = true)
     List<TopCreatorsResponse> findTop10PopularCreators();
-
-
 }

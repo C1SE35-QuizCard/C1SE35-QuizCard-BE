@@ -63,8 +63,8 @@ public class CollectionServiceImpl implements ICollectionService {
 
     @Override
     @Transactional
-    public void deleteCollection_2(Long folderId, Long setId) {
-        collectionHelpers.handleDeleteCollection(folderId);
-        collectionRepository.deleteCollectionByFolderIdAndSetId(folderId, setId);
+    public void deleteCollection_2(Long collectionId) {
+        collectionHelpers.handleDeleteCollection(collectionId);
+        collectionRepository.deleteCollectionById(collectionId);
     }
 }

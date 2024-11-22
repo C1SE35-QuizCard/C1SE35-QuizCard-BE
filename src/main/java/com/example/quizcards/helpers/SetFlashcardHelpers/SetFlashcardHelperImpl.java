@@ -40,6 +40,9 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     }
 
     private void checkSetFlashcardOwner(Long setId, UserPrincipal up) throws AccessDeniedException, ResourceNotFoundException {
+        if (setId == null) {
+            throw new BadRequestException("Set id not null");
+        }
         SetFlashcard set = setFlashcardRepository.findById(setId).
                 orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
 
@@ -50,6 +53,9 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
 
     private void checkAddForFreeUser(SetFlashcardInitializeRequest request, Long userId,
                                      CategorySubscription currentCs) {
+        if (userId == null) {
+            throw new BadRequestException("Set id not null");
+        }
         if (setFlashcardRepository.countNumberOfSetCreated(userId) >= currentCs.getMaxSetsFlashcards()) {
             throw new BadRequestException(String.format("The number of card sets is %d sets per user.",
                     currentCs.getMaxSetsFlashcards()));
@@ -74,6 +80,9 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
 
     private void checkAddForRemainingUser(SetFlashcardInitializeRequest request, Long userId,
                                           CategorySubscription currentCs) {
+        if (userId == null) {
+            throw new BadRequestException("Set id not null");
+        }
         if (request.getFlashcards().size() > currentCs.getMaxFlashcardsPerSet()) {
             throw new BadRequestException(String.format("The maximum number of cards that can be created in a set is %d per user.",
                     currentCs.getMaxFlashcardsPerSet()));

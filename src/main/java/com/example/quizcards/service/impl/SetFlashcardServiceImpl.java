@@ -10,6 +10,9 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
@@ -17,6 +20,7 @@ import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,14 +56,23 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal up = (UserPrincipal) auth.getPrincipal();
             userId = up.getId();
         }
-        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId_3(setId, userId);
+        if (setId == null) {
+            throw new BadRequestException("Set id is null.");
+        }
+        SetFlashcard set = setFlashcardRepository.findById(setId).orElseThrow(
+                () -> new ResourceNotFoundException("Set", "id", setId)
+        );
+        if (!userId.equals(set.getUser().getUserId()) && !set.getSharingMode()) {
+            throw new AccessDeniedException("Set cannot access by you");
+        }
+        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId(setId);
         if (results.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
+                    new ApiResponse(false, "This set does not contain any cards.",
                             HttpStatus.NOT_FOUND, null)
             );
         }
@@ -119,7 +132,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public ResponseEntity<?> findBySetId_2(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated()) {
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal up = (UserPrincipal) auth.getPrincipal();
             userId = up.getId();
         }
@@ -130,7 +143,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                             HttpStatus.NOT_FOUND, null)
             );
         }
-        Map<String, Object> c = (new ObjectMapper()).convertValue(result, Map.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        Map c = mapper.convertValue(result, Map.class);
         AppUser ac = appUserService.findByUsername(result.getUserName()).orElseThrow();
         c.put("userId", ac.getUserId());
         return ResponseEntity.status(HttpStatus.OK).body(
