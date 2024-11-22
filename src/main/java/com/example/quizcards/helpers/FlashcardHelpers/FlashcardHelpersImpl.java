@@ -66,6 +66,15 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
         }
     }
 
+    private void checkLessFlashcards(Long setId) {
+        if (setId == null) {
+            throw new BadRequestException("Set id cannot be null");
+        }
+        if (flashcardRepository.countNumberOfCardsInSet(setId) < 3) {
+            throw new BadRequestException("Cannot delete when number of cards is less than 3.");
+        }
+    }
+
     private void checkLimitCardForSpecificUser(FlashcardRequest request, CategorySubscription currentCs) {
         if (request.getSetId() == null) {
             throw new BadRequestException("Set id cannot be null");
@@ -134,6 +143,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         if (!up.getRolesBaseAuthorities().contains(RoleName.ROLE_ADMIN.name())) {
             checkSetFlashcardOwner(setId, up);
+            checkLessFlashcards(setId);
             checkFlashcardExists(cardId, setId);
         }
     }

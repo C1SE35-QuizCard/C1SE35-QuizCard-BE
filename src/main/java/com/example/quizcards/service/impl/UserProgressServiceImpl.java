@@ -10,9 +10,7 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserProgress;
-import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
-import com.example.quizcards.exception.ResourceConflictException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
@@ -20,6 +18,8 @@ import com.example.quizcards.repository.IUserProgressRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class UserProgressServiceImpl implements IUserProgressService {
@@ -135,28 +136,17 @@ public class UserProgressServiceImpl implements IUserProgressService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         UserProgress ups = new UserProgress();
-        if (request.getProgressId() != null) {
-            // nếu id != null, mặc định là update
-            ups = userProgressRepository.findById(request.getProgressId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Progress", "id", request.getProgressId())
-            );
-            if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
-                throw new AccessDeniedException("Progress not owner");
-            }
+        ups.setAppUser(AppUser.builder().userId(up.getId()).build());
+        ups.setFlashcard(Flashcard.builder().cardId(request.getCardId()).build());
+        Optional<UserProgress> check = userProgressRepository.
+                findAll(Example.of(ups, ExampleMatcher.matching().withIgnoreCase())).stream().findAny();
+        if (check.isEmpty()) {
+            ups.setProgressType(request.getProgressType());
+            ups.setIsAttention(request.getIsAttention() == null ? false : request.getIsAttention());
+        } else {
+            ups = check.get();
             ups.setProgressType(request.getProgressType() == null ? ups.getProgressType() : request.getProgressType());
             ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
-        } else {
-            // nếu không thì add
-            if (!cardRepository.existsById(request.getCardId())) {
-                throw new ResourceNotFoundException("Card", "id", request.getCardId());
-            }
-            if (userProgressRepository.existsByUserIdAndCardId_2(up.getId(), request.getCardId()) == 1) {
-                throw new ResourceConflictException("Progress already assigned");
-            }
-            ups.setProgressType(request.getProgressType() == null ? false : request.getProgressType());
-            ups.setIsAttention(request.getIsAttention() == null ? false : request.getIsAttention());
-            ups.setFlashcard(Flashcard.builder().cardId(request.getCardId()).build());
-            ups.setAppUser(AppUser.builder().userId(request.getUserId()).build());
         }
         return ResponseEntity.ok().body(userProgressRepository.save(ups));
     }

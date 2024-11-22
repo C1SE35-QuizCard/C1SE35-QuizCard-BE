@@ -137,8 +137,14 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
     // Việc lọc set có sharing mode, hoặc người dùng sở hữu set đó sẽ ở bên logic be xử lý để tăng tốc truy vấn
     @Query(value = """
         select up.progress_id, up.card_id, au.user_id,
-        		case when up.progress_type then 1 else 0 end as progress,
-                case when up.marked_for_attention then 1 else 0 end as mark
+        		case 
+        		    when up.progress_type is null then null
+        		    when up.progress_type = true then 1
+        		    else 0 end as progress,
+                case 
+                    when up.marked_for_attention is null then null
+                    when up.marked_for_attention = true then 1
+                    else 0 end as mark
                 from user_progress up
                 join flashcards f on up.card_id = f.card_id
                 join app_users au on up.user_id = au.user_id
