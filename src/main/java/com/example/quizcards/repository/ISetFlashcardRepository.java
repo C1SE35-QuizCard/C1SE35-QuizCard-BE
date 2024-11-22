@@ -23,6 +23,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id); // cho tất cả mọi người
 
     @Query(value = """
+<<<<<<< HEAD
             select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
@@ -58,6 +59,12 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
            LEFT JOIN flashcards f ON f.set_id = s.set_id
            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name;
+=======
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as card_count
+            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
+            where s.user_id = a.user_id and s.category_id = c.category_id and f.set_id = s.set_id and s.sharing_mode = true
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+>>>>>>> 6cbb380fdff8087526afbf2c898e003cc6373a1a
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards(); // cho tất cả mọi người
 
@@ -268,6 +275,4 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             limit 10;
             """, nativeQuery = true)
     List<TopCreatorsResponse> findTop10PopularCreators();
-
-
 }

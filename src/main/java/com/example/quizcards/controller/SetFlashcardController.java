@@ -167,13 +167,8 @@ public class SetFlashcardController {
         }
     }
 
-//    @PostMapping("/admin/create-new-set")
-//    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-//    public ResponseEntity<?> createNewSetFlashcardInAdmin(@Valid @RequestBody SetFlashcardRequest request) {
-//    }
-
     @PostMapping("/create-new-set")
-//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
         return setFlashcardService.createNewSetFlashcards(request);
     }

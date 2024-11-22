@@ -20,13 +20,13 @@ public class FlashcardSettingController {
 
     @GetMapping("/{setId}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<FlashcardSettingResponse> getFlashcardSettingsBySetId(@PathVariable Long setId) {
+    public ResponseEntity<FlashcardSettingResponse> getSetSettingsByIdOnCurrentUser(@PathVariable("setId") Long setId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         return flashcardSettingService.getaFlashcardSettingByUserAndSetId(up.getId(), setId);
     }
 
-    @PatchMapping
+    @PatchMapping("/update")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<FlashcardSettingResponse> updateOrCreateNewFlashcardSetting(
             @Valid @RequestBody FlashcardSettingRequest request) {

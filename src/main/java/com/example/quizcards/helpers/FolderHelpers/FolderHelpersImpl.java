@@ -3,6 +3,7 @@ package com.example.quizcards.helpers.FolderHelpers;
 import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.entities.Folder;
 import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.AuthenticationHelpers;
 import com.example.quizcards.repository.IFolderRepository;
@@ -28,6 +29,9 @@ public class FolderHelpersImpl implements IFolderHelpers {
     }
 
     private void checkFolderOwner(Long folderId, UserPrincipal up) throws AccessDeniedException, ResourceNotFoundException {
+        if (folderId == null) {
+            throw new BadRequestException("Folder id cannot be null");
+        }
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Folder", "id", folderId));
 
@@ -49,11 +53,21 @@ public class FolderHelpersImpl implements IFolderHelpers {
 
     @Override
     public void handleAdminDeleteFolder(Long folderId, Long userId) {
-
+        if (folderId == null) {
+            throw new BadRequestException("Folder id cannot be null");
+        }
+        if (userId == null) {
+            throw new BadRequestException("User id cannot be null");
+        }
     }
 
     @Override
     public void handleAdminUpdateFolder(FolderRequest request, Long userId) {
-
+        if (request.getFolderId() == null) {
+            throw new BadRequestException("Folder id cannot be null");
+        }
+        if (userId == null) {
+            throw new BadRequestException("User id cannot be null");
+        }
     }
 }

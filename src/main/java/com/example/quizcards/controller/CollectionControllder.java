@@ -153,7 +153,7 @@ public class CollectionControllder {
     @DeleteMapping("/delete-collection")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<Object> deleteCollection_2(@Valid @RequestBody CollectionRequest request) {
-        collectionService.deleteCollection_2(request.getFolderId(), request.getSetId());
+        collectionService.deleteCollection_2(request.getId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(true, "Collection deleted successfully"));
     }
