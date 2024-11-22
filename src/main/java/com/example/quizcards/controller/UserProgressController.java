@@ -3,13 +3,14 @@ package com.example.quizcards.controller;
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressCreationRequest;
-import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +25,16 @@ public class UserProgressController {
     private IUserProgressService userProgressService;
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching user progress";
 
-    @GetMapping("/{user_id}")
-    public ResponseEntity<Object> findUserSetProgress(@PathVariable("user_id") Long userId) {
+    @GetMapping("/list")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> findUserSetProgress() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         try {
-            if (userProgressService.findUserSetProgress(userId).isEmpty()) {
+            if (userProgressService.findUserSetProgress(up.getId()).isEmpty()) {
                 return new ResponseEntity<>("No user progress found", HttpStatus.NO_CONTENT);
             } else {
-                List<IUserProgressDTO> userProgress = userProgressService.findUserSetProgress(userId);
+                List<IUserProgressDTO> userProgress = userProgressService.findUserSetProgress(up.getId());
                 return ResponseEntity.ok(userProgress);
             }
         } catch (Exception e) {
@@ -38,13 +42,16 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/{user_id}/{set_id}")
-    public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("user_id") Long userId, @PathVariable("set_id") Long setId) {
+    @GetMapping("/list/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("set_id") Long setId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         try {
-            if (userProgressService.findFlashcardsProgressBySetId(setId, userId).isEmpty()) {
+            if (userProgressService.findFlashcardsProgressBySetId(setId, up.getId()).isEmpty()) {
                 return new ResponseEntity<>("No flashcard progress found", HttpStatus.NO_CONTENT);
             } else {
-                List<IFlashcardProgressDTO> cardProgress = userProgressService.findFlashcardsProgressBySetId(setId, userId);
+                List<IFlashcardProgressDTO> cardProgress = userProgressService.findFlashcardsProgressBySetId(setId, up.getId());
                 return ResponseEntity.ok(cardProgress);
             }
         } catch (Exception e) {
@@ -52,69 +59,27 @@ public class UserProgressController {
         }
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressCreationRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
-        try {
-            if (userProgressService.existsByUserIdAndCardId(request.getUserId(), request.getCardId())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("A progress for this user and card already exists.");
-            }
-            userProgressService.addUserProgress(request.getProgressType(),
-                    request.getIsAttention(),
-                    request.getUserId(),
-                    request.getCardId());
-            return ResponseEntity.status(HttpStatus.CREATED).body("User Progress created successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the User Progress");
-        }
+    @GetMapping("/SetProgress/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> ProgressRequestGetUserProgress(@PathVariable("set_id") Long setId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        IListUserProgressDTO userProgressDTO = userProgressService.ProgressRequestGetUserProgress(up.getId(), setId);
+        return ResponseEntity.ok(userProgressDTO);
+    }
+
+    @PostMapping("/create-update")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> addUserProgressOrUpdate(@RequestBody @Validated UserProgressCreationRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return ResponseEntity.ok(userProgressService.addUserProgressOrUpdate(up.getId(), request));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteUserProgressById(@PathVariable("id") Long progressId) {
-        if (userProgressService.findUserProgressById(progressId) != null) {
-            try {
-                userProgressService.deleteUserProgressById(progressId);
-                return new ResponseEntity<>("User Progress deleted successfully", HttpStatus.OK);
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the User Progress");
-            }
-        } else {
-            return new ResponseEntity<>("User Progress not found", HttpStatus.NOT_FOUND);
-        }
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> deleteUserProgressById(@PathVariable("id") Long progressId) {
+        return ResponseEntity.ok(userProgressService.deleteUserProgressById(progressId));
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<Object> updateUserProgress(@Validated @RequestBody UserProgressCreationRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
-        try {
-            if (userProgressService.findUserProgressById(request.getProgressId()) == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User Progress not found");
-            }
-            if (userProgressService.existsByUserIdAndCardIdAndNotId(request.getUserId(), request.getCardId(), request.getProgressId())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("A progress for this user and card already exists.");
-            }
-            userProgressService.updateUserProgress(request);
-            return new ResponseEntity<>("User Progress updated successfully", HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the User Progress");
-        }
-    }
 }

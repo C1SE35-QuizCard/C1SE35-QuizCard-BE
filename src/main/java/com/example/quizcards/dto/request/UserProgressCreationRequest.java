@@ -15,9 +15,6 @@ public class UserProgressCreationRequest {
     private Boolean progressType;
     private Boolean isAttention;
 
-    @NotNull
-    private Long userId;
-
-    @NotNull
+    @NotNull(message = "Card Id is required.")
     private Long cardId;
 }

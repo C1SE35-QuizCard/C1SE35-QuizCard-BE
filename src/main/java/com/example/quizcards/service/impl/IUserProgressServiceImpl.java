@@ -4,11 +4,21 @@ import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressCreationRequest;
+import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.entities.Flashcard;
+import com.example.quizcards.entities.UserProgress;
+import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.helpers.UserProgressHelpers.IUserProgressHelpers;
 import com.example.quizcards.repository.IUserProgressRepository;
 import com.example.quizcards.service.IUserProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,6 +26,9 @@ public class IUserProgressServiceImpl implements IUserProgressService {
 
     @Autowired
     private IUserProgressRepository userProgressRepository;
+
+    @Autowired
+    private IUserProgressHelpers userProgressHelpers;
 
     @Override
     public List<IUserProgressDTO> findUserSetProgress(Long userId){
@@ -28,32 +41,41 @@ public class IUserProgressServiceImpl implements IUserProgressService {
     }
 
     @Override
-    public void addUserProgress(Boolean progressType, Boolean isAttention, Long userId, Long cardId){
-        userProgressRepository.createUserProgress(progressType, isAttention, userId, cardId);
-    }
-
-    @Override
-    public void deleteUserProgressById(Long progressId){
-        userProgressRepository.deleteUserProgressById(progressId);
-    }
-
-    @Override
-    public void updateUserProgress(UserProgressCreationRequest request){
-        userProgressRepository.updateUserProgress(request.getProgressId(), request.getProgressType(), request.getIsAttention(), request.getUserId(), request.getCardId());
-    }
-
-    @Override
     public IProgressDTO findUserProgressById(Long progressId){
         return userProgressRepository.findUserProgressById(progressId);
     }
 
+
     @Override
-    public boolean existsByUserIdAndCardId(Long userId, Long cardId){
-        return userProgressRepository.existsByUserIdAndCardId(userId, cardId) != 0;
+    public ResponseEntity<?> addUserProgressOrUpdate(Long userId, UserProgressCreationRequest request){
+        if(userProgressRepository.existsByUserIdAndCardId(userId, request.getCardId()) > 0){
+            UserProgress userProgress = userProgressRepository.
+                    findUserProgressByUserIdAndCardId(userId, request.getCardId());
+            userProgress.setIsAttention(request.getIsAttention());
+            userProgress.setProgressType(request.getProgressType());
+            userProgressRepository.save(userProgress);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponse(true, "User progress updated successfully"));
+        }
+        AppUser au = AppUser.builder().userId(userId).build();
+        Flashcard fl = Flashcard.builder().cardId(request.getCardId()).build();
+        UserProgress userProgress = new UserProgress();
+        userProgress.setAppUser(au);
+        userProgress.setFlashcard(fl);
+        userProgress.setIsAttention(request.getIsAttention());
+        userProgress.setProgressType(request.getProgressType());
+        userProgressRepository.save(userProgress);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse(true, "User progress created successfully"));
     }
 
     @Override
-    public boolean existsByUserIdAndCardIdAndNotId(Long userId, Long cardId, Long progressId){
-        return userProgressRepository.existsByUserIdAndCardIdAndNotId(userId, cardId, progressId) > 0;
+    public ResponseEntity<?> deleteUserProgressById(Long progressId){
+        UserProgress userProgress = userProgressRepository.findById(progressId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Progress", "id", progressId));
+        userProgressHelpers.handleDeleteUserProgress(progressId);
+        userProgressRepository.delete(userProgress);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(true, "User Progress deleted successfully"));
     }
 }
