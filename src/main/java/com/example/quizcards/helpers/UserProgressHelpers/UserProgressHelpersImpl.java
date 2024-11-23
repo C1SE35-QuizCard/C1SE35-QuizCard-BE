@@ -1,5 +1,7 @@
 package com.example.quizcards.helpers.UserProgressHelpers;
 
+import com.example.quizcards.dto.IProgressDTO;
+import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.entities.UserProgress;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
@@ -47,9 +49,9 @@ public class UserProgressHelpersImpl implements IUserProgressHelpers {
     }
 
     private void checkUserProgressExists(Long progressId) throws ResourceNotFoundException {
-        Integer userProgressExists = userProgressRepository.countUserProgressesById(progressId);
+        IProgressDTO userProgressExists = userProgressRepository.findUserProgressById(progressId);
 
-        if (userProgressExists == null || userProgressExists == 0) {
+        if (userProgressExists == null) {
             throw new ResourceNotFoundException("User Progress", "id", progressId);
         }
     }

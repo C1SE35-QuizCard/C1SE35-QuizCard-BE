@@ -3,8 +3,11 @@ package com.example.quizcards.repository;
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
+import com.example.quizcards.dto.response.ProgressResponse;
 import com.example.quizcards.entities.UserProgress;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,51 +18,88 @@ import java.util.List;
 public interface IUserProgressRepository extends JpaRepository<UserProgress, Long> {
 
     @Query(value = """
-            select
-                s.set_id,
+            select 
+                s.set_id, 
                 s.title,
                 a.avatar,
                 a.user_name,
                 count(f.card_id) as total_cards,
                 sum(case when up.progress_type = 1 then 1 else 0 end) as completed_cards,
                 sum(case when up.progress_type = 0 or up.progress_type is null then 1 else 0 end) as uncompleted_cards
-            from
+            from 
                 set_flashcards s
-            join
-                app_users a ON a.user_id = s.user_id
-            join
-                flashcards f ON s.set_id = f.set_id
-            left join
-                user_progress up ON f.card_id = up.card_id AND up.user_id = 6
-            group by
+            join 
+                app_users a on a.user_id = s.user_id
+            join 
+                flashcards f on s.set_id = f.set_id
+            left join 
+                user_progress up on f.card_id = up.card_id and up.user_id = :user_id
+            where 
+                s.user_id = :user_id
+            group by 
                 s.set_id, s.title, a.avatar, a.user_name
-            having 
-                count(up.card_id) > 0
             """, nativeQuery = true)
     List<IUserProgressDTO> findUserSetProgress(@Param("user_id") Long userId);
 
+    // What !?
+    // Cái này cho admin đúng không ?
+    // Chỉ có trả về các trường như username, avatar, ..., mới cho admin thôi, cho user thì chắc không cần
     @Query(value = """
             select
                 s.set_id,
                 s.title,
                 a.avatar,
                 a.user_name,
-                f.card_id, 
+                f.card_id,
                 f.question,
                 f.answer,
-                case when up.progress_type = 1 then 'completed' else 'uncompleted' end as status
-            from 
+                up.progress_type as status_progress,
+                up.marked_for_attention as status_mark
+            from
                 flashcards f
             join
                 set_flashcards s on s.set_id = f.set_id
             join
                 app_users a on a.user_id = s.user_id
-            left join 
-                user_progress up on f.card_id = up.card_id and up.user_id = :user_id
-            where 
-                f.set_id = :set_id
+            left join
+                user_progress up on f.card_id = up.card_id and up.user_id =:userId
+            where f.set_id =:setId
+    """, nativeQuery = true)
+    List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(@Param("setId") Long setId, @Param("userId") Long userId);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            insert into user_progress(progress_type, marked_for_attention, user_id, card_id)
+            values (:progress_type, :marked_for_attention, :user_id, :card_id)
             """, nativeQuery = true)
-    List<IFlashcardProgressDTO>findFlashcardsProgressBySetId(@Param("set_id") Long setId, @Param("user_id") Long userId);
+    void createUserProgress(@Param("progress_type") Boolean progressType,
+                            @Param("marked_for_attention") Boolean isAttention,
+                            @Param("user_id") Long userId,
+                            @Param("card_id") Long cardId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            delete from user_progress u
+            where u.progress_id = :progress_id
+            """, nativeQuery = true)
+    void deleteUserProgressById(@Param("progress_id") Long progressId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            update user_progress u
+            set u.progress_type = :progress_type, u.marked_for_attention = :marked_for_attention, u.marked_for_attention = :marked_for_attention, u.user_id = :user_id, u.card_id = :card_id
+            where u.progress_id = :progress_id
+            """, nativeQuery = true)
+    void updateUserProgress(@Param("progress_id") Long progressId,
+                            @Param("progress_type") Boolean progressType,
+                            @Param("marked_for_attention") Boolean isAttention,
+                            @Param("user_id") Long userId,
+                            @Param("card_id") Long cardId);
+
 
     @Query(value = """
             select u.progress_type, u.marked_for_attention, u.user_id, u.card_id
@@ -67,6 +107,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             where u.progress_id = :progress_id
             """, nativeQuery = true)
     IProgressDTO findUserProgressById(@Param("progress_id") Long progressId);
+
 
     @Query(value = """
             select count(u.progress_id)
@@ -76,31 +117,38 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
     int existsByUserIdAndCardId(@Param("user_id") Long userId, @Param("card_id") Long cardId);
 
     @Query(value = """
-            select count(1)
+            SELECT CASE WHEN EXISTS (
+                SELECT 1
+                FROM user_progress u
+                WHERE u.user_id = :user_id AND u.card_id = :card_id
+            ) THEN 1 ELSE 0 END AS result;
+            """, nativeQuery = true)
+    int existsByUserIdAndCardId_2(@Param("user_id") Long userId, @Param("card_id") Long cardId);
+
+    @Query(value = """
+            select COUNT(u.progress_id)
             from user_progress u
-            where u.progress_id = :id
+            where u.user_id = :user_id and u.card_id = :card_id and u.progress_id <> :progress_id
             """, nativeQuery = true)
-    Integer countUserProgressesById(@Param("id") Long progressId);
+    int existsByUserIdAndCardIdAndNotId(@Param("user_id") Long userId, @Param("card_id") Long cardId, @Param("progress_id") Long progressId);
 
-    @Query(value = """
-            select * from user_progress u
-            where u.user_id = :user_id and u.card_id = :card_id
-            """, nativeQuery = true)
-    UserProgress findUserProgressByUserIdAndCardId(@Param("user_id") Long userId,
-                                                   @Param("card_id") Long cardId);
 
+    // Không truy vấn các bảng không liên quan
+    // Việc lọc set có sharing mode, hoặc người dùng sở hữu set đó sẽ ở bên logic be xử lý để tăng tốc truy vấn
     @Query(value = """
-        SELECT f.card_id, 
-               f.question, 
-               f.answer, 
-               f.image_url, 
-               f.is_approved, 
-               f.created_at, 
-               f.updated_at,
-        CASE WHEN up.progress_type = 1 THEN 'completed' ELSE 'uncompleted' END AS status
-        FROM flashcards f
-        LEFT JOIN user_progress up ON f.card_id = up.card_id AND up.user_id = :userId
-        WHERE f.set_id = :setId
-        """, nativeQuery = true)
-    List<Object[]> findFlashcardsByUserIdAndSetId(Long userId, Long setId);
+        select up.progress_id, up.card_id, au.user_id,
+        		case 
+        		    when up.progress_type is null then null
+        		    when up.progress_type = true then 1
+        		    else 0 end as progress,
+                case 
+                    when up.marked_for_attention is null then null
+                    when up.marked_for_attention = true then 1
+                    else 0 end as mark
+                from user_progress up
+                join flashcards f on up.card_id = f.card_id
+                join app_users au on up.user_id = au.user_id
+                where up.user_id = :user_id and f.set_id = :set_id
+    """, nativeQuery = true)
+    List<ProgressResponse> findAllProgressByUserAndSet_Performance(@Param("user_id") Long userId, @Param("set_id") Long setId);
 }

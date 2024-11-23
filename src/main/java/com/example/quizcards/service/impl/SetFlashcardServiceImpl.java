@@ -2,20 +2,26 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
-import com.example.quizcards.dto.request.FlashcardInitializeRequest;
-import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
+import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
+import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Service
 public class SetFlashcardServiceImpl implements ISetFlashcardService {
@@ -39,10 +45,44 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Autowired
     private IFlashcardRepository flashcardRepository;
 
+    @Autowired
+    private IAppUserService appUserService;
+
     @Override
     public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
         return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
+
+    @Override
+    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
+        Long userId = Long.MIN_VALUE;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+            userId = up.getId();
+        }
+        if (setId == null) {
+            throw new BadRequestException("Set id is null.");
+        }
+        SetFlashcard set = setFlashcardRepository.findById(setId).orElseThrow(
+                () -> new ResourceNotFoundException("Set", "id", setId)
+        );
+        if (!userId.equals(set.getUser().getUserId()) && !set.getSharingMode()) {
+            throw new AccessDeniedException("Set cannot access by you");
+        }
+        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId(setId);
+        if (results.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse(false, "This set does not contain any cards.",
+                            HttpStatus.NOT_FOUND, null)
+            );
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse(false, "Get data ok.",
+                        HttpStatus.OK, results)
+        );
+    }
+
 
     @Override
     public List<ISetFlashcardDTO> getAll() {
@@ -71,7 +111,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 .stream().map(dto -> Flashcard.builder()
                         .question(dto.getQuestion())
                         .answer(dto.getAnswer())
-                        .imageLink(dto.getImageData())
+                        .imageLink(dto.getImageLink())
                         .isApproved(true)
                         .set(SetFlashcard.builder().setId(set.getSetId()).build())
                         .build()).toList();
@@ -87,6 +127,48 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public ISetFlashcardDTO findBySetId(Long setId) {
         return setFlashcardRepository.findSetFlashcardsById(setId);
+    }
+
+    @Override
+    public ResponseEntity<?> findBySetId_2(Long setId) {
+        Long userId = Long.MIN_VALUE;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+            userId = up.getId();
+        }
+        ISetFlashcardDTO result = setFlashcardRepository.findSetFlashcardsById_2(setId, userId);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
+                            HttpStatus.NOT_FOUND, null)
+            );
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        Map c = mapper.convertValue(result, Map.class);
+        AppUser ac = appUserService.findByUsername(result.getUserName()).orElseThrow();
+        c.put("userId", ac.getUserId());
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse(false, "Get data ok.",
+                        HttpStatus.OK, c)
+        );
+    }
+
+    @Override
+    public ResponseEntity<?> countSetFlashcardCreatedPublic(Long userId) {
+        return ResponseEntity.ok().body(
+                new ApiResponse(true, "...", HttpStatus.OK,
+                        setFlashcardRepository.countAllSetPublicByUserId(userId))
+        );
+    }
+
+    @Override
+    public ResponseEntity<?> countSetFlashcardCreatedPublicByUserName(String userName) {
+        return ResponseEntity.ok().body(
+                new ApiResponse(true, "...", HttpStatus.OK,
+                        setFlashcardRepository.countAllSetPublicByUserName(userName))
+        );
     }
 
     @Override
@@ -109,6 +191,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(up.getId()));
 
         return ResponseEntity.status(200).body(apiResponse);
+    }
+
+    @Override
+    public List<SearchSetFlashResponse> searchByTitleAndCategory(String title) {
+        return setFlashcardRepository.searchByTitleAndCategory(title);
     }
 
     @Override
@@ -136,16 +223,6 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 up.getId(),
                 request.getCategoryId()
         );
-    }
-
-    @Override
-    public List<ISetFlashcardDTO> searchByTitle(String title) {
-        return setFlashcardRepository.searchByTitle(title);
-    }
-
-    @Override
-    public List<ISetFlashcardDTO> searchMySetsByTitle(String title, Long userId){
-        return setFlashcardRepository.searchMySetsByTitle(title, userId);
     }
 
     @Override

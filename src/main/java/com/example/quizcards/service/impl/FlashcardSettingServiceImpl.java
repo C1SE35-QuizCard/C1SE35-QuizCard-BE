@@ -1,15 +1,12 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.FlashcardSettingRequest;
 import com.example.quizcards.dto.response.FlashcardSettingResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserFlashcardSetting;
 import com.example.quizcards.exception.ResourceNotFoundException;
-import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.IFlashcardSettingRepository;
-import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.service.IFlashcardSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class FlashcardSettingServiceImpl implements IFlashcardSettingService {

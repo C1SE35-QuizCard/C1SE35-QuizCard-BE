@@ -1,8 +1,8 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.CategorySetFlashcardCreationRequest;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.CategorySetFlashcardAdminRequest;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import com.example.quizcards.service.ICategorySetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,17 +16,17 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     private ICategorySetFlashcardRepository categoryRepository;
 
     @Override
-    public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId){
+    public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId) {
         return categoryRepository.findCategorySetFlashcardById(categoryId);
     }
 
     @Override
-    public List<ICategorySetFlashcardDTO> getAll(){
+    public List<ICategorySetFlashcardDTO> getAll() {
         return categoryRepository.findAllCategorySetFlashcard();
     }
 
     @Override
-    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId){
+    public List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId) {
         return categoryRepository.findAllSetFlashcardsByCategoryId(categoryId);
     }
 
@@ -36,17 +36,17 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     }
 
     @Override
-    public void addCategorySetFlashcard(String categoryName){
+    public void addCategorySetFlashcard(String categoryName) {
         categoryRepository.createCategorySetFlashcard(categoryName);
     }
 
     @Override
-    public void deleteCategorySetFlashcard(Long categoryId){
+    public void deleteCategorySetFlashcard(Long categoryId) {
         categoryRepository.deleteCategorySetFlashcard(categoryId);
     }
 
     @Override
-    public void updateCategorySetFlashcard(CategorySetFlashcardCreationRequest request){
+    public void updateCategorySetFlashcard(CategorySetFlashcardAdminRequest request) {
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
 }

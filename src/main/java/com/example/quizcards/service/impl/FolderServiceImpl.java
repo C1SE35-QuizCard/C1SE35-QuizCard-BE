@@ -1,11 +1,10 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.helpers.FolderHelpers.IFolderHelpers;
 import com.example.quizcards.repository.IFolderRepository;
-import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFolderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +34,13 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<IFolderDTO> searchFolderByTitle(String title, Long userId) {
-        return folderRepository.searchFolderByTitle(title, userId);
+    public List<IFolderDTO> searchFolderByTitle(String title) {
+        return folderRepository.searchFolderByTitle(title);
     }
 
     @Override
-    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId, Long userId){
-        return folderRepository.findSetByFolderIdAndUserId(folderId, userId);
+    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId){
+        return folderRepository.findSetByFolderId(folderId);
     }
 
     @Override
@@ -68,13 +67,13 @@ public class FolderServiceImpl implements IFolderService {
 
     @Override
     public void deleteFolder_2(Long folderId) {
-        folderHelpers.handleDeleteFolder(folderId);
+        folderHelpers.handleFolderOwner(folderId);
         folderRepository.deleteFolderById(folderId);
     }
 
     @Override
     public void updateFolder_2(FolderRequest request) {
-        folderHelpers.handleUpdateFolder(request);
+        folderHelpers.handleFolderOwner(request.getFolderId());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         folderRepository.updateFolder(request.getFolderId(), request.getTitle(), up.getId());

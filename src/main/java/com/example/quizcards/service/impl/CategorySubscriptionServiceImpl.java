@@ -6,7 +6,6 @@ import com.example.quizcards.entities.plans.PlansName;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.repository.ICategorySubscriptionRepository;
-import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,6 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.CollectionParamRequest;
+import com.example.quizcards.dto.ICollectionDTO;
 import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
@@ -145,7 +144,7 @@ public class CollectionControllder {
 
     @PostMapping("/create-new-collection")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> addCollection_2(@Valid @RequestBody CollectionParamRequest request) {
+    public ResponseEntity<Object> addCollection_2(@Valid @RequestBody CollectionRequest request) {
         collectionService.addCollection_2(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(true, "Collection created successfully"));
@@ -153,8 +152,8 @@ public class CollectionControllder {
 
     @DeleteMapping("/delete-collection")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> deleteCollection_2(@Valid @RequestBody CollectionParamRequest request) {
-        collectionService.deleteCollection_2(request);
+    public ResponseEntity<Object> deleteCollection_2(@Valid @RequestBody CollectionRequest request) {
+        collectionService.deleteCollection_2(request.getId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(true, "Collection deleted successfully"));
     }
