@@ -4,6 +4,7 @@ import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
 import org.springframework.http.ResponseEntity;
 
@@ -43,7 +44,7 @@ public interface ISetFlashcardService {
 
     ResponseEntity<?> countSetFlashcardCreatedPerDayInCurrentUser();
 
-    List<ISetFlashcardDTO> searchByTitle(String title);
+    List<SearchSetFlashResponse> searchByTitleAndCategory(String title);
 
     List<ISetFlashcardDTO> sortByUpdatedDate();
 

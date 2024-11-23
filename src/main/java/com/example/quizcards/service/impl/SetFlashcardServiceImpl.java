@@ -5,6 +5,7 @@ import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
@@ -193,6 +194,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    public List<SearchSetFlashResponse> searchByTitleAndCategory(String title) {
+        return setFlashcardRepository.searchByTitleAndCategory(title);
+    }
+
+    @Override
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
         setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, userId, categoryId);
     }
@@ -217,11 +223,6 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 up.getId(),
                 request.getCategoryId()
         );
-    }
-
-    @Override
-    public List<ISetFlashcardDTO> searchByTitle(String title) {
-        return setFlashcardRepository.searchByTitle(title);
     }
 
     @Override

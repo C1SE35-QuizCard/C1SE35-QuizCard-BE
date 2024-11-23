@@ -2,6 +2,7 @@ package com.example.quizcards.repository;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.TopCreatorsResponse;
 import com.example.quizcards.entities.SetFlashcard;
 import jakarta.transaction.Transactional;
@@ -161,12 +162,40 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                             @Param("category_id") Long categoryId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
-            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and MATCH(s.title) AGAINST(:title IN BOOLEAN MODE) and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            SELECT
+                s.set_id AS setId,
+                s.title AS title,
+                s.description_set AS descriptionSet,
+                s.is_anonymous AS isAnonymous,
+                a.user_name AS userName,
+                a.user_id AS userId,
+                a.avatar AS avatar,
+                c.category_name AS categoryName,
+                COUNT(f.card_id) AS totalCard
+            FROM
+                set_flashcards s
+            JOIN
+                app_users a ON s.user_id = a.user_id
+            JOIN
+                category_set_flashcards c ON s.category_id = c.category_id
+            LEFT JOIN
+                flashcards f ON f.set_id = s.set_id
+            WHERE
+                s.sharing_mode = TRUE
+                AND ( 
+                s.title LIKE CONCAT('%', :title, '%')
+                or c.category_name LIKE CONCAT('%', :title, '%')
+                )
+            GROUP BY
+                s.set_id,
+                s.title,
+                s.description_set,
+                s.is_anonymous,
+                a.user_id,
+                a.avatar,
+                c.category_name
             """, nativeQuery = true)
-    List<ISetFlashcardDTO> searchByTitle(@Param("title") String title);
+    List<SearchSetFlashResponse> searchByTitleAndCategory(@Param("title") String title);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
