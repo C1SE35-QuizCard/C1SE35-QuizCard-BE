@@ -59,15 +59,6 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/SetProgress/{set_id}")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> ProgressRequestGetUserProgress(@PathVariable("set_id") Long setId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        IListUserProgressDTO userProgressDTO = userProgressService.ProgressRequestGetUserProgress(up.getId(), setId);
-        return ResponseEntity.ok(userProgressDTO);
-    }
-
     @PostMapping("/create-update")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> addUserProgressOrUpdate(@RequestBody @Validated UserProgressCreationRequest request) {

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExamDetailRequest {
+
     @NotNull(message = "Id of the test is empty.")
     private Long testId;
 
@@ -20,5 +21,5 @@ public class ExamDetailRequest {
     @Size(max = 1850, message = "Max length answer is 1850.")
     private String yourAnswer;
 
-    private boolean isTrue;
+    private Boolean isTrue;
 }

@@ -1,5 +1,7 @@
 package com.example.quizcards.helpers.ExamDetailHelpers;
 
+import com.example.quizcards.dto.request.ExamDetailRequest;
+import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.entities.ExamDetail;
 import com.example.quizcards.entities.Test;
 import com.example.quizcards.entities.role.RoleName;
@@ -76,6 +78,14 @@ public class ExamDetailHelpersImpl implements IExamDetailHelpers{
         }
         checkCurrentUserOwnerExamDetail(examDetailId);
     }
+
+    @Override
+    public void handleUpdateExamDetail(Long examDetailId){
+        Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        checkExamDetailOwner(examDetailId, up);
+    }
+
     @Override
     public void handleAdminDeleteExamDetail(Long examDetailId, Long userId){
 
