@@ -6,8 +6,10 @@ import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.example.quizcards.service.IUserProgressService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -166,11 +168,6 @@ public class SetFlashcardController {
         }
     }
 
-//    @PostMapping("/admin/create-new-set")
-//    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-//    public ResponseEntity<?> createNewSetFlashcardInAdmin(@Valid @RequestBody SetFlashcardRequest request) {
-//    }
-
     @PostMapping("/create-new-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
@@ -193,19 +190,22 @@ public class SetFlashcardController {
                 .body(new ApiResponse(true, "Set Flashcard deleted successfully"));
     }
 
-    @GetMapping("/search/{title}")
-    public ResponseEntity<Object> searchByTitle(@PathVariable("title") String title) {
-        try {
-            if (setFlashcardService.searchByTitle(title).isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
-            } else {
-                List<ISetFlashcardDTO> set = setFlashcardService.searchByTitle(title);
+    @GetMapping("/search")
+    public ResponseEntity<Object> searchByTitle(@RequestParam("query") String query) {
+//        try {
+//            List<SearchSetFlashResponse> list = setFlashcardService.searchByTitleAndCategory(query);
+//            System.out.println(list);
+//            if (setFlashcardService.searchByTitleAndCategory(query).isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+//            } else {
+                List<SearchSetFlashResponse> set = setFlashcardService.searchByTitleAndCategory(query);
                 return ResponseEntity.ok(set);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
-        }
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+//        }
     }
+
 
     @GetMapping("/sort")
     public ResponseEntity<Object> sortByUpdatedDate() {

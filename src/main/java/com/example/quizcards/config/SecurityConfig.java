@@ -67,6 +67,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/flashcard-settings/").authenticated()
                         .requestMatchers("/api/v1/progress/user/set/").authenticated()
                         .requestMatchers("/api/v1/progress/user/assign-progress").authenticated()
+                        .requestMatchers("/api/auth/forgot-password").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().permitAll()
                 )

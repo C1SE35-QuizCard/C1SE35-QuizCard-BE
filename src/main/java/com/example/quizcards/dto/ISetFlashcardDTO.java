@@ -24,10 +24,11 @@ public interface ISetFlashcardDTO {
     String getLastName();
 
     String getUserName();
+    Long getUserId();
 
     String getAvatar();
 
     String getCategoryName();
 
-    int getCardCount();
+    int getTotalCard();
 }
