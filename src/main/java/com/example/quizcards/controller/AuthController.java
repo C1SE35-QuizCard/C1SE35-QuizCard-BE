@@ -1,8 +1,6 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.request.LoginRequest;
-import com.example.quizcards.dto.request.SignupRequest;
-import com.example.quizcards.dto.request.UpdatePasswordRequest;
+import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAuthService;
@@ -14,12 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -48,13 +43,47 @@ public class AuthController {
         return authService.logoutUser(loginRequest, response);
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<JwtAuthenticationResponse> getAccessToken(
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletResponse response) {
+        return authService.getAccessToken(request, response);
+    }
+
+    @PostMapping("/oauth2-login")
+    public ResponseEntity<JwtAuthenticationResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request, HttpServletResponse response) throws Exception {
+        return authService.googleLogin(request, response);
+    }
+
+    @GetMapping("/user-role")
+    public ResponseEntity<?> getUserRole() {
+        return authService.getUserRole();
+    }
+
+    @GetMapping("/user-info")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, Object> results = new HashMap<>();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        results.put("username", up.getUsername());
+        results.put("role", up.getRolesBaseAuthorities());
+        results.put("id", up.getId());
+        results.put("email", up.getEmail());
+        results.put("avatar", up.getAvatar());
+        results.put("firstname", up.getFirstName());
+        results.put("lastname", up.getLastName());
+        return ResponseEntity.ok(results);
+    }
+
     @PostMapping("update-password")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> updatePasswordUser(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest,
                                                 HttpServletResponse response) {
         updatePasswordRequest.validate();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+
         return authService.updatePasswordUser(up.getId(), updatePasswordRequest, response);
     }
 }

@@ -1,11 +1,6 @@
 package com.example.quizcards.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +30,7 @@ public class JwtTokenProvider {
     // Tạo Access Token
     public String generateAccessToken(UserPrincipal userPrincipal) {
         Map<String, String> claims = new HashMap<>();
-        claims.put("email", userPrincipal.getUsername());
+        claims.put("user_name", userPrincipal.getUsername());
         String roles = userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));

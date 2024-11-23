@@ -4,8 +4,16 @@ import java.time.LocalDateTime;
 
 public interface IFolderDTO {
     Long getFolderId();
+
     String getTitle();
+
     LocalDateTime getCreatedAt();
+
     LocalDateTime getUpdatedAt();
-    String getFullName();
+
+    String getFirstName();
+
+    String getLastName();
+
+    int getSetCount();
 }

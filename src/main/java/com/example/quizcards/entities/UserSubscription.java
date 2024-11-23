@@ -1,6 +1,12 @@
 package com.example.quizcards.entities;
-import lombok.*;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.sql.Timestamp;
 
 @Data
@@ -34,7 +40,20 @@ public class UserSubscription {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_paid", nullable = false)
     private StatusPaid statusPaid;
+
     public enum StatusPaid {
         UNPAID, PENDING, PAID
+    }
+
+    @NotNull
+    @Column(name = "token_payment", nullable = false, unique = true)
+    private String tokenPayment;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "token_type", nullable = false)
+    private TokenType type;
+
+    public enum TokenType {
+        PAYPAL, GOOGLE
     }
 }

@@ -1,6 +1,10 @@
 package com.example.quizcards.entities;
-import lombok.*;
+
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -9,7 +13,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "test_mode")
 public class TestMode {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "test_mode_id")

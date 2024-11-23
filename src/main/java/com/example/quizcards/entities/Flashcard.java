@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "flashcards")
+@Table(name = "flashcards", indexes = {
+        @Index(name = "idx_flashcards_question", columnList = "question"),
+        @Index(name = "idx_flashcards_answer", columnList = "answer"),
+})
 public class Flashcard implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -23,11 +26,11 @@ public class Flashcard implements Serializable {
     @Column(name = "card_id", nullable = false)
     private Long cardId;
 
-    @Column(name = "term", nullable = false, length = 930)
-    private String term;
+    @Column(name = "question", nullable = false, length = 500)
+    private String question;
 
-    @Column(name = "definition", nullable = false, length = 930)
-    private String definition;
+    @Column(name = "answer", nullable = false, length = 500)
+    private String answer;
 
     @Column(name = "image_url")
     private String imageLink;

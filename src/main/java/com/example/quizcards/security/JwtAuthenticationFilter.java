@@ -1,21 +1,16 @@
 package com.example.quizcards.security;
 
-import com.example.quizcards.entities.RefreshToken;
-import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.service.ICustomUserDetailsService;
-import com.example.quizcards.service.IRefreshTokenService;
-import com.example.quizcards.utils.CookieSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,12 +20,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -40,122 +30,91 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private ICustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    private IRefreshTokenService refreshTokenService;
-
-    @Autowired
-    private CookieSetter cs;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private final List<String> excludeUrlPatterns = List.of(
-<<<<<<< HEAD
-            "/api/v1/auth/**",
-            "/ws/**",
-            "/api/**"
-=======
-            "/api/v1/auth/signup",
-            "/api/v1/auth/login",
-            "/api/v1/auth/logout",
-            "/api/**",
-            "/ws/**"
->>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e
-    );
+//    private final List<String> excludeUrlPatterns = List.of(
+//            "/ws/**",
+//            "/api/v1/auth/signup",
+//            "/api/v1/auth/login",
+//            "/api/v1/auth/logout",
+//            "/api/v1/auth/oauth2-login",
+//            "/api/v1/auth/refresh-token",
+//            "/api/v1/category/list",
+//            "/api/v1/category/list/{{id}}",
+//            "/api/v1/category/detail/{{id}}"
+//    );
+//
+//    private final List<String> excludeIfThrows = List.of(
+//            "/api/v1/auth/user-role",
+//            "/api/v1/set/set-detail/{{id}}",
+//            "/api/v1/set/count-public-set/{{userName}}",
+//            "/api/v1/set/detail/cards/{{id}}"
+////            "/api/v1/auth/user-info"
+//    );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+//            throws ServletException, IOException {
+//        String jwt = getJwtFromRequest(request);
+//        if (StringUtils.hasText(jwt)) {
+//            UserDetails userDetails;
+//            try {
+//                String userName = tokenProvider.getUsernameFromJWT(jwt);
+//
+//                userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
+//
+//                if (!userDetails.isEnabled()) {
+//                    setResponseApiReturn(response, "Username is banned", HttpStatus.FORBIDDEN);
+//                    return;
+//                }
+//
+//                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+//                    setAuthentication(request, userDetails);
+//                }
+//            } catch (JwtException e) {
+//                if (!byPassFilterIfThrows(request)) {
+//                    setResponseApiReturn(response, "Invalid JWT Token", HttpStatus.UNAUTHORIZED);
+//                    return;
+//                }
+//            } catch (UsernameNotFoundException e) {
+//                if (!byPassFilterIfThrows(request)) {
+//                    setResponseApiReturn(response, "Username not found", HttpStatus.UNAUTHORIZED);
+//                    return;
+//                }
+//            } catch (Exception ex) {
+//                LOGGER.error("Could not set user authentication in security context", ex);
+//            }
+//        }
+//        filterChain.doFilter(request, response);
+//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        try {
-            String bearer =  request.getHeader("Authorization");
-            if (!StringUtils.hasText(bearer) || bearer.startsWith("Bearer")) {
-                throw new Exception("Token must be start by Bearer");
-            }
-
-            String rft = null;
-            String jwt = null;
-            final String email;
-
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("token".equals(cookie.getName())) {
-                        jwt = cookie.getValue();
-                    } else if ("rft".equals(cookie.getName())) {
-                        rft = cookie.getValue();
-                    }
-                }
-            }
-
-            if (rft == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            Optional<RefreshToken> tokenData = refreshTokenService.findByToken(rft);
-
-            if (tokenData.isEmpty()) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            RefreshToken refreshToken = tokenData.get();
-
-            if (!refreshToken.getUser().getEnabled()) {
-                throw new AccessDeniedException("User is disabled");
-            }
-
-            email = refreshToken.getUser().getEmail();
-
-            String oauth2Code = refreshToken.getUser().getUserCode();
-
-            if (!((email != null || oauth2Code != null) && SecurityContextHolder.getContext().getAuthentication() == null)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
+        String jwt = getJwtFromRequest(request);
+        if (StringUtils.hasText(jwt)) {
             UserDetails userDetails;
-
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            try {
                 String userName = tokenProvider.getUsernameFromJWT(jwt);
 
                 userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
-            } else {
-                if (email == null) {
-                    userDetails = customUserDetailsService.loadUserByUserCodeOnly(oauth2Code);
-                } else {
-                    userDetails = customUserDetailsService.loadUserByEmailOnly(email);
-                }
 
-                if (refreshTokenService.verifyExpiration(refreshToken) == null) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                if (!userDetails.isEnabled()) {
+                    setResponseApiReturn(response, "Username is banned", HttpStatus.FORBIDDEN);
                     return;
-                } else {
-                    if (userDetails instanceof UserPrincipal) {
-                        UserPrincipal up = (UserPrincipal) userDetails;
-                        String newAccessToken = tokenProvider.generateAccessToken(up);
-                        refreshTokenService.updateRefreshTokenWithCurrentExpiredDate(refreshToken);
-
-                        cs.generateTokenToCookie(response, newAccessToken, refreshToken.getToken(), "ok");
-                    } else {
-                        filterChain.doFilter(request, response);
-                        return;
-                    }
                 }
-            }
 
-            setAuthentication(request, userDetails);
-            filterChain.doFilter(request, response);
-        } catch (Exception ex) {
-            LOGGER.error("Could not set user authentication in security context", ex);
-            Map<String, Object> errors = new HashMap<>();
-            errors.put("success", false);
-            errors.put("message", ex.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json; charset=UTF-8");
-            response.getWriter().write(new ObjectMapper().writeValueAsString(errors));
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    setAuthentication(request, userDetails);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("Could not set user authentication in security context", ex);
+            }
         }
+        filterChain.doFilter(request, response);
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
@@ -176,9 +135,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return excludeUrlPatterns.stream()
-                .anyMatch(p -> pathMatcher.match(p, request.getServletPath()));
+    private void setResponseApiReturn(HttpServletResponse response,
+                                      String message,
+                                      HttpStatus status) throws IOException {
+        ApiResponse apiResponse = new ApiResponse(false, message);
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+        new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
     }
+
+//    private boolean byPassFilterIfThrows(HttpServletRequest request) throws ServletException {
+//        return excludeIfThrows.stream()
+//                .anyMatch(p -> pathMatcher.match(p, request.getServletPath()));
+//    }
+//
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+//        return excludeUrlPatterns.stream()
+//                .anyMatch(p -> pathMatcher.match(p, request.getServletPath()));
+//    }
 }

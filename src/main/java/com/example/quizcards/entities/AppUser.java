@@ -2,7 +2,6 @@ package com.example.quizcards.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor

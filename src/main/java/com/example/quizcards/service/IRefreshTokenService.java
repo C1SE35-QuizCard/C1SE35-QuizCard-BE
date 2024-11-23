@@ -13,5 +13,7 @@ public interface IRefreshTokenService {
 
     int deleteByUserId(Long userId);
 
-    void updateRefreshTokenWithCurrentExpiredDate(RefreshToken refreshToken);
+    RefreshToken updateRefreshTokenWithCurrentExpiredDate(RefreshToken refreshToken);
+
+    void deleteByToken(String refreshToken);
 }

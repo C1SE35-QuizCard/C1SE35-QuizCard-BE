@@ -1,8 +1,8 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.FlashcardUpdateRequest;
-import com.example.quizcards.dto.request.FlashcardCreationRequest;
 import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.request.FlashcardRequest;
+import com.example.quizcards.helpers.FlashcardHelpers.IFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.service.IFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,28 +16,50 @@ public class FlashcardServiceImpl implements IFlashcardService {
     @Autowired
     private IFlashcardRepository flashcardRepository;
 
-    public List<IFlashcardDTO> getAllBySetId(Long id){
+    @Autowired
+    private IFlashcardHelpers flashcardHelpers;
+
+    @Override
+    public List<IFlashcardDTO> getAllBySetId(Long id) {
         return flashcardRepository.findAllFlashcardsBySetId(id);
     }
 
-    public List<IFlashcardDTO> getAll(){
+    @Override
+    public List<IFlashcardDTO> getAll() {
         return flashcardRepository.findAllFlashcards();
     }
 
-    public void addFlashcard(String term, String definition,String imageLink,Boolean isApproved, Long setId){
-        flashcardRepository.createFlashcards(term, definition, imageLink, isApproved, setId);
+    @Override
+    public void addFlashcard(String question, String answer, String imageLink, Boolean isApproved, Long setId) {
+        flashcardRepository.createFlashcards(question, answer, imageLink, isApproved, setId);
     }
 
-    public void deleteFlashcard(Long cardId){
+    @Override
+    public void deleteFlashcard(Long cardId) {
         flashcardRepository.deleteFlashcardById(cardId);
     }
 
     @Override
-    public void updateFlashcard(FlashcardCreationRequest request) {
+    public void updateFlashcard(FlashcardRequest request) {
+        flashcardHelpers.handleUpdateFlashcard(request);
         flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getIsApproved(), request.getSetId());
     }
 
-    public IFlashcardDTO findByCardId(Long cardId){
+    @Override
+    public void addFlashcard_2(FlashcardRequest request) {
+        flashcardHelpers.handleAddFlashcard(request);
+        flashcardRepository.createFlashcards(request.getQuestion(), request.getAnswer(), request.getImageLink(),
+                true, request.getSetId());
+    }
+
+    @Override
+    public void deleteFlashcard_2(Long cardId, Long setId) {
+        flashcardHelpers.handleDeleteFlashcard(cardId, setId);
+        flashcardRepository.deleteFlashcardById(cardId);
+    }
+
+    @Override
+    public IFlashcardDTO findByCardId(Long cardId) {
         return flashcardRepository.findFlashcardByCardId(cardId);
     }
 }

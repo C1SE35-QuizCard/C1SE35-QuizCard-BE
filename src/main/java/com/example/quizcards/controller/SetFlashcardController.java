@@ -1,12 +1,22 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.SetFlashcardCreationRequest;
+import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
+import com.example.quizcards.dto.request.SetFlashcardRequest;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.example.quizcards.service.IUserProgressService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -16,14 +26,14 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/set")
+@RequestMapping("/api/v1/set")
 public class SetFlashcardController {
     @Autowired
     private ISetFlashcardService setFlashcardService;
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching set flashcards";
 
     @GetMapping("/list")
-    public ResponseEntity<Object> findAllSetFlashcard(){
+    public ResponseEntity<Object> findAllSetFlashcard() {
         try {
             if (setFlashcardService.getAll().isEmpty()) {
                 return new ResponseEntity<>("No set flashcard found", HttpStatus.NO_CONTENT);
@@ -37,7 +47,7 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId){
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
         try {
             if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
                 List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
@@ -46,12 +56,17 @@ public class SetFlashcardController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
         }
     }
 
+    @GetMapping("/detail/cards/{id}")
+    public ResponseEntity<?> findAllFlashcardBySetId_2(@PathVariable("id") Long setId) {
+        return setFlashcardService.getAllFlashcardBySetId_2(setId);
+    }
+
     @GetMapping("/detail/{id}")
-    public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") Long setId){
+    public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") Long setId) {
         try {
             if (setFlashcardService.findBySetId(setId) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Set Flashcard not found");
@@ -63,8 +78,31 @@ public class SetFlashcardController {
         }
     }
 
+    @GetMapping("/set-detail/{id}")
+    public ResponseEntity<?> detailSetFlashcardById_2(@PathVariable("id") Long setId) {
+        return setFlashcardService.findBySetId_2(setId);
+    }
+
+    @GetMapping("/count-public-set/{id}")
+    public ResponseEntity<?> countSetFlashcardCreatedPublicByUserName(@PathVariable("id") Long userId) {
+        return setFlashcardService.countSetFlashcardCreatedPublic(userId);
+    }
+
+    @GetMapping("/count-set")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> countSetFlashcardCreated() {
+        return setFlashcardService.countSetFlashcardCreatedInCurrentUser();
+    }
+
+    @GetMapping("/count-set-in-current-date")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> countSetFlashcardCreatedPerDate() {
+        return setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser();
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<Object> createSetFlashcard(@RequestBody @Validated SetFlashcardCreationRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> createSetFlashcard(@RequestBody @Validated SetFlashcardRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -75,13 +113,15 @@ public class SetFlashcardController {
             }
             return ResponseEntity.badRequest().body(errorDetail);
         }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         try {
             setFlashcardService.addSetFlashcard(request.getTitle(),
                     request.getDescriptionSet(),
                     request.getIsApproved(),
                     request.getIsAnonymous(),
                     request.getSharingMode(),
-                    request.getUserId(),
+                    up.getId(),
                     request.getCategoryId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
         } catch (Exception e) {
@@ -90,21 +130,23 @@ public class SetFlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> deleteSetFlashcardById(@PathVariable("id") Long setId) {
-        if(setFlashcardService.findBySetId(setId) != null) {
+        if (setFlashcardService.findBySetId(setId) != null) {
             try {
                 setFlashcardService.deleteSetFlashcard(setId);
                 return new ResponseEntity<>("Set Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the set flashcard");
             }
-        }else{
+        } else {
             return new ResponseEntity<>("Set Flashcard not found", HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardCreationRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -116,7 +158,7 @@ public class SetFlashcardController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            if(setFlashcardService.findBySetId(request.getSetId()) == null) {
+            if (setFlashcardService.findBySetId(request.getSetId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Set Flashcard not found");
             }
             setFlashcardService.updateSetFlashcard(request);
@@ -126,22 +168,47 @@ public class SetFlashcardController {
         }
     }
 
-    @GetMapping("/search/{title}")
-    public ResponseEntity<Object> searchByTitle(@PathVariable("title") String title){
-        try {
-            if (setFlashcardService.searchByTitle(title).isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
-            } else {
-                List<ISetFlashcardDTO> set = setFlashcardService.searchByTitle(title);
-                return ResponseEntity.ok(set);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
-        }
+    @PostMapping("/create-new-set")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
+        return setFlashcardService.createNewSetFlashcards(request);
     }
 
+    @PutMapping("/update-set")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> updateSetFlashcard_2(@Valid @RequestBody SetFlashcardRequest request) {
+        setFlashcardService.updateSetFlashcard(request);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(true, "Set Flashcard updated successfully"));
+    }
+
+    @DeleteMapping("/delete-set")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> deleteSetFlashcardById_2(@Valid @RequestBody SetFlashcardRequest request) {
+        setFlashcardService.deleteSetFlashcard(request.getSetId());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse(true, "Set Flashcard deleted successfully"));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Object> searchByTitle(@RequestParam("query") String query) {
+//        try {
+//            List<SearchSetFlashResponse> list = setFlashcardService.searchByTitleAndCategory(query);
+//            System.out.println(list);
+//            if (setFlashcardService.searchByTitleAndCategory(query).isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
+//            } else {
+                List<SearchSetFlashResponse> set = setFlashcardService.searchByTitleAndCategory(query);
+                return ResponseEntity.ok(set);
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+//        }
+    }
+
+
     @GetMapping("/sort")
-    public ResponseEntity<Object> sortByUpdatedDate(){
+    public ResponseEntity<Object> sortByUpdatedDate() {
         try {
             if (setFlashcardService.sortByUpdatedDate().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
@@ -155,10 +222,10 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/list/sets/{userId}")
-    public ResponseEntity<Object> getAllSetByUserId(@PathVariable("userId") Long userId){
+    public ResponseEntity<Object> getAllSetByUserId(@PathVariable("userId") Long userId) {
         try {
             if (setFlashcardService.getAllSetByUserId(userId).isEmpty()) {
-                return ResponseEntity.status( HttpStatus.NO_CONTENT).body("The user does not have any flashcard sets");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any flashcard sets");
             } else {
                 List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByUserId(userId);
                 return ResponseEntity.ok(set);
@@ -169,7 +236,7 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<Object> getAllSetPublic(){
+    public ResponseEntity<Object> getAllSetPublic() {
         try {
             if (setFlashcardService.getAllSetPublic().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
@@ -183,7 +250,7 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/public/{userId}")
-    public ResponseEntity<Object> getAllSetPublicByUserId(@PathVariable("userId") Long userId){
+    public ResponseEntity<Object> getAllSetPublicByUserId(@PathVariable("userId") Long userId) {
         try {
             if (setFlashcardService.getAllSetPublicByUserId(userId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any public flashcard sets");

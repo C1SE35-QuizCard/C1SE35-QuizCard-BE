@@ -1,10 +1,11 @@
 package com.example.quizcards.entities;
-import jakarta.validation.constraints.AssertTrue;
-import lombok.*;
-import jakarta.persistence.*;
 
-import java.sql.Time;
-import java.sql.Timestamp;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 

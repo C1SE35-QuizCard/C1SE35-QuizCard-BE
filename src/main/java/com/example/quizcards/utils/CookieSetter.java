@@ -16,19 +16,19 @@ public class CookieSetter {
     @Value("${jwt.refreshTokenExpirationInSec}")
     private Long refreshTokenDurationSec;
 
-    public  ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
-                                                                                  String accessToken,
-                                                                                  String refreshToken,
-                                                                                  String message) {
-        ResponseCookie cookie = ResponseCookie.from("token", accessToken)
+    public ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
+                                                                           String accessToken,
+                                                                           String refreshToken,
+                                                                           String message) {
+        ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .maxAge(jwtExpirationInSec)
-                .build(); // Thời gian tồn tại của cookie (0)
+                .maxAge(10000)
+                .build();
 
-        ResponseCookie newRefreshTokenCookie = ResponseCookie.from("rft", refreshToken)
+        ResponseCookie newRefreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -36,10 +36,10 @@ public class CookieSetter {
                 .maxAge(refreshTokenDurationSec)
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
-        response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
+        response.addHeader("set-cookie", cookie.toString());
+        response.addHeader("set-cookie", newRefreshTokenCookie.toString());
 
         return new ResponseEntity<>(new JwtAuthenticationResponse(
-                accessToken, refreshToken, message), HttpStatus.OK);
+                accessToken, refreshToken, message), HttpStatus.CREATED);
     }
 }

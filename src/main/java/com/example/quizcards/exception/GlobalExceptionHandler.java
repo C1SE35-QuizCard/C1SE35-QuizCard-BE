@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -81,6 +83,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> resolveAccessDenied(AccessDeniedException exception) {
+        ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, exception.getMessage());
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse> resolveAuthorizationDenied(AuthorizationDeniedException exception) {
+        ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, exception.getMessage());
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ApiResponse> resolveUsernameNotFound(UsernameNotFoundException exception) {
         ApiResponse apiResponse = new ApiResponse(Boolean.FALSE, exception.getMessage());
@@ -93,6 +109,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ApiResponse apiResponse = exception.getApiResponse();
 
         return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(DuplicateValueException.class)
+    public ResponseEntity<ApiResponse> resolveDuplicateValue(DuplicateValueException exception) {
+        ApiResponse apiResponse = exception.getApiResponse();
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -109,12 +132,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<ApiResponse> resolveResourceConflict(ResourceConflictException exception) {
+        ApiResponse apiResponse = exception.getApiResponse();
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
+    }
+
 
     @ExceptionHandler(TokenRefreshException.class)
     public ResponseEntity<ApiResponse> resolveTokenRefresh(TokenRefreshException exception) {
         ApiResponse apiResponse = exception.getApiResponse();
 
         return new ResponseEntity<>(apiResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ErrorsDataException.class)
+    public ResponseEntity<?> resolveErrorsData(ErrorsDataException exception) {
+        Map<String, Object> errors = new HashMap<>();
+
+        errors.put("message", exception.getMessage());
+        errors.put("errors", exception.getErrors());
+
+        return new ResponseEntity<>(errors, exception.getHttpStatus());
     }
 
     @ExceptionHandler(Exception.class)

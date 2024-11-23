@@ -1,21 +1,20 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.request.FolderCreationRequest;
+import com.example.quizcards.dto.IFolderDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.FolderRequest;
 
 import java.util.List;
 
 public interface IFolderService {
     IFolderDTO getFolderById(Long folderId);
-    IFolderDTO getFolderByIdUserId(Long userId);
+    List<IFolderDTO> getFoldersByUserId(Long userId);
     List<IFolderDTO> searchFolderByTitle(String title);
-    List<ISetFlashcardDTO> getSetByFolderId(Long folderId);
+    List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId);
     void addFolder(String title, Long userId);
-<<<<<<< HEAD
-    void deleteFolder(int folderId);
-    void updateFolder(FolderCreationRequest request);
-=======
     void deleteFolder(Long folderId);
-    void updateFolder(FolderUpdateRequest request);
->>>>>>> 753d91ca62348b0fe2477bdd7995d53e87a2673e
+    void updateFolder(FolderRequest request);
+    void addFolder_2(FolderRequest request);
+    void deleteFolder_2(Long folderId);
+    void updateFolder_2(FolderRequest request);
 }
