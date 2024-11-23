@@ -61,4 +61,6 @@ public interface ISetFlashcardService {
     List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId);
 
     List<TopCreatorsResponse> loadTop10PopularCreators();
+
+    int countFlashcardsBySetId(Long setId);
 }
