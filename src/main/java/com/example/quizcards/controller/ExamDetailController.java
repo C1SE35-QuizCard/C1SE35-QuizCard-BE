@@ -31,7 +31,7 @@ public class ExamDetailController {
         return examDetailService.deleteExamDetail(examDetailId);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/test/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public List<IExamDetailDTO> findExamDetailsByTestId(@PathVariable("id") Long testId) {
         return examDetailService.findExamDetailsByTestId(testId);

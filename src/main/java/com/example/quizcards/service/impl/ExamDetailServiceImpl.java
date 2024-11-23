@@ -6,6 +6,7 @@ import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.*;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.ExamDetailHelpers.IExamDetailHelpers;
+import com.example.quizcards.helpers.TestHelpers.ITestHelpers;
 import com.example.quizcards.repository.IExamDetailRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IExamDetailService;
@@ -26,6 +27,9 @@ public class ExamDetailServiceImpl implements IExamDetailService {
 
     @Autowired
     IExamDetailHelpers examDetailHelpers;
+
+    @Autowired
+    ITestHelpers examTestHelpers;
 
     @Override
     public ResponseEntity<?> addAndUpdateExamDetail(ExamDetailRequest request){
@@ -74,6 +78,7 @@ public class ExamDetailServiceImpl implements IExamDetailService {
 
     @Override
     public List<IExamDetailDTO> findExamDetailsByTestId(Long testId){
+        examTestHelpers.handleAccessTest(testId);
         return examDetailRepository.findExamDetailsByTestId(testId);
     }
 }

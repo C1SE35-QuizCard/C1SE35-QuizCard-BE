@@ -65,6 +65,10 @@ public class TestHelpersImpl implements ITestHelpers {
         checkCurrentUserOwnerTest(testId);
     }
 
+    public void handleAccessTest(Long testId) {
+        checkCurrentUserOwnerTest(testId);
+    }
+
     public void handleAdminDeleteTest(Long testId, Long userId){
 
     }
