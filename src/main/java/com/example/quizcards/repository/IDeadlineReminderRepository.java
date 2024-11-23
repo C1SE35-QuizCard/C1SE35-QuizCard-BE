@@ -88,9 +88,17 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
     @Query("SELECT EXISTS (SELECT 1 FROM DeadlineReminder dr " +
             "WHERE dr.setFlashcards.setId = :set_id " +
             "AND dr.user.userId = :user_id " +
-            "AND dr.reminderTime >= FUNCTION('utc_timestamp'))")
+            "AND dr.reminderTime = :time_line)")
     boolean existsDeadlineReminderGreaterThanNowBySetId(@Param("set_id") Long setId,
-                                                        @Param("user_id") Long userId);
+                                                        @Param("user_id") Long userId,
+                                                        @Param("time_line") Timestamp timestamp);
+
+//    @Query("SELECT EXISTS (SELECT 1 FROM DeadlineReminder dr " +
+//            "WHERE dr.setFlashcards.setId = :set_id " +
+//            "AND dr.user.userId = :user_id " +
+//            "AND dr.reminderTime >= FUNCTION('utc_timestamp'))")
+//    boolean existsDeadlineReminderGreaterThanNowBySetId(@Param("set_id") Long setId,
+//                                                        @Param("user_id") Long userId);
 //    @Query(value = """
 //            select count(d.deadline_reminders_id)
 //            from deadline_reminders d

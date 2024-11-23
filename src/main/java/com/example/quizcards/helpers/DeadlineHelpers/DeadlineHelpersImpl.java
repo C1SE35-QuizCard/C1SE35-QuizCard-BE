@@ -48,10 +48,15 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
 
     private void checkNotDeadlineValid(DeadlineReminderRequest request, UserPrincipal up) {
         checkSetExists(request.getSetId());
-        if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId())) {
+        if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId(),
+            request.getReminderTime())) {
             throw new BadRequestException("Deadline reminder in set id: " + request.getSetId().toString() +
                     " already exists");
         }
+//        if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId())) {
+//            throw new BadRequestException("Deadline reminder in set id: " + request.getSetId().toString() +
+//                    " already exists");
+//        }
     }
 
     private void checkDeadlineOwner(Long deadlineId, UserPrincipal up) {
