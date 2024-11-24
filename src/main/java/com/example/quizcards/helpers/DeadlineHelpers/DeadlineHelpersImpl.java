@@ -73,8 +73,8 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     }
 
     private void checkTimeline(DeadlineReminderRequest request) {
-        if (request.getReminderTime().compareTo(
-                Timestamp.from(Instant.now().atZone(ZoneOffset.UTC).toInstant())
+        if (request.getReminderTime().toInstant().atZone(ZoneOffset.UTC).toInstant().compareTo(
+                Instant.now().atZone(ZoneOffset.UTC).toInstant()
         ) < 0) {
             throw new BadRequestException(
                     new ApiResponse(false, "Cannot set deadline past")

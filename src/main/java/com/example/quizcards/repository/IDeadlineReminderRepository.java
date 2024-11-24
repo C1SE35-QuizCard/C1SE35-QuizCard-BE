@@ -48,7 +48,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join app_users a on d.user_id = a.user_id
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
-            where s.set_id = :set_id and d.reminder_time >= now()
+            where s.set_id = :set_id and d.reminder_time >= utc_timestamp()
             group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
