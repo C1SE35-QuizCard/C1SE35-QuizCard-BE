@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 @Component
 public class DeadlineHelpersImpl implements IDeadlineHelpers {
@@ -49,7 +50,7 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     private void checkNotDeadlineValid(DeadlineReminderRequest request, UserPrincipal up) {
         checkSetExists(request.getSetId());
         if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId(),
-            request.getReminderTime())) {
+                request.getReminderTime())) {
             throw new BadRequestException("Deadline reminder in set id: " + request.getSetId().toString() +
                     " already exists");
         }
@@ -72,7 +73,9 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     }
 
     private void checkTimeline(DeadlineReminderRequest request) {
-        if (request.getReminderTime().compareTo(Timestamp.from(Instant.now())) < 0) {
+        if (request.getReminderTime().compareTo(
+                Timestamp.from(Instant.now().atZone(ZoneOffset.UTC).toInstant())
+        ) < 0) {
             throw new BadRequestException(
                     new ApiResponse(false, "Cannot set deadline past")
             );
