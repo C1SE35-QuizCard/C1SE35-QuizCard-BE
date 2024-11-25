@@ -51,35 +51,35 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
 
-    @Override
-    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
-        Long userId = Long.MIN_VALUE;
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
-            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
-            userId = up.getId();
-        }
-        if (setId == null) {
-            throw new BadRequestException("Set id is null.");
-        }
-        SetFlashcard set = setFlashcardRepository.findById(setId).orElseThrow(
-                () -> new ResourceNotFoundException("Set", "id", setId)
-        );
-        if (!userId.equals(set.getUser().getUserId()) && !set.getSharingMode()) {
-            throw new AccessDeniedException("Set cannot access by you");
-        }
-        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId(setId);
-        if (results.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ApiResponse(false, "This set does not contain any cards.",
-                            HttpStatus.NOT_FOUND, null)
-            );
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ApiResponse(false, "Get data ok.",
-                        HttpStatus.OK, results)
-        );
-    }
+//    @Override
+//    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
+//        Long userId = Long.MIN_VALUE;
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
+//            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+//            userId = up.getId();
+//        }
+//        if (setId == null) {
+//            throw new BadRequestException("Set id is null.");
+//        }
+//        SetFlashcard set = setFlashcardRepository.findById(setId).orElseThrow(
+//                () -> new ResourceNotFoundException("Set", "id", setId)
+//        );
+//        if (!userId.equals(set.getUser().getUserId()) && !set.getSharingMode()) {
+//            throw new AccessDeniedException("Set cannot access by you");
+//        }
+//        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId(setId);
+//        if (results.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+//                    new ApiResponse(false, "This set does not contain any cards.",
+//                            HttpStatus.NOT_FOUND, null)
+//            );
+//        }
+//        return ResponseEntity.status(HttpStatus.OK).body(
+//                new ApiResponse(false, "Get data ok.",
+//                        HttpStatus.OK, results)
+//        );
+//    }
 
 
     @Override
