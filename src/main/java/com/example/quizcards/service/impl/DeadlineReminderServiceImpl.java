@@ -61,11 +61,11 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
         deadlineHelpers.handleAddDeadline(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
-                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
-                        .getTotalSeconds())
-        );
-        deadlineReminderRepository.createDeadlineReminder(utcTimestamp, up.getId(), request.getSetId());
+//        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
+//                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
+//                        .getTotalSeconds())
+//        );
+        deadlineReminderRepository.createDeadlineReminder(request.getReminderTime(), up.getId(), request.getSetId());
     }
 
     @Override
@@ -81,11 +81,11 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
         deadlineHelpers.handleUpdateDeadline(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
-                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
-                        .getTotalSeconds())
-        );
-        deadlineReminderRepository.updateDeadlineReminder(request.getDeadlineRemindersId(), utcTimestamp,
+//        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
+//                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
+//                        .getTotalSeconds())
+//        );
+        deadlineReminderRepository.updateDeadlineReminder(request.getDeadlineRemindersId(), request.getReminderTime(),
                 up.getId(), request.getSetId());
     }
 

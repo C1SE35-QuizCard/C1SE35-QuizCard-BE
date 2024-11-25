@@ -1,12 +1,12 @@
 package com.example.quizcards.dto;
 
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 public interface IDeadlineReminderDTO {
     Long getDeadlineRemindersId();
 
-    LocalDateTime getReminderTime();
+    Timestamp getReminderTime();
 
     Long getUserId();
 
