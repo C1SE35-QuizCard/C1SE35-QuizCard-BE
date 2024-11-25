@@ -51,23 +51,6 @@ public class UserProgressServiceImpl implements IUserProgressService {
     }
 
     @Override
-    public ResponseEntity<?> findAllProgressByUserAndSet(Long setId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        SetFlashcard set = setRepository.findById(setId).orElseThrow(
-                () -> new ResourceNotFoundException("Set", "id", setId)
-        );
-        if (!set.getSharingMode() && !Objects.equals(up.getId(), set.getUser().getUserId())) {
-            throw new ResourceNotFoundException("Set not public", "id", setId);
-        }
-        List<ProgressResponse> progressResponses = userProgressRepository.findAllProgressByUserAndSet_Performance(
-                up.getId(), setId);
-        return ResponseEntity.ok().body(
-                new ApiResponse(true, "ok", HttpStatus.OK, progressResponses)
-        );
-    }
-
-    @Override
     public void addUserProgress(Boolean progressType, Boolean isAttention, Long userId, Long cardId) {
         userProgressRepository.createUserProgress(progressType, isAttention, userId, cardId);
     }
@@ -155,6 +138,14 @@ public class UserProgressServiceImpl implements IUserProgressService {
         result.put("userId", up.getId());
         result.put("cardId", request.getCardId());
         return ResponseEntity.ok().body(result);
+    }
+
+    @Override
+    public ResponseEntity<?> resetUserProgress(Long setId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        userProgressRepository.deleteUserProgressByUserAndSetId(up.getId(), setId);
+        return ResponseEntity.ok().build();
     }
 
     @Override

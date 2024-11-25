@@ -101,6 +101,16 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                             @Param("user_id") Long userId,
                             @Param("card_id") Long cardId);
 
+    @Modifying
+    @Transactional
+    @Query(value = """
+            delete from user_progress up
+            join flashcards f on up.card_id = f.card_id
+            where up.user_id = :user_id and f.set_id = :set_id
+            """, nativeQuery = true)
+    void deleteUserProgressByUserAndSetId(@Param("user_id") Long userId,
+                                          @Param("set_id") Long setId);
+
 
     @Query(value = """
             select u.progress_type, u.marked_for_attention, u.user_id, u.card_id
@@ -132,18 +142,4 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             where u.user_id = :user_id and u.card_id = :card_id and u.progress_id <> :progress_id
             """, nativeQuery = true)
     int existsByUserIdAndCardIdAndNotId(@Param("user_id") Long userId, @Param("card_id") Long cardId, @Param("progress_id") Long progressId);
-
-
-    // Không truy vấn các bảng không liên quan
-    // Việc lọc set có sharing mode, hoặc người dùng sở hữu set đó sẽ ở bên logic be xử lý để tăng tốc truy vấn
-    @Query(value = """
-        select up.progress_id, up.card_id, au.user_id,
-        		up.progress_type as progress,
-                up.marked_for_attention as mark
-                from user_progress up
-                join flashcards f on up.card_id = f.card_id
-                join app_users au on up.user_id = au.user_id
-                where up.user_id = :user_id and f.set_id = :set_id
-    """, nativeQuery = true)
-    List<ProgressResponse> findAllProgressByUserAndSet_Performance(@Param("user_id") Long userId, @Param("set_id") Long setId);
 }
