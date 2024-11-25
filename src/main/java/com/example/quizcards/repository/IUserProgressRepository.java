@@ -53,6 +53,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                 f.card_id,
                 f.question,
                 f.answer,
+                f.image_url,
                 up.progress_type as status_progress,
                 up.marked_for_attention as status_mark
             from
