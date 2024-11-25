@@ -26,9 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserProgressServiceImpl implements IUserProgressService {
@@ -148,7 +146,15 @@ public class UserProgressServiceImpl implements IUserProgressService {
             ups.setProgressType(request.getProgressType() == null ? ups.getProgressType() : request.getProgressType());
             ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
         }
-        return ResponseEntity.ok().body(userProgressRepository.save(ups));
+        ups = userProgressRepository.save(ups);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("progressId", ups.getProgressId());
+        result.put("statusProgress", ups.getProgressType());
+        result.put("statusMark", ups.getIsAttention());
+        result.put("userId", up.getId());
+        result.put("cardId", request.getCardId());
+        return ResponseEntity.ok().body(result);
     }
 
     @Override
