@@ -147,7 +147,7 @@ public class UserProgressServiceImpl implements IUserProgressService {
             ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
         }
         ups = userProgressRepository.save(ups);
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("progressId", ups.getProgressId());
         result.put("statusProgress", ups.getProgressType());

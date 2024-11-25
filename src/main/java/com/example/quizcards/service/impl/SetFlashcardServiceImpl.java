@@ -20,8 +20,6 @@ import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class SetFlashcardServiceImpl implements ISetFlashcardService {
@@ -137,21 +135,19 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
             UserPrincipal up = (UserPrincipal) auth.getPrincipal();
             userId = up.getId();
         }
-        ISetFlashcardDTO result = setFlashcardRepository.findSetFlashcardsById_2(setId, userId);
+        ISetFlashcardDTO result = setFlashcardRepository.findSetFlashcardsById(setId);
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
                             HttpStatus.NOT_FOUND, null)
             );
         }
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        Map c = mapper.convertValue(result, Map.class);
-        AppUser ac = appUserService.findByUsername(result.getUserName()).orElseThrow();
-        c.put("userId", ac.getUserId());
+        if (!Objects.equals(result.getUserId(), userId) && !result.getSharingMode()) {
+            throw new AccessDeniedException("Set cannot access by you");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(
-                new ApiResponse(false, "Get data ok.",
-                        HttpStatus.OK, c)
+                new ApiResponse(true, "Get data ok.",
+                        HttpStatus.OK, result)
         );
     }
 
