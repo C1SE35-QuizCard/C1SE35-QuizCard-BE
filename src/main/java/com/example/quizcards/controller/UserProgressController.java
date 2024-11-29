@@ -54,12 +54,6 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/set/{set_id}")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getAllProgressBySetIdInCurrentUser(@PathVariable("set_id") Long setId) {
-        return userProgressService.findAllProgressByUserAndSet(setId);
-    }
-
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> addUserProgress(@RequestBody @Validated UserProgressRequest request, BindingResult bindingResult) {
@@ -150,7 +144,13 @@ public class UserProgressController {
 
     @PatchMapping("/assign-progress")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> assignUserProgress_2(@Valid @RequestBody UserProgressRequest request) {
+    public ResponseEntity<?> assignUserProgress(@Valid @RequestBody UserProgressRequest request) {
         return userProgressService.assignUserProgress(request);
+    }
+
+    @DeleteMapping("/reset-progress/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> resetUserProgress(@PathVariable("set_id") Long setId) {
+        return userProgressService.resetUserProgress(setId);
     }
 }

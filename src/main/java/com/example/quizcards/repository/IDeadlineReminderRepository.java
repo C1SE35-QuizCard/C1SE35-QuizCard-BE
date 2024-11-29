@@ -34,7 +34,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join app_users a on d.user_id = a.user_id
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
-            where d.reminder_time >= utc_timestamp()
+            where d.reminder_time >= now()
               and (s.user_id = :user_id or s.sharing_mode = true)
               and a.user_id = :user_id
             group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
@@ -48,7 +48,7 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
             join app_users a on d.user_id = a.user_id
             join set_flashcards s on d.set_id = s.set_id
             left join flashcards f on f.set_id = s.set_id
-            where s.set_id = :set_id and d.reminder_time >= utc_timestamp()
+            where s.set_id = :set_id and d.reminder_time >= now()
             group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
             order by d.reminder_time asc
             """, nativeQuery = true)
@@ -85,14 +85,20 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
                                 @Param("user_id") Long userId,
                                 @Param("set_id") Long setId);
 
-
-    @Query("SELECT dr FROM DeadlineReminder dr " +
+    @Query("SELECT EXISTS (SELECT 1 FROM DeadlineReminder dr " +
             "WHERE dr.setFlashcards.setId = :set_id " +
             "AND dr.user.userId = :user_id " +
-            "AND dr.reminderTime >= FUNCTION('utc_timestamp')")
-    List<DeadlineReminder> getDeadlineReminderGreaterThanNowBySetId(@Param("set_id") Long setId,
-                                                                    @Param("user_id") Long userId);
+            "AND dr.reminderTime = :time_line)")
+    boolean existsDeadlineReminderGreaterThanNowBySetId(@Param("set_id") Long setId,
+                                                        @Param("user_id") Long userId,
+                                                        @Param("time_line") Timestamp timestamp);
 
+//    @Query("SELECT EXISTS (SELECT 1 FROM DeadlineReminder dr " +
+//            "WHERE dr.setFlashcards.setId = :set_id " +
+//            "AND dr.user.userId = :user_id " +
+//            "AND dr.reminderTime >= FUNCTION('utc_timestamp'))")
+//    boolean existsDeadlineReminderGreaterThanNowBySetId(@Param("set_id") Long setId,
+//                                                        @Param("user_id") Long userId);
 //    @Query(value = """
 //            select count(d.deadline_reminders_id)
 //            from deadline_reminders d

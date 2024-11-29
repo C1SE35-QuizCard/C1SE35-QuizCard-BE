@@ -53,6 +53,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                 f.card_id,
                 f.question,
                 f.answer,
+                f.image_url,
                 up.progress_type as status_progress,
                 up.marked_for_attention as status_mark
             from
@@ -100,6 +101,16 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                             @Param("user_id") Long userId,
                             @Param("card_id") Long cardId);
 
+    @Modifying
+    @Transactional
+    @Query(value = """
+            delete from user_progress up
+            join flashcards f on up.card_id = f.card_id
+            where up.user_id = :user_id and f.set_id = :set_id
+            """, nativeQuery = true)
+    void deleteUserProgressByUserAndSetId(@Param("user_id") Long userId,
+                                          @Param("set_id") Long setId);
+
 
     @Query(value = """
             select u.progress_type, u.marked_for_attention, u.user_id, u.card_id
@@ -131,24 +142,4 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             where u.user_id = :user_id and u.card_id = :card_id and u.progress_id <> :progress_id
             """, nativeQuery = true)
     int existsByUserIdAndCardIdAndNotId(@Param("user_id") Long userId, @Param("card_id") Long cardId, @Param("progress_id") Long progressId);
-
-
-    // Không truy vấn các bảng không liên quan
-    // Việc lọc set có sharing mode, hoặc người dùng sở hữu set đó sẽ ở bên logic be xử lý để tăng tốc truy vấn
-    @Query(value = """
-        select up.progress_id, up.card_id, au.user_id,
-        		case 
-        		    when up.progress_type is null then null
-        		    when up.progress_type = true then 1
-        		    else 0 end as progress,
-                case 
-                    when up.marked_for_attention is null then null
-                    when up.marked_for_attention = true then 1
-                    else 0 end as mark
-                from user_progress up
-                join flashcards f on up.card_id = f.card_id
-                join app_users au on up.user_id = au.user_id
-                where up.user_id = :user_id and f.set_id = :set_id
-    """, nativeQuery = true)
-    List<ProgressResponse> findAllProgressByUserAndSet_Performance(@Param("user_id") Long userId, @Param("set_id") Long setId);
 }

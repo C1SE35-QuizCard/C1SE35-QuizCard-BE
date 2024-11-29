@@ -50,7 +50,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 //            """, nativeQuery = true)
     @Query(value = """
             SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                  a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(DISTINCT f.card_id) AS total_card
+                  a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name, COUNT(DISTINCT f.card_id) AS total_card
            FROM set_flashcards s
            JOIN app_users a ON s.user_id = a.user_id
            JOIN category_set_flashcards c ON s.category_id = c.category_id
@@ -67,15 +67,6 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
-
-    @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
-            from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
-            where s.user_id = a.user_id and s.category_id = c.category_id and s.set_id = :set_id and f.set_id = s.set_id
-                and (s.user_id = :user_id or s.sharing_mode = true)
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
-            """, nativeQuery = true)
-    ISetFlashcardDTO findSetFlashcardsById_2(@Param("set_id") Long id, @Param("user_id") Long userId);
 
     @Query(value = """
         SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, 

@@ -13,7 +13,7 @@ import java.util.List;
 public interface ISetFlashcardService {
     List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
 
-    ResponseEntity<?> getAllFlashcardBySetId_2(Long setId);
+//    ResponseEntity<?> getAllFlashcardBySetId_2(Long setId);
 
 
     List<ISetFlashcardDTO> getAll();
