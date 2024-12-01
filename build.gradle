@@ -58,6 +58,8 @@ dependencies {
 
 
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'com.stripe:stripe-java:22.20.0'
+
 }
 
 tasks.named('test') {
