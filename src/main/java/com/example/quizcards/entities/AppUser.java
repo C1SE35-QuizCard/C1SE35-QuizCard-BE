@@ -81,4 +81,8 @@ public class AppUser implements Serializable {
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private AppRole role;
+
+    public AppUser(Long userId) {
+        this.userId=userId;
+    }
 }

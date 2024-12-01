@@ -1,6 +1,8 @@
 package com.example.quizcards.service.impl;
 
+import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.service.IAppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,8 @@ public class AppUserServiceImpl implements IAppUserService {
     @Autowired
     private IAppUserRepository userRepository;
 
-
+    @Autowired
+    private IAppRoleRepository roleRepository;
     @Override
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
@@ -59,5 +62,24 @@ public class AppUserServiceImpl implements IAppUserService {
     @Transactional
     public void save(AppUser user) {
         userRepository.save(user);
+    }
+    public AppUser updateUserRole(Long userId, Long roleId) {
+
+        Optional<AppUser> appUserOpt = userRepository.findById(userId);
+        if (appUserOpt.isPresent()) {
+            AppUser appUser = appUserOpt.get();
+
+            Optional<AppRole> appRoleOpt = roleRepository.findById(roleId);
+            if (appRoleOpt.isPresent()) {
+                AppRole appRole = appRoleOpt.get();
+                appUser.setRole(appRole);
+
+                return userRepository.save(appUser);
+            } else {
+                throw new RuntimeException("Role not found with id: " + roleId);
+            }
+        } else {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
     }
 }
