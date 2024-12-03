@@ -9,6 +9,6 @@ public interface ProgressResponse {
     Long getCardId();
 //    private Long setId;
     Long getUserId();
-    Integer getProgress();
-    Integer getMark();
+    Boolean getProgress();
+    Boolean getMark();
 }

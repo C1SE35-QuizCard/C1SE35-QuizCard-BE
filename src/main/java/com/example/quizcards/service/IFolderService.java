@@ -21,10 +21,7 @@ public interface IFolderService {
     void deleteFolder(Long folderId);
 
     void updateFolder(UpdateFolderRequest request);
-
     void addFolder_2(FolderRequest request);
-
     void deleteFolder_2(Long folderId);
-
     void updateFolder_2(FolderRequest request);
 }

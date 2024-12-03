@@ -79,10 +79,10 @@ public class FolderController {
     @GetMapping("/set/{folder_id}")
     public ResponseEntity<Object> getSetByFolderId(@PathVariable("folder_id") Long folderId) {
         try {
-            if (folderService.getSetByFolderId(folderId).isEmpty()) {
+            if (folderService.findSetByFolderIdAndUserId(folderId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No set found for folder ID " + folderId);
             } else {
-                List<ISetFlashcardDTO> sets = folderService.getSetByFolderId(folderId);
+                List<ISetFlashcardDTO> sets = folderService.findSetByFolderIdAndUserId(folderId);
                 return ResponseEntity.ok(sets);
             }
         } catch (Exception e) {

@@ -13,7 +13,7 @@ import java.util.List;
 public interface ISetFlashcardService {
     List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
 
-    ResponseEntity<?> getAllFlashcardBySetId_2(Long setId);
+//    ResponseEntity<?> getAllFlashcardBySetId_2(Long setId);
 
 
     List<ISetFlashcardDTO> getAll();
@@ -61,4 +61,6 @@ public interface ISetFlashcardService {
     List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId);
 
     List<TopCreatorsResponse> loadTop10PopularCreators();
+
+    int countFlashcardsBySetId(Long setId);
 }

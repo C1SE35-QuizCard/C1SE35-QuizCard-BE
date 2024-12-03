@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 @Component
 public class DeadlineHelpersImpl implements IDeadlineHelpers {
@@ -48,10 +49,15 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
 
     private void checkNotDeadlineValid(DeadlineReminderRequest request, UserPrincipal up) {
         checkSetExists(request.getSetId());
-        if (!deadlineRepository.getDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId())
-                .isEmpty()) {
-            throw new BadRequestException("Deadline reminder already exists");
+        if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId(),
+                request.getReminderTime())) {
+            throw new BadRequestException("Deadline reminder in set id: " + request.getSetId().toString() +
+                    " already exists");
         }
+//        if (deadlineRepository.existsDeadlineReminderGreaterThanNowBySetId(request.getSetId(), up.getId())) {
+//            throw new BadRequestException("Deadline reminder in set id: " + request.getSetId().toString() +
+//                    " already exists");
+//        }
     }
 
     private void checkDeadlineOwner(Long deadlineId, UserPrincipal up) {
@@ -67,7 +73,9 @@ public class DeadlineHelpersImpl implements IDeadlineHelpers {
     }
 
     private void checkTimeline(DeadlineReminderRequest request) {
-        if (request.getReminderTime().compareTo(Timestamp.from(Instant.now())) < 0) {
+        if (request.getReminderTime().toInstant().atZone(ZoneOffset.UTC).toInstant().compareTo(
+                Instant.now().atZone(ZoneOffset.UTC).toInstant()
+        ) < 0) {
             throw new BadRequestException(
                     new ApiResponse(false, "Cannot set deadline past")
             );

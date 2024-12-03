@@ -42,7 +42,7 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
+    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId){
         return folderRepository.findSetByFolderId(folderId);
     }
 
