@@ -2,15 +2,20 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.CreateFolderRequest;
 import com.example.quizcards.dto.request.FolderRequest;
+import com.example.quizcards.dto.request.UpdateFolderRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFolderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -41,13 +46,15 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<Object> getFoldersByUserId(@PathVariable("id") Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<Object> getFoldersByUserId() {
         try {
-            if (folderService.getFoldersByUserId(userId) == null) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for user ID " + userId);
+            if (folderService.getFoldersByUserId() == null) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for user ID " + up.getId());
             } else {
-                List<IFolderDTO> folder = folderService.getFoldersByUserId(userId);
+                List<IFolderDTO> folder = folderService.getFoldersByUserId();
                 return ResponseEntity.ok(folder);
             }
         } catch (Exception e) {
@@ -84,8 +91,8 @@ public class FolderController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
-    public ResponseEntity<Object> addFolder(@RequestBody @Validated FolderRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> addFolder(@RequestBody @Validated CreateFolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }
@@ -97,7 +104,7 @@ public class FolderController {
             return ResponseEntity.badRequest().body(errorDetail);
         }
         try {
-            folderService.addFolder(request.getTitle(), request.getUserId());
+            folderService.addFolder(request.getTitle());
             return ResponseEntity.status(HttpStatus.CREATED).body("Folder created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the folder");
@@ -105,7 +112,7 @@ public class FolderController {
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<Object> deleteFolder(@PathVariable("id") Long folderId) {
         if (folderService.getFolderById(folderId) != null) {
             try {
@@ -120,8 +127,8 @@ public class FolderController {
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
-    public ResponseEntity<Object> updateFolder(@Validated @RequestBody FolderRequest request, BindingResult bindingResult) {
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<Object> updateFolder(@Validated @RequestBody UpdateFolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
         }

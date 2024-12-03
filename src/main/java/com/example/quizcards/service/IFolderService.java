@@ -3,23 +3,24 @@ package com.example.quizcards.service;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.FolderRequest;
+import com.example.quizcards.dto.request.UpdateFolderRequest;
 
 import java.util.List;
 
 public interface IFolderService {
     IFolderDTO getFolderById(Long folderId);
 
-    List<IFolderDTO> getFoldersByUserId(Long userId);
+    List<IFolderDTO> getFoldersByUserId();
 
     List<IFolderDTO> searchFolderByTitle(String title);
 
     List<ISetFlashcardDTO> getSetByFolderId(Long folderId);
 
-    void addFolder(String title, Long userId);
+    void addFolder(String title);
 
     void deleteFolder(Long folderId);
 
-    void updateFolder(FolderRequest request);
+    void updateFolder(UpdateFolderRequest request);
 
     void addFolder_2(FolderRequest request);
 
