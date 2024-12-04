@@ -7,7 +7,21 @@ public interface ICollectionDTO {
 
     Long getFolderId();
 
+    String getFolderName();
+
     Long getSetId();
+
+    String getSetTitle();
+
+    String getSetDescription();
+
+    Long getUserId();
+
+    String getUserName();
+
+    String getFirstName();
+
+    String getLastName();
 
     LocalDateTime getCreatedAt();
 
