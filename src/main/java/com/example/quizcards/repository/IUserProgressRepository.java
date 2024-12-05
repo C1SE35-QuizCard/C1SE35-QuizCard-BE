@@ -45,26 +45,27 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
     // Cái này cho admin đúng không ?
     // Chỉ có trả về các trường như username, avatar, ..., mới cho admin thôi, cho user thì chắc không cần
     @Query(value = """
-            select
-                s.set_id,
-                s.title,
-                a.avatar,
-                a.user_name,
-                f.card_id,
-                f.question,
-                f.answer,
-                up.progress_type as status_progress,
-                up.marked_for_attention as status_mark
-            from
-                flashcards f
-            join
-                set_flashcards s on s.set_id = f.set_id
-            join
-                app_users a on a.user_id = s.user_id
-            left join
-                user_progress up on f.card_id = up.card_id and up.user_id =:userId
-            where f.set_id =:setId
-    """, nativeQuery = true)
+                    select
+                        s.set_id,
+                        s.title,
+                        a.avatar,
+                        a.user_name,
+                        f.card_id,
+                        f.question,
+                        f.answer,
+                        up.progress_type as status_progress,
+                        up.marked_for_attention as status_mark,
+                        f.image_url
+                    from
+                        flashcards f
+                    join
+                        set_flashcards s on s.set_id = f.set_id
+                    join
+                        app_users a on a.user_id = s.user_id
+                    left join
+                        user_progress up on f.card_id = up.card_id and up.user_id =:userId
+                    where f.set_id =:setId
+            """, nativeQuery = true)
     List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(@Param("setId") Long setId, @Param("userId") Long userId);
 
 

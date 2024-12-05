@@ -61,4 +61,5 @@ public interface ISetFlashcardService {
     List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId);
 
     List<TopCreatorsResponse> loadTop10PopularCreators();
+    boolean existsBySetFlashcard_SetIdAndSetFlashcard_SharingMode(Long setId);
 }

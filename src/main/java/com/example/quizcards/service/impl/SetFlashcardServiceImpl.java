@@ -264,4 +264,13 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public List<TopCreatorsResponse> loadTop10PopularCreators() {
         return setFlashcardRepository.findTop10PopularCreators();
     }
+
+    @Override
+    public boolean existsBySetFlashcard_SetIdAndSetFlashcard_SharingMode(Long setId) {
+        Long exist = setFlashcardRepository.existsBySetIdAndSharingModeTrue(setId);
+        if (exist == null) {
+            return false;
+        }
+        return true;
+    }
 }
