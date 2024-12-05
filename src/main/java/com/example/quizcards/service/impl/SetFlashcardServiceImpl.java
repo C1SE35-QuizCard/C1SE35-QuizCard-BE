@@ -88,6 +88,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    public ResponseEntity<?> getListFlashcardsByNearbySetting(Long userId, Long limit) {
+        return ResponseEntity.ok(setFlashcardRepository.findAllSetPublicNearbySettings(userId, limit));
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<?> createNewSetFlashcards(SetFlashcardInitializeRequest request) {
         setFlashcardHelpers.handleAddSetFlashcard(request);

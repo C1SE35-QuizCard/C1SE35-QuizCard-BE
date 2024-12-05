@@ -294,4 +294,18 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Query(value = "select count(set_id) from flashcards where set_id = :setId", nativeQuery = true)
     int countFlashcardsBySetId(@Param("setId") Long setId);
 
+    @Query(value = """
+            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) AS total_card
+            FROM set_flashcards s
+            JOIN app_users a ON s.user_id = a.user_id
+            JOIN category_set_flashcards c ON s.category_id = c.category_id
+            JOIN flashcards f ON f.set_id = s.set_id
+            JOIN user_flashcard_settings ufs on s.set_id = ufs.set_id
+            WHERE s.user_id = :user_id
+            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            ORDER BY ufs.last_accessed desc
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<ISetFlashcardDTO> findAllSetPublicNearbySettings(@Param("user_id") Long userId,
+                                                          @Param("limit") Long limit);
 }
