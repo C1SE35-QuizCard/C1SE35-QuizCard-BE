@@ -10,6 +10,7 @@ import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
 import com.example.quizcards.service.IUserProgressService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -98,6 +99,17 @@ public class SetFlashcardController {
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> countSetFlashcardCreatedPerDate() {
         return setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser();
+    }
+
+    @GetMapping("/get-current-sets-by-settings")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getSetSettingsByIdOnCurrentUser(@RequestParam Long limit) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        if (limit == null || limit < 1) {
+            limit = Long.MAX_VALUE;
+        }
+        return setFlashcardService.getListFlashcardsByNearbySetting(up.getId(), limit);
     }
 
     @PostMapping("/create")

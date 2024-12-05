@@ -15,15 +15,11 @@ public class FlashcardSettingRequest {
     @NotNull(message = "Set id is required.")
     private Long setId;
 
-    @NotNull(message = "Last card index is required.")
-    @Min(value = 0)
-    private int lastCardIndex;
+    private Long lastCardId;
 
-    @NotNull(message = "Shuffle mode is required.")
-    private boolean shuffleMode;
+    private Boolean shuffleMode;
 
-    @NotNull(message = "Flip card mode is required.")
-    private boolean flipCardMode;
+    private Boolean flipCardMode;
 
     private LocalDateTime lastAccessed;
 

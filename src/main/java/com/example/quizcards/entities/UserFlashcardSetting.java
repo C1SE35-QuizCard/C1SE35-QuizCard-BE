@@ -26,17 +26,17 @@ public class UserFlashcardSetting {
     @Column(name = "id")
     private Long settingId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_id", nullable = false)
     private SetFlashcard setFlashcard;
 
     @Column(name = "last_card_index")
     @Min(value = 0)
-    private int lastCardIndex;
+    private Long lastCardId;
 
     @Column(name = "shuffle_mode")
     private boolean shuffleMode;

@@ -14,30 +14,45 @@ import java.util.List;
 @Repository
 public interface ICollectionRepository extends JpaRepository<Collection, Long> {
     @Query(value = """
-            select c.id, c.folder_id, c.set_id, c.created_at, c.updated_at
-            from folders f, set_flashcards s, collection c
-            where f.folder_id = c.folder_id and s.set_id = c.set_id and c.id = :id
+            select c.id, f.folder_id, f.title, s.set_id, s.title, s.description_set,
+                     au.user_id, au.user_name, au.first_name, au.last_name, c.created_at, c.updated_at
+            from collection c
+            join folders f on f.folder_id = c.folder_id
+            join set_flashcards s on s.set_id = c.set_id
+            join app_users au on au.user_id = f.user_id
+            where c.id = :id
             """, nativeQuery = true)
     ICollectionDTO findCollectionById(@Param("id") Long id);
 
     @Query(value = """
-            select c.id, c.folder_id, c.set_id, c.created_at, c.updated_at
-            from folders f, set_flashcards s, collection c
-            where f.folder_id = c.folder_id and s.set_id = c.set_id
+              select c.id, f.folder_id, f.title, s.set_id, s.title, s.description_set,
+                     au.user_id, au.user_name, au.first_name, au.last_name, c.created_at, c.updated_at
+              from collection c
+              join folders f on f.folder_id = c.folder_id
+              join set_flashcards s on s.set_id = c.set_id
+              join app_users au on au.user_id = f.user_id
             """, nativeQuery = true)
     List<ICollectionDTO> findAllCollection();
 
     @Query(value = """
-            select c.id, c.folder_id, c.set_id, c.created_at, c.updated_at
-            from folders f, set_flashcards s, collection c
-            where f.folder_id = c.folder_id and s.set_id = c.set_id and c.set_id = :set_id
+            select c.id, f.folder_id, f.title, s.set_id, s.title, s.description_set,
+                     au.user_id, au.user_name, au.first_name, au.last_name, c.created_at, c.updated_at
+            from collection c
+            join folders f on f.folder_id = c.folder_id
+            join set_flashcards s on s.set_id = c.set_id
+            join app_users au on au.user_id = f.user_id
+            where c.set_id = :set_id
             """, nativeQuery = true)
     List<ICollectionDTO> findCollectionBySetId(@Param("set_id") Long setId);
 
     @Query(value = """
-            select c.id, c.folder_id, c.set_id, c.created_at, c.updated_at
-            from folders f, set_flashcards s, collection c
-            where f.folder_id = c.folder_id and s.set_id = c.set_id and c.folder_id = :folder_id
+            select c.id, f.folder_id, f.title, s.set_id, s.title, s.description_set,
+                     au.user_id, au.user_name, au.first_name, au.last_name, c.created_at, c.updated_at
+            from collection c
+            join folders f on f.folder_id = c.folder_id
+            join set_flashcards s on s.set_id = c.set_id
+            join app_users au on au.user_id = f.user_id
+            where c.folder_id = :folder_id
             """, nativeQuery = true)
     List<ICollectionDTO> findCollectionByFolderId(@Param("folder_id") Long folderId);
 

@@ -4,6 +4,7 @@ import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.request.EssayTestRequest;
 import com.example.quizcards.dto.request.MultipleChoiceTestRequest;
 import com.example.quizcards.dto.request.TestCreationRequest;
+import com.example.quizcards.dto.request.TestRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.*;
 import com.example.quizcards.helpers.TestHelpers.ITestHelpers;
@@ -137,6 +138,11 @@ public class TestServiceImpl implements ITestService {
             questions.add(question);
         }
         return ResponseEntity.ok(questions);
+    }
+
+    @Override
+    public ResponseEntity<?> createTestWithQuestionReturn(Long setId, TestRequest request) {
+        return null;
     }
 
 }

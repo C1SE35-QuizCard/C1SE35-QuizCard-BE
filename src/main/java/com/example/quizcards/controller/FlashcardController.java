@@ -134,11 +134,10 @@ public class FlashcardController {
 
     @PostMapping("/create-new-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> createFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
-        flashcardService.addFlashcard_2(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Flashcard created successfully"));
+    public ResponseEntity<?> createFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
+        return flashcardService.addFlashcard_2(request);
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(new ApiResponse(true, "Flashcard created successfully"));
     }
 
     @DeleteMapping("/delete-flashcard")
@@ -151,9 +150,7 @@ public class FlashcardController {
 
     @PutMapping("/update-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> updateFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
-        flashcardService.updateFlashcard(request);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse(true, "Flashcard updated successfully"));
+    public ResponseEntity<?> updateFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
+        return flashcardService.updateFlashcard_2(request);
     }
 }

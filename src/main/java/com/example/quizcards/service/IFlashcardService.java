@@ -3,6 +3,7 @@ package com.example.quizcards.service;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.request.FlashcardRequest;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -17,7 +18,9 @@ public interface IFlashcardService {
 
     void updateFlashcard(FlashcardRequest request);
 
-    void addFlashcard_2(FlashcardRequest request);
+    ResponseEntity<?> addFlashcard_2(FlashcardRequest request);
+
+    ResponseEntity<?> updateFlashcard_2(FlashcardRequest request);
 
     void deleteFlashcard_2(Long cardId, Long setId);
 

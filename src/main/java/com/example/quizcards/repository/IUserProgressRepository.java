@@ -104,7 +104,8 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
     @Modifying
     @Transactional
     @Query(value = """
-            delete from user_progress up
+            delete up
+            FROM user_progress up
             join flashcards f on up.card_id = f.card_id
             where up.user_id = :user_id and f.set_id = :set_id
             """, nativeQuery = true)
