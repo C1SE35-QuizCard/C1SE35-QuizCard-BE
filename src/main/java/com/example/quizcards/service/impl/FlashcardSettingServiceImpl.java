@@ -7,9 +7,13 @@ import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserFlashcardSetting;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.repository.IFlashcardSettingRepository;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFlashcardSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +45,28 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
         Optional<UserFlashcardSetting> setting = flashcardSettingRepository.findByUserAndAndSetFlashcard(au, s);
         return setting.map(userFlashcardSetting -> ResponseEntity.ok().body(updateSetting(userFlashcardSetting, request)))
                 .orElseGet(() -> ResponseEntity.ok().body(createSetting(userId, request)));
+    }
+
+    @Override
+    public ResponseEntity<?> save(Long setId) {
+        if(!existsUserFlashcardSetting(setId)){
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+            flashcardSettingRepository.save(up.getId(),setId);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Save successfully!");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("You have already saved !");
+    }
+
+    @Override
+    public Boolean existsUserFlashcardSetting(Long setId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        Long exist= flashcardSettingRepository.existsUserFlashcardSetting(setId,up.getId());
+        if(exist==null){
+            return false;
+        }
+        return true;
     }
 
 

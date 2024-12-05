@@ -267,7 +267,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public int countFlashcardsBySetId(Long setId){
-        return setFlashcardRepository.countFlashcardsBySetId(setId);
+    public boolean existsBySetFlashcard_SetIdAndSetFlashcard_SharingMode(Long setId) {
+        Long exist = setFlashcardRepository.existsBySetIdAndSharingModeTrue(setId);
+        if (exist == null) {
+            return false;
+        }
+        return true;
     }
 }

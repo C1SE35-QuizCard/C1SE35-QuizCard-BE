@@ -34,16 +34,20 @@ public class UserFlashcardSetting {
     @JoinColumn(name = "set_id", nullable = false)
     private SetFlashcard setFlashcard;
 
-    @Column(name = "last_card_id", nullable = false)
+    @Column(name = "last_card_index")
     @Min(value = 0)
     private Long lastCardId;
 
-    @Column(name = "shuffle_mode", nullable = false)
+    @Column(name = "shuffle_mode")
     private boolean shuffleMode;
 
-    @Column(name = "flip_card_mode", nullable = false)
+    @Column(name = "flip_card_mode")
     private boolean flipCardMode;
 
     @Column(name = "last_accessed")
     private LocalDateTime lastAccessed;
+    public UserFlashcardSetting(AppUser user, SetFlashcard setFlashcard) {
+        this.user = user;
+        this.setFlashcard = setFlashcard;
+    }
 }

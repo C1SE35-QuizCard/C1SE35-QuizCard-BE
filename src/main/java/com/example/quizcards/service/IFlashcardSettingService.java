@@ -2,6 +2,7 @@ package com.example.quizcards.service;
 
 import com.example.quizcards.dto.request.FlashcardSettingRequest;
 import com.example.quizcards.dto.response.FlashcardSettingResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public interface IFlashcardSettingService {
@@ -10,4 +11,6 @@ public interface IFlashcardSettingService {
     ResponseEntity<FlashcardSettingResponse> updateOrCreateNewFlashcardSetting(
             Long userId,
             FlashcardSettingRequest request);
+    ResponseEntity<?> save(Long setId);
+    Boolean existsUserFlashcardSetting(Long setId);
 }
