@@ -1,5 +1,6 @@
 package com.example.quizcards.dto;
 
+
 import java.sql.Timestamp;
 
 public interface IDeadlineReminderDTO {
