@@ -26,9 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserProgressServiceImpl implements IUserProgressService {
@@ -50,23 +48,6 @@ public class UserProgressServiceImpl implements IUserProgressService {
     @Override
     public List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(Long setId, Long userId) {
         return userProgressRepository.findFlashcardsProgressBySetId(setId, userId);
-    }
-
-    @Override
-    public ResponseEntity<?> findAllProgressByUserAndSet(Long setId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        SetFlashcard set = setRepository.findById(setId).orElseThrow(
-                () -> new ResourceNotFoundException("Set", "id", setId)
-        );
-        if (!set.getSharingMode() && !Objects.equals(up.getId(), set.getUser().getUserId())) {
-            throw new ResourceNotFoundException("Set not public", "id", setId);
-        }
-        List<ProgressResponse> progressResponses = userProgressRepository.findAllProgressByUserAndSet_Performance(
-                up.getId(), setId);
-        return ResponseEntity.ok().body(
-                new ApiResponse(true, "ok", HttpStatus.OK, progressResponses)
-        );
     }
 
     @Override
@@ -148,7 +129,23 @@ public class UserProgressServiceImpl implements IUserProgressService {
             ups.setProgressType(request.getProgressType() == null ? ups.getProgressType() : request.getProgressType());
             ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
         }
-        return ResponseEntity.ok().body(userProgressRepository.save(ups));
+        ups = userProgressRepository.save(ups);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("progressId", ups.getProgressId());
+        result.put("statusProgress", ups.getProgressType());
+        result.put("statusMark", ups.getIsAttention());
+        result.put("userId", up.getId());
+        result.put("cardId", request.getCardId());
+        return ResponseEntity.ok().body(result);
+    }
+
+    @Override
+    public ResponseEntity<?> resetUserProgress(Long setId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        userProgressRepository.deleteUserProgressByUserAndSetId(up.getId(), setId);
+        return ResponseEntity.ok().build();
     }
 
     @Override

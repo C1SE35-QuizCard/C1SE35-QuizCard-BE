@@ -27,11 +27,11 @@ public interface IUserProgressService {
 
     ResponseEntity<?> assignUserProgress(UserProgressRequest request);
 
+    ResponseEntity<?> resetUserProgress(Long setId);
+
     IProgressDTO findUserProgressById(Long progressId);
 
     boolean existsByUserIdAndCardId(Long userId, Long cardId);
 
     boolean existsByUserIdAndCardIdAndNotId(Long userId, Long cardId, Long progressId);
-
-    ResponseEntity<?> findAllProgressByUserAndSet(Long setId);
 }
