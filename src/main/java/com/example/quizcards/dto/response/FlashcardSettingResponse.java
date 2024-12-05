@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlashcardSettingResponse {
-    private int lastCardIndex;
+    private Long lastCardId;
     private boolean shuffleMode;
     private boolean flipCardMode;
     private LocalDateTime lastAccessed;

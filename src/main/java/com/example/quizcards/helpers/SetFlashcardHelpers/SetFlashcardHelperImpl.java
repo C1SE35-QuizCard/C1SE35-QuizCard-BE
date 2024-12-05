@@ -90,9 +90,12 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     }
 
     private void checkUpdateForFreeUser(SetFlashcardRequest request, UserPrincipal up) {
-        if (request.getIsAnonymous()) {
+        SetFlashcard set = setFlashcardRepository.findById(request.getSetId()).
+                orElseThrow(() -> new ResourceNotFoundException("Set", "id", request.getSetId()));
+        if (request.getIsAnonymous() != null && request.getIsAnonymous()) {
             throw new BadRequestException("Self-created card set must be public creator identity, cannot be anonymous.");
         }
+        request.setIsAnonymous(request.getIsAnonymous() == null ? set.getIsAnonymous() : false);
     }
 
     @Override

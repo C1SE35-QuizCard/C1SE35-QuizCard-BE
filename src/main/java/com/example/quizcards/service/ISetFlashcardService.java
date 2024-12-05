@@ -18,6 +18,8 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> getAll();
 
+    ResponseEntity<?> getListFlashcardsByNearbySetting(Long userId, Long limit);
+
     void addSetFlashcard(String title,
                          String descriptionSet,
                          Boolean isApproved,

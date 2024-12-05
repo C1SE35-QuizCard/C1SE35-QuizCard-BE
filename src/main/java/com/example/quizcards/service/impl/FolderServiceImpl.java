@@ -42,7 +42,12 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId){
+    public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId) {
         return folderRepository.findSetByFolderId(folderId);
     }
 
@@ -62,7 +67,7 @@ public class FolderServiceImpl implements IFolderService {
     public void updateFolder(UpdateFolderRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        folderRepository.updateFolder(request.getFolderId(), request.getTitle(),up.getId());
+        folderRepository.updateFolder(request.getFolderId(), request.getTitle(), up.getId());
     }
 
     @Override
