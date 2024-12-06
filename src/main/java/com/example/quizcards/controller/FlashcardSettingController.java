@@ -22,7 +22,6 @@ public class FlashcardSettingController {
     private IFlashcardSettingService flashcardSettingService;
     @Autowired
     private ISetFlashcardService setFlashcardService;
-
     @GetMapping("/{setId}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<FlashcardSettingResponse> getSetSettingsByIdOnCurrentUser(@PathVariable("setId") Long setId) {
