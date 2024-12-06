@@ -51,6 +51,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
 
+    @Override
+    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
+        return null;
+    }
+
 //    @Override
 //    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
 //        Long userId = Long.MIN_VALUE;
@@ -273,5 +278,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public long countFlashcardsBySetId(Long setId) {
+        return 0;
     }
 }
