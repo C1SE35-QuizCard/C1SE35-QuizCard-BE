@@ -1,14 +1,11 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.FlashcardSettingRequest;
-import com.example.quizcards.dto.request.StoreSetFlashcadDTO;
 import com.example.quizcards.dto.response.FlashcardSettingResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFlashcardSettingService;
-import com.example.quizcards.service.ISetFlashcardService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class FlashcardSettingController {
     @Autowired
     private IFlashcardSettingService flashcardSettingService;
-    @Autowired
-    private ISetFlashcardService setFlashcardService;
 
     @GetMapping("/{setId}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")

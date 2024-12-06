@@ -307,8 +307,9 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             ORDER BY ufs.last_accessed desc
             LIMIT :limit
             """, nativeQuery = true)
-    List<ISetFlashcardDTO> findAllSetPublicNearbySettings(@Param("user_id") Long userId,
-                                                          @Param("limit") Long limit);
+    List<ISetFlashcardDTO> findAllSetPublicNearbySettings(@Param("user_id") Long userId,@Param("limit") Long limit);
+
+    @Query(value = """
             SELECT COUNT(1)
             FROM set_flashcards sf
             WHERE sf.set_id = :setId
