@@ -1,11 +1,14 @@
 package com.example.quizcards.service;
 
+import com.example.quizcards.dto.FlashcardSetDTO;
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
-import com.example.quizcards.dto.response.TopCreatorsResponse;
+import com.example.quizcards.dto.response.ITopCreatorsResponse;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -50,7 +53,7 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> sortByUpdatedDate();
 
-    List<ISetFlashcardDTO> getAllSetByUserId(Long userId);
+    List<ISetFlashcardDTO> getAllSetByUserId();
 
     List<ISetFlashcardDTO> getAllSetPublic();
 
@@ -60,10 +63,11 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> loadTop10RelevantByCategory(Long categoryId, Long userId);
 
-    List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId);
+    List<FlashcardSetDTO> loadTop10PopularFlashcardSets(Long userId);
 
-    List<TopCreatorsResponse> loadTop10PopularCreators();
+    List<ITopCreatorsResponse> loadTop10PopularCreators();
     boolean existsBySetFlashcard_SetIdAndSetFlashcard_SharingMode(Long setId);
 
     long countFlashcardsBySetId(Long setId);
+    List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO,Long userId);
 }

@@ -4,26 +4,14 @@ import java.time.LocalDateTime;
 
 public interface ICollectionDTO {
     Long getId();
-
     Long getFolderId();
-
-    String getFolderName();
-
+    String getFolderTitle();
     Long getSetId();
-
     String getSetTitle();
-
-    String getSetDescription();
-
+    String getDescriptionSet();
     Long getUserId();
-
     String getUserName();
-
-    String getFirstName();
-
-    String getLastName();
-
-    LocalDateTime getCreatedAt();
-
-    LocalDateTime getUpdatedAt();
+    String getCreatedAt();
+    String getUpdatedAt();
+    Long getTotalCard();
 }

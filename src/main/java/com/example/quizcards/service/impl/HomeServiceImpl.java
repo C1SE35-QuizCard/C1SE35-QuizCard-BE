@@ -1,12 +1,12 @@
 package com.example.quizcards.service.impl;
 
+import com.example.quizcards.dto.FlashcardSetDTO;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
-import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.response.FreeUserProfileResponse;
 import com.example.quizcards.dto.response.HomeDataFreeUserResponse;
 import com.example.quizcards.dto.response.HomeDataGuessUserResponse;
-import com.example.quizcards.dto.response.TopCreatorsResponse;
+import com.example.quizcards.dto.response.ITopCreatorsResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,23 +39,22 @@ public class HomeServiceImpl implements IHomeService {
         List<ISetFlashcardDTO> setsRecentAccessed = setService.loadTop10RecentSetFlashcards(userId);
         String relevantCategory = null;
         List<ISetFlashcardDTO> setsRelevantCategory = new ArrayList<>();
-        List<ICategorySetFlashcardDTO> categoryMostAccessed =
-                categorySetFlashcardService.findTop1MostAccessedCategory(userId);
-        if (!categoryMostAccessed.isEmpty()) {
-            relevantCategory = categoryMostAccessed.get(0).getCategoryName();
-            setsRelevantCategory = setService.loadTop10RelevantByCategory(categoryMostAccessed.get(0).getCategoryId(),
-                    userId);
-        }
-        List<ISetFlashcardDTO> setsPopular = setService.loadTop10PopularFlashcardSets(userId);
-        List<TopCreatorsResponse> topCreators = setService.loadTop10PopularCreators();
-        List<IDeadlineReminderDTO> deadlines = deadlineReminderService.getDeadlineReminderByUserId(userId);
+        List<ICategorySetFlashcardDTO> categoryMostAccessed = categorySetFlashcardService.findTop1MostAccessedCategory(userId);
+//        if (!categoryMostAccessed.isEmpty()) {
+//            relevantCategory = categoryMostAccessed.get(0).getCategoryName();
+//            setsRelevantCategory = setService.loadTop10RelevantByCategory(categoryMostAccessed.get(0).getCategoryId(),
+//                    userId);
+//        }
+        List<FlashcardSetDTO> setsPopular = setService.loadTop10PopularFlashcardSets(userId);
+        List<ITopCreatorsResponse> topCreators = setService.loadTop10PopularCreators();
+//        List<IDeadlineReminderDTO> deadlines = deadlineReminderService.getDeadlineReminderByUserId(userId);
 
 
         FreeUserProfileResponse personalData = new FreeUserProfileResponse(up.getId(), up.getFirstName(),
                 up.getLastName(), up.getEmail(), up.getUsername(), up.getAvatar());
 
         HomeDataFreeUserResponse homeDataFreeUserResponse = new HomeDataFreeUserResponse(setsRecentAccessed,
-                setsRelevantCategory, setsPopular, topCreators, deadlines, personalData, relevantCategory,
+                setsRelevantCategory, setsPopular, topCreators, personalData,
                 up.getRolesBaseAuthorities().get(0));
         return ResponseEntity.ok(homeDataFreeUserResponse);
     }
