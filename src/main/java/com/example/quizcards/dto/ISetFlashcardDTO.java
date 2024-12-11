@@ -24,6 +24,7 @@ public interface ISetFlashcardDTO {
     String getLastName();
 
     String getUserName();
+
     Long getUserId();
 
     String getAvatar();

@@ -54,6 +54,9 @@ public class UserSubscription {
     private TokenType type;
 
     public enum TokenType {
-        PAYPAL, GOOGLE
+        CARD,            // Thanh toán qua thẻ tín dụng
+        GOOGLE_PAY,      // Thanh toán qua Google Pay
+        APPLE_PAY,       // Thanh toán qua Apple Pay
+        STRIPE_BALANCE   // Thanh toán qua số dư Stripe (nếu có)
     }
 }

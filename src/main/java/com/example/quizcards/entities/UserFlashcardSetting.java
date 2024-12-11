@@ -26,24 +26,28 @@ public class UserFlashcardSetting {
     @Column(name = "id")
     private Long settingId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_id", nullable = false)
     private SetFlashcard setFlashcard;
 
-    @Column(name = "last_card_index", nullable = false)
+    @Column(name = "last_card_index")
     @Min(value = 0)
-    private int lastCardIndex;
+    private Long lastCardId;
 
-    @Column(name = "shuffle_mode", nullable = false)
+    @Column(name = "shuffle_mode")
     private boolean shuffleMode;
 
-    @Column(name = "flip_card_mode", nullable = false)
+    @Column(name = "flip_card_mode")
     private boolean flipCardMode;
 
     @Column(name = "last_accessed")
     private LocalDateTime lastAccessed;
+    public UserFlashcardSetting(AppUser user, SetFlashcard setFlashcard) {
+        this.user = user;
+        this.setFlashcard = setFlashcard;
+    }
 }

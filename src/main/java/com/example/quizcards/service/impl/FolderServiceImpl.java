@@ -3,6 +3,7 @@ package com.example.quizcards.service.impl;
 import com.example.quizcards.dto.IFolderDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.FolderRequest;
+import com.example.quizcards.dto.request.UpdateFolderRequest;
 import com.example.quizcards.helpers.FolderHelpers.IFolderHelpers;
 import com.example.quizcards.repository.IFolderRepository;
 import com.example.quizcards.security.UserPrincipal;
@@ -29,8 +30,10 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<IFolderDTO> getFoldersByUserId(Long userId) {
-        return folderRepository.findFoldersByUserId(userId);
+    public List<IFolderDTO> getFoldersByUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return folderRepository.findFoldersByUserId(up.getId());
     }
 
     @Override
@@ -39,13 +42,20 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId){
+    public List<ISetFlashcardDTO> getSetByFolderId(Long folderId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> findSetByFolderIdAndUserId(Long folderId) {
         return folderRepository.findSetByFolderId(folderId);
     }
 
     @Override
-    public void addFolder(String title, Long userId) {
-        folderRepository.createFolder(title, userId);
+    public void addFolder(String title) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        folderRepository.createFolder(title, up.getId());
     }
 
     @Override
@@ -54,8 +64,10 @@ public class FolderServiceImpl implements IFolderService {
     }
 
     @Override
-    public void updateFolder(FolderRequest request) {
-        folderRepository.updateFolder(request.getFolderId(), request.getTitle(), request.getUserId());
+    public void updateFolder(UpdateFolderRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        folderRepository.updateFolder(request.getFolderId(), request.getTitle(), up.getId());
     }
 
     @Override

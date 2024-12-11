@@ -11,17 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FlashcardSettingRequest {
+public class StoreSetFlashcadDTO {
     @NotNull(message = "Set id is required.")
     private Long setId;
-
-    private Long lastCardId;
-
-    private Boolean shuffleMode;
-
-    private Boolean flipCardMode;
-
-    private LocalDateTime lastAccessed;
-
-    private Long userId;
 }

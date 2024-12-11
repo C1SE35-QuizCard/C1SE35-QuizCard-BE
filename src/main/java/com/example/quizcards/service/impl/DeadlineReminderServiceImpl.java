@@ -12,6 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -58,6 +61,10 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
         deadlineHelpers.handleAddDeadline(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+//        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
+//                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
+//                        .getTotalSeconds())
+//        );
         deadlineReminderRepository.createDeadlineReminder(request.getReminderTime(), up.getId(), request.getSetId());
     }
 
@@ -74,6 +81,10 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
         deadlineHelpers.handleUpdateDeadline(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+//        Timestamp utcTimestamp = Timestamp.from(request.getReminderTime().toInstant().minusSeconds(
+//                ZoneId.systemDefault().getRules().getOffset(request.getReminderTime().toInstant())
+//                        .getTotalSeconds())
+//        );
         deadlineReminderRepository.updateDeadlineReminder(request.getDeadlineRemindersId(), request.getReminderTime(),
                 up.getId(), request.getSetId());
     }

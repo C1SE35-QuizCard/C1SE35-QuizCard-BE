@@ -6,6 +6,8 @@ import com.example.quizcards.dto.request.CategorySetFlashcardAdminRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ICategorySetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
@@ -119,6 +122,23 @@ public class CategorySetFlashcardController {
             return new ResponseEntity<>("Category Set Flashcard updated successfully", HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Category set flashcard");
+        }
+    }
+
+    @GetMapping("/list2/{id}")
+    public ResponseEntity<Object> findAllSetFlashcardsByCategoryId2(@PathVariable("id") Long categoryId,
+                                                                    @RequestParam(value = "pages", required = false) Integer pages,
+                                                                    PagedResourcesAssembler<ISetFlashcardDTO> assembler) {
+        try {
+            if (pages == null) { pages = 0; }
+            Page<ISetFlashcardDTO> data = categorySetFlashcardService.findAllSetFlashcardsByCategoryId2(categoryId, pages);
+            return ResponseEntity.ok(assembler.toModel(data));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "message", "An unknown error occurred."
+                    ));
         }
     }
 }

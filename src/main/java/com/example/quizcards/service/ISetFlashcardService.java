@@ -18,6 +18,8 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> getAll();
 
+    ResponseEntity<?> getListFlashcardsByNearbySetting(Long userId, Long limit);
+
     void addSetFlashcard(String title,
                          String descriptionSet,
                          Boolean isApproved,
@@ -61,6 +63,7 @@ public interface ISetFlashcardService {
     List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId);
 
     List<TopCreatorsResponse> loadTop10PopularCreators();
+    boolean existsBySetFlashcard_SetIdAndSetFlashcard_SharingMode(Long setId);
 
     int countFlashcardsBySetId(Long setId);
 }

@@ -1,6 +1,7 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.request.TestCreationRequest;
+import com.example.quizcards.dto.request.TestRequest;
 import org.springframework.http.ResponseEntity;
 
 public interface ITestService {
@@ -14,4 +15,6 @@ public interface ITestService {
 
     ResponseEntity<?> createEssayTest(Long testId);
 
+
+    ResponseEntity<?> createTestWithQuestionReturn(Long setId, TestRequest request);
 }
