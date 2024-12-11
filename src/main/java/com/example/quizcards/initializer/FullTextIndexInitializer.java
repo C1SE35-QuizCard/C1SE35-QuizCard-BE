@@ -1,6 +1,5 @@
 package com.example.quizcards.initializer;
 
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,8 @@ public class FullTextIndexInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // Creating full-text index for folders title
+        checkAndCreateFullTextIndex("folders", "title");
         checkAndCreateFullTextIndex("set_flashcards", "title");
         checkAndCreateFullTextIndex("category_set_flashcards", "category_name");
     }
@@ -40,5 +41,4 @@ public class FullTextIndexInitializer implements CommandLineRunner {
             }
         }
     }
-
 }
