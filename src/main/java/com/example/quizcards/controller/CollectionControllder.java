@@ -1,6 +1,8 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.ICollectionDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.CollectionCreateRequestDTO;
 import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
@@ -48,6 +50,19 @@ public class CollectionControllder {
             } else {
                 List<ICollectionDTO> collectionDTOs = collectionService.getAllCollection();
                 return ResponseEntity.ok(collectionDTOs);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+        }
+    }
+    @GetMapping("/list-new-set/{folder_id}")
+    public ResponseEntity<Object> getAllSetToAddCollection(@PathVariable("folder_id") Long folderId) {
+        try {
+            List<ISetFlashcardDTO> list=collectionService.findAllSetToAddFolder(folderId);
+            if (list==null) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No collection found in this folder");
+            } else {
+                return ResponseEntity.ok(list);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
@@ -144,17 +159,33 @@ public class CollectionControllder {
 
     @PostMapping("/create-new-collection")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> addCollection_2(@Valid @RequestBody CollectionRequest request) {
-        collectionService.addCollection_2(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Collection created successfully"));
+    public ResponseEntity<Object> addCollection_2(@Valid @RequestBody CollectionCreateRequestDTO request) {
+        try {
+            boolean exists = collectionService.existsByFolderIdAndSetId(request.getFolderId(), request.getSetId());
+            if (!exists) {
+                collectionService.addCollection_2(request);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new ApiResponse(true, "Collection created successfully"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Collection");
+        }
+     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed add new collection!");
     }
 
-    @DeleteMapping("/delete-collection")
+    @DeleteMapping("/delete-collection/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> deleteCollection_2(@Valid @RequestBody CollectionRequest request) {
-        collectionService.deleteCollection_2(request.getId());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse(true, "Collection deleted successfully"));
+    public ResponseEntity<Object> deleteCollection_2(@PathVariable("id") Long id) {
+        try {
+            boolean exists = collectionService.existsByCollectionId(id);
+            if (exists) {
+                collectionService.deleteCollection_2(id);
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ApiResponse(true, "Collection deleted successfully"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Collection");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed deleted!");
     }
 }

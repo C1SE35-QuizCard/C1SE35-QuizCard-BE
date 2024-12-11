@@ -1,5 +1,6 @@
 package com.example.quizcards.helpers.CollectionHelpers;
 
+import com.example.quizcards.dto.request.CollectionCreateRequestDTO;
 import com.example.quizcards.dto.request.CollectionParamRequest;
 import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.entities.Collection;
@@ -93,7 +94,7 @@ public class CollectionHelpersImpl implements ICollectionHelpers {
     }
 
     @Override
-    public void handleAddCollection(CollectionRequest request) {
+    public void handleAddCollection(CollectionCreateRequestDTO request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         checkFolderOwner(request.getFolderId(), up);
