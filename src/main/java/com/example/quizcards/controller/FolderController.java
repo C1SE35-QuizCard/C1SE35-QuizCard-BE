@@ -62,8 +62,8 @@ public class FolderController {
         }
     }
 
-    @GetMapping("/search/{title}")
-    public ResponseEntity<Object> searchFolderByTitle(@PathVariable("title") String title) {
+    @GetMapping("/search-folder")
+    public ResponseEntity<Object> searchFolderByTitle(@RequestParam("query") String title) {
         try {
             if (folderService.searchFolderByTitle(title).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for title " + title);

@@ -22,6 +22,4 @@ public class FlashcardSettingRequest {
     private Boolean flipCardMode;
 
     private LocalDateTime lastAccessed;
-
-    private Long userId;
 }

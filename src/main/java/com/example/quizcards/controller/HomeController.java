@@ -18,7 +18,7 @@ public class HomeController {
     private IHomeService homeService;
 
     @GetMapping("/free")
-    @PreAuthorize("hasRole('ROLE_FREE_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getHomeDataFreeUser(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -26,7 +26,7 @@ public class HomeController {
     }
 
     @GetMapping("/premium")
-    @PreAuthorize("hasRole('ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getHomeDataPremiumUser(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
