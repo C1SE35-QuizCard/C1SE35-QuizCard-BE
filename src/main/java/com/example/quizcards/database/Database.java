@@ -1,14 +1,18 @@
 package com.example.quizcards.database;
 
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
+import com.example.quizcards.dto.ITestModeDTO;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.CategorySubscription;
+import com.example.quizcards.entities.TestMode;
 import com.example.quizcards.entities.plans.PlansName;
+import com.example.quizcards.entities.questionTypes.QTypes;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import com.example.quizcards.repository.ICategorySubscriptionRepository;
+import com.example.quizcards.repository.ITestModeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -139,6 +143,31 @@ public class Database {
                         logger.info(String.format("Subscription: %s valid", category.getName()));
                     } else {
                         logger.info("Insert subscription: " + repo.save(category));
+                    }
+                }
+            }
+        };
+    }
+
+    @Bean
+    CommandLineRunner initTestModeTypes(ITestModeRepository repo) {
+        return new CommandLineRunner() {
+            @Override
+            public void run(String... args) throws Exception {
+                List<TestMode> subscriptions = List.of(
+                        TestMode.builder()
+                                .testModeName(QTypes.MULTIPLE.name())
+                                .build(),
+                        TestMode.builder()
+                                .testModeName(QTypes.ESSAY.name())
+                                .build()
+                );
+                for (TestMode test : subscriptions) {
+                    List<ITestModeDTO> data = repo.findByTestModeName(test.getTestModeName());
+                    if (!data.isEmpty()) {
+                        logger.info(String.format("Test mode: %s valid", test.getTestModeName()));
+                    } else {
+                        logger.info("Insert test mode: " + repo.save(test));
                     }
                 }
             }

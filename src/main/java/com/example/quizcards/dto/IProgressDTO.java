@@ -5,7 +5,8 @@ public interface IProgressDTO {
 
     Boolean getProgressType();
 
-    String getIsAttention();
+//    String getIsAttention();
+    Boolean getIsAttention();
 
     Long getUserId();
 

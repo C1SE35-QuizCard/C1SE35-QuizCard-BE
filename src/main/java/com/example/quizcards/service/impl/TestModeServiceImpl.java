@@ -22,4 +22,14 @@ public class TestModeServiceImpl implements ITestModeService {
     public Integer exists(Long testModeId){
         return testModeRepository.exists(testModeId);
     }
+
+    @Override
+    public List<ITestModeDTO> findTestModeByName(String testModeName) {
+        return testModeRepository.findByTestModeName(testModeName);
+    }
+
+    @Override
+    public ITestModeDTO findTestModeById(Long testModeId) {
+        return testModeRepository.findByTestModeId(testModeId);
+    }
 }

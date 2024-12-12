@@ -1,11 +1,10 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.ITestDTO;
-import com.example.quizcards.dto.ITestModeDTO;
-import com.example.quizcards.dto.request.FolderRequest;
 import com.example.quizcards.dto.request.TestCreationRequest;
+import com.example.quizcards.dto.request.TestRequest;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ITestService;
+import jakarta.transaction.NotSupportedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,5 +45,60 @@ public class TestController {
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> getEssayTest(@PathVariable("test_id") Long testId) {
         return testService.createEssayTest(testId);
+    }
+
+    @PostMapping("/create-new-test")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> createNewTestWithUserAndSetNotDone(@Validated @RequestBody TestRequest request)
+            throws NotSupportedException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        return testService.createTestBySetInUser(up, request);
+    }
+
+    @GetMapping("/get-all-test")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getAllTests() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        return testService.getAllTests();
+    }
+
+    @GetMapping("/get-all-by-user-id/{userId}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getAllTestsByUserId(@PathVariable("userId") Long userId) {
+        return testService.getTestByUserId(userId);
+    }
+
+    @GetMapping("/get-all-by-set-id/{setId}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getAllTestsBySetId(@PathVariable("setId") Long setId) {
+        return testService.getTestBySetId(setId);
+    }
+
+    @GetMapping("/user/get-all")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> getAllTestsBySetIdInUser() {
+        return testService.getTestByUserIdInUser();
+    }
+
+    @GetMapping("/user/get-detail-by-test-id/{testId}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> getDetailTestByIdInUser(@PathVariable("testId") Long testId) {
+        return testService.getDetailsTestByTestIdInUser(testId);
+    }
+
+    @GetMapping("/user/get-detail-by-test-id-without-question/{testId}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> getDetailTestByIdWithoutQuestionsInUser(@PathVariable("testId") Long testId) {
+        return testService.getDetailsTestByTestIdWithoutQuestionsInUser(testId);
+    }
+
+    @PostMapping("/reset-test-not-done/{testId}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    public ResponseEntity<?> resetTestingNotDone(@PathVariable("testId") Long testId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        return null;
     }
 }

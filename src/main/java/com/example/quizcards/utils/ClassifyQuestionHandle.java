@@ -23,6 +23,9 @@ public class ClassifyQuestionHandle {
         String questionType = QTypes.ESSAY.getType();
         List<String> optionsList = new ArrayList<>();
         long answerIndex = 0L;
+        if (!questionData.containsKey("type")) {
+            throw new RuntimeException("Missing type");
+        }
         if (questionData.get("type").equals(QTypes.MULTIPLE.name())) {
             Object options = questionData.get("options");
             if (!(options instanceof List)) {
@@ -30,7 +33,12 @@ public class ClassifyQuestionHandle {
             }
             optionsList = (List<String>) options;
             for (String option : optionsList) {
-                if (option.equals(answer)) {
+//                if (HandleString.removeAllNewLineAndExtraSpace(option).equalsIgnoreCase(
+//                        HandleString.removeAllNewLineAndExtraSpace(answer))) {
+//                    questionType = QTypes.MULTIPLE.getType();
+//                    break;
+//                }
+                if (option.equalsIgnoreCase(answer)) {
                     questionType = QTypes.MULTIPLE.getType();
                     break;
                 }

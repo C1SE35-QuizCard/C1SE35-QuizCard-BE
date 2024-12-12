@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ITestModeRepository extends JpaRepository<TestMode, Long> {
@@ -22,4 +23,18 @@ public interface ITestModeRepository extends JpaRepository<TestMode, Long> {
         select count(test_mode_id) from test_mode where test_mode_id = :test_mode_id
         """, nativeQuery = true)
     Integer exists(@Param("test_mode_id") @NonNull Long testModeId);
+
+    @Query(value = """
+        select t.test_mode_id, t.test_mode_name
+        from test_mode t
+        where t.test_mode_name = :test_mode_name
+        """, nativeQuery = true)
+    List<ITestModeDTO> findByTestModeName(@Param("test_mode_name") @NonNull String testModeName);
+
+    @Query(value = """
+        select t.test_mode_id, t.test_mode_name
+        from test_mode t
+        where t.test_mode_id = :test_mode_id
+        """, nativeQuery = true)
+    ITestModeDTO findByTestModeId(@Param("test_mode_id") @NonNull Long testModeId);
 }
