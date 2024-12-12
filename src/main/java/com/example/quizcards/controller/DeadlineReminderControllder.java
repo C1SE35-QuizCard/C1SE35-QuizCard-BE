@@ -1,14 +1,18 @@
 package com.example.quizcards.controller;
 
+import com.example.quizcards.dto.DeadlineReminderListDTO;
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.request.DeadlineReminderRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IDeadlineReminderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -53,13 +57,15 @@ public class DeadlineReminderControllder {
         }
     }
 
-    @GetMapping("/user/{user_id}")
-    public ResponseEntity<Object> getDeadlineReminderByUserId(@PathVariable("user_id") Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<?> getDeadlineReminderByUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         try {
-            if (deadlineReminderService.getDeadlineReminderByUserId(userId).isEmpty()) {
+            if (deadlineReminderService.getDeadlineReminderByUserId(up.getId()).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Deadline reminders not found");
             }
-            List<IDeadlineReminderDTO> reminder = deadlineReminderService.getDeadlineReminderByUserId(userId);
+            List<DeadlineReminderListDTO> reminder = deadlineReminderService.getDeadlineReminderByUserId(up.getId());
             return ResponseEntity.ok(reminder);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
