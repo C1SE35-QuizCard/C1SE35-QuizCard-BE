@@ -1,4 +1,3 @@
-
 package com.example.quizcards.initializer;
 
 import org.springframework.boot.CommandLineRunner;
@@ -16,27 +15,30 @@ public class FullTextIndexInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        addFullTextIndexIfNotExists("set_flashcards", "title");
-        addFullTextIndexIfNotExists("category_set_flashcards", "category_name");
+        // Creating full-text index for folders title
+        checkAndCreateFullTextIndex("folders", "title");
+        checkAndCreateFullTextIndex("set_flashcards", "title");
+        checkAndCreateFullTextIndex("category_set_flashcards", "category_name");
     }
 
-    private void addFullTextIndexIfNotExists(String tableName, String columnName) {
-        String checkIndexQuery = "SELECT COUNT(1) " +
-                "FROM INFORMATION_SCHEMA.STATISTICS " +
-                "WHERE TABLE_NAME = ? AND COLUMN_NAME = ? AND INDEX_TYPE = 'FULLTEXT'";
+    private void checkAndCreateFullTextIndex(String tableName, String columnName) {
+        String checkIndexSql = String.format(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS " +
+                        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '%s' AND INDEX_NAME = '%s'",
+                tableName, columnName
+        );
+        Integer count = jdbcTemplate.queryForObject(checkIndexSql, Integer.class);
 
-        Integer count = jdbcTemplate.queryForObject(checkIndexQuery, Integer.class, tableName, columnName);
-
-        if (count == null || count == 0) {
-            String addIndexQuery = String.format("ALTER TABLE %s ADD FULLTEXT(%s)", tableName, columnName);
-            try {
-                jdbcTemplate.execute(addIndexQuery);
-                System.out.println("FULLTEXT index created successfully on " + tableName + "." + columnName);
-            } catch (Exception e) {
-                System.err.println("Error creating FULLTEXT index on " + tableName + "." + columnName + ": " + e.getMessage());
-            }
+        if (count != null && count > 0) {
+            System.out.printf("FULLTEXT index for column '%s' in table '%s' already exists.%n", columnName, tableName);
         } else {
-            System.out.println("FULLTEXT index already exists on " + tableName + "." + columnName);
+            try {
+                String createIndexSql = String.format("ALTER TABLE %s ADD FULLTEXT(%s)", tableName, columnName);
+                jdbcTemplate.execute(createIndexSql);
+                System.out.printf("FULLTEXT index for column '%s' in table '%s' has been created.%n", columnName, tableName);
+            } catch (Exception e) {
+                System.err.printf("Error creating FULLTEXT index for column '%s' in table '%s': %s%n", columnName, tableName, e.getMessage());
+            }
         }
     }
 }

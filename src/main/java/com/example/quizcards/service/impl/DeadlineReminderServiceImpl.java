@@ -1,5 +1,6 @@
 package com.example.quizcards.service.impl;
 
+import com.example.quizcards.dto.DeadlineReminderListDTO;
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.request.DeadlineReminderRequest;
 import com.example.quizcards.helpers.DeadlineHelpers.IDeadlineHelpers;
@@ -32,13 +33,15 @@ public class DeadlineReminderServiceImpl implements IDeadlineReminderService {
     }
 
     @Override
-    public List<IDeadlineReminderDTO> getDeadlineReminderByUserId(Long userId) {
+    public List<DeadlineReminderListDTO> getDeadlineReminderByUserId(Long userId) {
         return deadlineReminderRepository.findDeadlineReminderByUserId(userId);
     }
 
     @Override
     public List<IDeadlineReminderDTO> getDeadlineReminderBySetId(Long setId) {
-        return deadlineReminderRepository.findDeadlineReminderBySetId(setId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return deadlineReminderRepository.findDeadlineReminderBySetId(setId,up.getId());
     }
 
     @Override

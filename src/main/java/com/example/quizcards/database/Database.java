@@ -77,7 +77,8 @@ public class Database {
                         "Law",
                         "Vietnamese Language",
                         "Environmental Science",
-                        "Astronomy"
+                        "Astronomy",
+                        "Language"
                 );
                 for (String category : categories) {
                     List<ICategorySetFlashcardDTO> chkCategory = repo.findByCategoryName(category);

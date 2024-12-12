@@ -1,5 +1,6 @@
 package com.example.quizcards.repository;
 
+import com.example.quizcards.dto.DeadlineReminderListDTO;
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.DeadlineReminder;
@@ -29,30 +30,28 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
     IDeadlineReminderDTO findDeadlineReminderById(@Param("deadline_reminders_id") Long deadlineRemindersId);
 
     @Query(value = """
-            select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title, COUNT(f.card_id) as card_count
-            from deadline_reminders d
-            join app_users a on d.user_id = a.user_id
-            join set_flashcards s on d.set_id = s.set_id
-            left join flashcards f on f.set_id = s.set_id
-            where d.reminder_time >= now()
-              and (s.user_id = :user_id or s.sharing_mode = true)
-              and a.user_id = :user_id
-            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
-            order by d.reminder_time asc
+            select dl.deadline_reminders_id,s.set_id,s.title, count(distinct fl.card_id) as card_count,max(dl.reminder_time) as reminder_time
+            from deadline_reminders dl
+            join set_flashcards s on s.set_id=dl.set_id
+            join flashcards fl on fl.set_id=s.set_id
+            where dl.user_id=:user_id and reminder_time>= now()
+            group by s.set_id,dl.deadline_reminders_id
+            order by reminder_time asc
+            ;
             """, nativeQuery = true)
-    List<IDeadlineReminderDTO> findDeadlineReminderByUserId(@Param("user_id") Long userId);
+    List<DeadlineReminderListDTO> findDeadlineReminderByUserId(@Param("user_id") Long userId);
 
     @Query(value = """
             select d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title, COUNT(f.card_id) as card_count
-            from deadline_reminders d
-            join app_users a on d.user_id = a.user_id
-            join set_flashcards s on d.set_id = s.set_id
-            left join flashcards f on f.set_id = s.set_id
-            where s.set_id = :set_id and d.reminder_time >= now()
-            group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
-            order by d.reminder_time asc
+                                                    from deadline_reminders d
+                                                    join app_users a on d.user_id = a.user_id
+                                                    join set_flashcards s on d.set_id = s.set_id
+                                                    left join flashcards f on f.set_id = s.set_id
+                                                    where s.set_id =:set_id and d.user_id=:user_id and d.reminder_time >= now()
+                                                    group by d.deadline_reminders_id, d.reminder_time, a.user_id, s.set_id, s.title
+                                                    order by d.reminder_time asc
             """, nativeQuery = true)
-    List<IDeadlineReminderDTO> findDeadlineReminderBySetId(@Param("set_id") Long setId);
+    List<IDeadlineReminderDTO> findDeadlineReminderBySetId(@Param("set_id") Long setId,@Param("user_id") Long userId);
 
 
     @Modifying

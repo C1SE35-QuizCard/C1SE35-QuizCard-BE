@@ -41,15 +41,28 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
 
 
     @Query(value = """
-            select f.folder_id, f.title, f.created_at, f.updated_at, s.first_name, s.last_name,
-                   (select count(*) from collection c where c.folder_id = f.folder_id) as set_count
-            from folders f
-            join app_users s on f.user_id = s.user_id
-            left join collection c on f.folder_id = c.folder_id
-            where MATCH(f.title) AGAINST(:title IN BOOLEAN MODE)
-            group by f.folder_id, s.first_name, s.last_name
+            SELECT\s
+                f.folder_id,\s
+                f.title,\s
+                f.created_at,\s
+                f.updated_at,\s
+                s.first_name,\s
+                s.last_name,
+                (SELECT COUNT(*) FROM collection c WHERE c.folder_id = f.folder_id) AS set_count
+            FROM\s
+                folders f
+            JOIN\s
+                app_users s ON f.user_id = s.user_id
+            LEFT JOIN\s
+                collection c ON f.folder_id = c.folder_id
+            WHERE\s
+                (MATCH(f.title) AGAINST(:title IN BOOLEAN MODE) OR f.title LIKE CONCAT('%',:title, '%'))\s
+                AND\s
+                s.user_id=:user_id
+            GROUP BY\s
+                f.folder_id, s.first_name, s.last_name;
             """, nativeQuery = true)
-    List<IFolderDTO> searchFolderByTitle(@Param("title") String title);
+    List<IFolderDTO> searchFolderByTitle(@Param("title") String title,@Param("user_id")Long userId);
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name, a.avatar, a.user_name, COUNT(c.card_id) as card_count

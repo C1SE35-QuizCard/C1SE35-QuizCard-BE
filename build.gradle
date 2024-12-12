@@ -23,6 +23,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -63,6 +64,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'com.stripe:stripe-java:22.20.0'
 
+    implementation 'com.github.axet:java-flac-encoder:0.3.8'
+// https://mvnrepository.com/artifact/com.github.goxr3plus/java-google-speech-api
+    implementation group: 'com.github.goxr3plus', name: 'java-google-speech-api', version: 'V2.1'
+
+    implementation 'javazoom:jlayer:1.0.1'
 }
 
 tasks.named('test') {
