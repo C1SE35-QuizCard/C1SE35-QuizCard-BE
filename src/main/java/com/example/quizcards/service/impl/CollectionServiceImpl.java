@@ -1,12 +1,17 @@
 package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.ICollectionDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.CollectionCreateRequestDTO;
 import com.example.quizcards.dto.request.CollectionRequest;
 import com.example.quizcards.helpers.CollectionHelpers.ICollectionHelpers;
 import com.example.quizcards.repository.ICollectionRepository;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICollectionService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +32,13 @@ public class CollectionServiceImpl implements ICollectionService {
     @Override
     public List<ICollectionDTO> getAllCollection() {
         return collectionRepository.findAllCollection();
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> findAllSetToAddFolder(Long folderId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return collectionRepository.findAllSetToAddFolder(up.getId(), folderId);
     }
 
     @Override
@@ -56,7 +68,7 @@ public class CollectionServiceImpl implements ICollectionService {
 
     @Override
     @Transactional
-    public void addCollection_2(CollectionRequest request) {
+    public void addCollection_2(CollectionCreateRequestDTO request) {
         collectionHelpers.handleAddCollection(request);
         collectionRepository.createCollection(request.getFolderId(), request.getSetId());
     }
@@ -66,5 +78,23 @@ public class CollectionServiceImpl implements ICollectionService {
     public void deleteCollection_2(Long collectionId) {
         collectionHelpers.handleDeleteCollection(collectionId);
         collectionRepository.deleteCollectionById(collectionId);
+    }
+
+    @Override
+    public boolean existsByFolderIdAndSetId(Long folderId, Long setId) {
+        Integer count = collectionRepository.countSetsByFolderIdAndSetId(folderId, setId);
+        if (count == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean existsByCollectionId(Long collectionId) {
+        Integer count = collectionRepository.existsByCollectionId(collectionId);
+        if (count == 0) {
+            return false;
+        }
+        return true;
     }
 }

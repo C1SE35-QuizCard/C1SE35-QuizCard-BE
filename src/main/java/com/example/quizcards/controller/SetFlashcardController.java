@@ -2,6 +2,7 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
@@ -22,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -204,18 +206,16 @@ public class SetFlashcardController {
 
     @GetMapping("/search")
     public ResponseEntity<Object> searchByTitle(@RequestParam("query") String query) {
-//        try {
-//            List<SearchSetFlashResponse> list = setFlashcardService.searchByTitleAndCategory(query);
-//            System.out.println(list);
-//            if (setFlashcardService.searchByTitleAndCategory(query).isEmpty()) {
-//                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No flashcard sets found");
-//            } else {
-                List<SearchSetFlashResponse> set = setFlashcardService.searchByTitleAndCategory(query);
-                return ResponseEntity.ok(set);
-//            }
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
-//        }
+        List<SearchSetFlashResponse> set = setFlashcardService.searchByTitleAndCategory(query);
+        return ResponseEntity.ok(set);
+    }
+
+    @GetMapping("/search-my-course")
+    public ResponseEntity<?> searchMyCourse(@RequestParam("query") QueryDTO query) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        List<SearchSetFlashResponse> set = setFlashcardService.searchByMyCourse(query, up.getId());
+        return ResponseEntity.ok(set);
     }
 
 
@@ -233,13 +233,13 @@ public class SetFlashcardController {
         }
     }
 
-    @GetMapping("/list/sets/{userId}")
-    public ResponseEntity<Object> getAllSetByUserId(@PathVariable("userId") Long userId) {
+    @GetMapping("/list/sets")
+    public ResponseEntity<Object> getAllSetByUserId() {
         try {
-            if (setFlashcardService.getAllSetByUserId(userId).isEmpty()) {
+            if (setFlashcardService.getAllSetByUserId().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any flashcard sets");
             } else {
-                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByUserId(userId);
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByUserId();
                 return ResponseEntity.ok(set);
             }
         } catch (Exception e) {

@@ -1,19 +1,19 @@
 package com.example.quizcards.service.impl;
 
+import com.example.quizcards.dto.FlashcardSetDTO;
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
-import com.example.quizcards.dto.response.TopCreatorsResponse;
+import com.example.quizcards.dto.response.ITopCreatorsResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.AccessDeniedException;
-import com.example.quizcards.exception.BadRequestException;
-import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
@@ -237,8 +237,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> getAllSetByUserId(Long userId) {
-        return setFlashcardRepository.findAllSetByUserId(userId);
+    public List<ISetFlashcardDTO> getAllSetByUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        return setFlashcardRepository.findAllSetByUserId(up.getId());
     }
 
     @Override
@@ -262,12 +264,12 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> loadTop10PopularFlashcardSets(Long userId) {
-        return setFlashcardRepository.findTop10PopularFlashcardSets(userId);
+    public List<FlashcardSetDTO> loadTop10PopularFlashcardSets(Long userId) {
+        return setFlashcardRepository.findTopFlashcardSets();
     }
 
     @Override
-    public List<TopCreatorsResponse> loadTop10PopularCreators() {
+    public List<ITopCreatorsResponse> loadTop10PopularCreators() {
         return setFlashcardRepository.findTop10PopularCreators();
     }
 
@@ -281,7 +283,12 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public int countFlashcardsBySetId(Long setId){
-        return setFlashcardRepository.countFlashcardsBySetId(setId);
+    public long countFlashcardsBySetId(Long setId) {
+        return 0;
+    }
+
+    @Override
+    public List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO,Long userId) {
+        return setFlashcardRepository.searchByMyCourse(queryDTO.getTitle(),userId);
     }
 }

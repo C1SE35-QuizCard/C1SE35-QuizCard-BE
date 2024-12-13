@@ -48,16 +48,24 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
 
 
     @Query(value = """
-            select c.category_id, c.category_name
-            from category_set_flashcards c
-            join set_flashcards s on s.category_id = c.category_id
-            join user_flashcard_settings ufs on s.set_id = ufs.set_id
-            where ufs.user_id = :user_id
-            group by c.category_id, c.category_name
-            order by (count(c.category_id)) desc, ufs.last_accessed desc
-            limit 1;
+            SELECT\s
+                c.category_id,\s
+                c.category_name,
+                COUNT(s.set_id) AS total_sets,  -- Số lượng bộ flashcard trong mỗi danh mục
+                MAX(ufs.last_accessed) AS last_accessed  -- Lấy thời gian truy cập gần nhất
+            FROM\s
+                category_set_flashcards c
+            JOIN\s
+                set_flashcards s ON s.category_id = c.category_id
+            JOIN\s
+                user_flashcard_settings ufs ON s.set_id = ufs.set_id
+            GROUP BY\s
+                c.category_id, c.category_name
+            ORDER BY\s
+                total_sets DESC, last_accessed DESC  -- Sắp xếp theo số bộ flashcard và thời gian truy cập gần nhất
+            LIMIT 10;
             """, nativeQuery = true)
-    List<ICategorySetFlashcardDTO> findTop1MostAccessedCategory(@Param("user_id") Long userId);
+    List<ICategorySetFlashcardDTO> findTopMostAccessedCategory(@Param("user_id") Long userId);
 
     @Modifying
     @Transactional
