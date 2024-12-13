@@ -20,6 +20,7 @@ import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.example.quizcards.utils.HandleString;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -117,8 +118,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
         List<Flashcard> flashcards = request.getFlashcards()
                 .stream().map(dto -> Flashcard.builder()
-                        .question(dto.getQuestion())
-                        .answer(dto.getAnswer())
+                        .question(HandleString.popExtraNewLineAndSpace(dto.getQuestion()))
+                        .answer(HandleString.popExtraNewLineAndSpace(dto.getAnswer()))
                         .imageLink(dto.getImageLink())
                         .isApproved(true)
                         .set(SetFlashcard.builder().setId(set.getSetId()).build())

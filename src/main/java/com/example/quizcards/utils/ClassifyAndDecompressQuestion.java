@@ -11,11 +11,25 @@ import java.util.regex.Pattern;
 
 @Service
 public class ClassifyAndDecompressQuestion {
+    // Bị bẫy ở chỗ
+    /*
+     * Question: Abc
+     * A. AAAA
+     * BNNNN
+     * B. AAAA
+     * C. DDD
+     * EEEE
+     * Answer:
+     * A. AAAA
+     *
+     *
+     * BNNNN
+     * */
     public Map<String, Object> classifyAndExtract(String input) {
         Map<String, Object> result = new HashMap<>();
         List<String> options = new ArrayList<>();
         StringBuilder currentAnswer = new StringBuilder();
-        String question = null;
+        StringBuilder question = new StringBuilder();
         boolean foundAnswer = false;
 
         // Tách dòng và làm sạch khoảng trắng
@@ -23,28 +37,48 @@ public class ClassifyAndDecompressQuestion {
 
         // Regex nhận diện đáp án
         Pattern answerPattern = Pattern.compile("^(\\d+[-.)]|[A-Za-z][-.)]).*");
+//        Pattern answerPattern = Pattern.compile("^(\\p{Nd}+[-.)]|\\p{L}+[-.)]).*");
 
         for (String line : lines) {
-            line = line.trim(); // Loại bỏ khoảng trắng thừa
-            if (line.isEmpty()) {
-                continue; // Bỏ qua dòng trống
+//            line = line.trim(); // Loại bỏ khoảng trắng thừa
+            String lineAfterTrim = line.trim();
+            if (lineAfterTrim.isEmpty()) {
+                if (foundAnswer) {
+                    currentAnswer.append("\n").append(line);
+                }
+                // chưa thấy đáp án -> đang parse câu hỏi -> thêm dòng.
+                if (!question.isEmpty() && !foundAnswer && currentAnswer.isEmpty()) {
+                    question.append("\n").append(line);
+                }
+                continue;
             }
 
-            if (question == null) {
-                if (!answerPattern.matcher(line).matches()) {
-                    question = line; // Gán dòng làm câu hỏi
+            boolean isAnswer = answerPattern.matcher(lineAfterTrim).matches();
+
+            if (question.isEmpty()) {
+                if (!isAnswer) {
+                    question = new StringBuilder(lineAfterTrim); // Gán dòng làm câu hỏi
                     continue;
                 } else {
                     result.put("type", QTypes.ESSAY.name()); // Không có câu hỏi, trả về tự luận
                     return result;
                 }
+            } else {
+                // chưa thấy đáp án -> đang parse câu hỏi -> không phải định dạng câu hỏi -> thêm dòng lẫn line .
+                if (!foundAnswer && currentAnswer.isEmpty() && !isAnswer) {
+                    question.append("\n").append(line);
+                    continue;
+                }
             }
 
             // Nếu dòng khớp với định dạng đáp án
-            if (answerPattern.matcher(line).matches()) {
-                if (!currentAnswer.isEmpty()) {
-                    options.add(currentAnswer.toString().trim()); // Thêm đáp án trước đó vào danh sách
+            if (isAnswer) {
+                if (options.size() >= 4) {
+                    // đã vượt quá 4 câu trả lời -> không phải multiple choice -> trả về tự luận
+                    result.put("type", QTypes.ESSAY.name());
+                    return result;
                 }
+                parseCurrentAnswer(options, currentAnswer);
                 currentAnswer = new StringBuilder(line); // Bắt đầu đáp án mới
                 foundAnswer = true;
             } else if (foundAnswer) {
@@ -58,19 +92,31 @@ public class ClassifyAndDecompressQuestion {
         }
 
         // Thêm đáp án cuối cùng (nếu có)
-        if (!currentAnswer.isEmpty()) {
-            options.add(currentAnswer.toString().trim());
+        if (foundAnswer && !currentAnswer.isEmpty()) {
+            if (options.size() >= 4) {
+                // đã vượt quá 4 câu trả lời -> không phải multiple choice -> trả về tự luận
+                result.put("type", QTypes.ESSAY.name());
+                return result;
+            }
+            parseCurrentAnswer(options, currentAnswer);
         }
 
         // Phân loại dựa trên câu hỏi và số lượng đáp án
-        if (question != null && options.size() >= 2) {
+        if (!question.isEmpty() && options.size() >= 2) {
             result.put("type", QTypes.MULTIPLE.name());
-            result.put("question", question);
+            result.put("question", HandleString.popExtraNewLineAndSpace(question.toString()));
             result.put("options", options);
         } else {
             result.put("type", QTypes.ESSAY.name());
         }
 
         return result;
+    }
+
+    private void parseCurrentAnswer(List<String> options, StringBuilder currentAnswer) {
+        String tempAnswer = HandleString.popExtraNewLineAndSpace(currentAnswer.toString());
+        if (!tempAnswer.isEmpty()) {
+            options.add(tempAnswer); // Thêm đáp án trước đó vào danh sách
+        }
     }
 }
