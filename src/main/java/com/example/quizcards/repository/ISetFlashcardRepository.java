@@ -439,6 +439,8 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             """, nativeQuery = true)
     List<SearchSetFlashResponse> searchByMyCourse(@Param("title") String title,@Param("user_id") Long userId);
 
+    @Query(value = "select count(set_id) from flashcards where set_id = :setId", nativeQuery = true)
+    int countFlashcardsBySetId(@Param("setId") Long setId);
 }
 
 

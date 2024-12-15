@@ -69,6 +69,12 @@ dependencies {
     implementation group: 'com.github.goxr3plus', name: 'java-google-speech-api', version: 'V2.1'
 
     implementation 'javazoom:jlayer:1.0.1'
+
+    // Spring Data Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+
+    // Spring WebFlux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
