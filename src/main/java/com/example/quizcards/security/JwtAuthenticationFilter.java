@@ -32,64 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-//    private final List<String> excludeUrlPatterns = List.of(
-//            "/ws/**",
-//            "/api/v1/auth/signup",
-//            "/api/v1/auth/login",
-//            "/api/v1/auth/logout",
-//            "/api/v1/auth/oauth2-login",
-//            "/api/v1/auth/refresh-token",
-//            "/api/v1/category/list",
-//            "/api/v1/category/list/{{id}}",
-//            "/api/v1/category/detail/{{id}}"
-//    );
-//
-//    private final List<String> excludeIfThrows = List.of(
-//            "/api/v1/auth/user-role",
-//            "/api/v1/set/set-detail/{{id}}",
-//            "/api/v1/set/count-public-set/{{userName}}",
-//            "/api/v1/set/detail/cards/{{id}}"
-////            "/api/v1/auth/user-info"
-//    );
-
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-//            throws ServletException, IOException {
-//        String jwt = getJwtFromRequest(request);
-//        if (StringUtils.hasText(jwt)) {
-//            UserDetails userDetails;
-//            try {
-//                String userName = tokenProvider.getUsernameFromJWT(jwt);
-//
-//                userDetails = customUserDetailsService.loadUserByUsernameOnly(userName);
-//
-//                if (!userDetails.isEnabled()) {
-//                    setResponseApiReturn(response, "Username is banned", HttpStatus.FORBIDDEN);
-//                    return;
-//                }
-//
-//                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-//                    setAuthentication(request, userDetails);
-//                }
-//            } catch (JwtException e) {
-//                if (!byPassFilterIfThrows(request)) {
-//                    setResponseApiReturn(response, "Invalid JWT Token", HttpStatus.UNAUTHORIZED);
-//                    return;
-//                }
-//            } catch (UsernameNotFoundException e) {
-//                if (!byPassFilterIfThrows(request)) {
-//                    setResponseApiReturn(response, "Username not found", HttpStatus.UNAUTHORIZED);
-//                    return;
-//                }
-//            } catch (Exception ex) {
-//                LOGGER.error("Could not set user authentication in security context", ex);
-//            }
-//        }
-//        filterChain.doFilter(request, response);
-//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

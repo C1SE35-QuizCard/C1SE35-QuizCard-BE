@@ -1,5 +1,6 @@
 package com.example.quizcards.entities.TestDataPackage;
 
+import com.example.quizcards.dto.response.TestDataResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,20 +9,33 @@ import org.springframework.data.mongodb.core.index.Indexed;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ESQuestion {
+public class ESQuestion implements IQuestion {
     @Indexed
     private Long id; // ID của câu hỏi
     private String question;
     private String answer; // Câu trả lời cho câu hỏi tự luận
     private String yourAnswer;
 
-    private boolean answerTrue = false;
+    private Long cardId;
 
-    public boolean checkTrueAnswer() {
+    private Boolean answerTrue;
+
+    public Boolean getAnswerTrue() {
+        if (answerTrue != null) {
+            return answerTrue;
+        }
         if (question == null || answer == null || yourAnswer == null) {
             return false;
         }
-        answerTrue = answer.equals(yourAnswer);
-        return answerTrue;
+        return answer.equalsIgnoreCase(yourAnswer);
+    }
+
+    @Override
+    public TestDataResponse.ESQResponse toResponse() {
+        return TestDataResponse.ESQResponse.builder()
+                .id(this.id)
+                .question(this.question)
+                .yourAnswer(this.yourAnswer)
+                .build();
     }
 }

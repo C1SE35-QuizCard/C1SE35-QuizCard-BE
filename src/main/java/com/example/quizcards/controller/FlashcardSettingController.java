@@ -1,5 +1,6 @@
 package com.example.quizcards.controller;
 
+import com.example.quizcards.dto.SortListDTO;
 import com.example.quizcards.dto.request.FlashcardSettingRequest;
 import com.example.quizcards.dto.request.StoreSetFlashcadDTO;
 import com.example.quizcards.dto.response.FlashcardSettingResponse;
@@ -14,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/flashcard-settings")
@@ -43,6 +46,11 @@ public class FlashcardSettingController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
+    }
+    @GetMapping("/sort")
+    public ResponseEntity<?> getSortedFlashcards(@RequestParam String sortBy) {
+        List<SortListDTO> sortedFlashcards = flashcardSettingService.getSortedFlashcards(sortBy);
+        return ResponseEntity.ok(sortedFlashcards);
     }
 
     @PatchMapping("/update")

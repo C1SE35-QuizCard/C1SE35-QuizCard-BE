@@ -1,5 +1,6 @@
 package com.example.quizcards.dto.request;
 
+import com.example.quizcards.validation.TimeRange;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestRequest {
-    private Long TestId;
+    private Long testId;
 
     @NotNull(message = "Test Mode Id is required.")
     private Long testModeId;
@@ -30,6 +31,11 @@ public class TestRequest {
 
     private String typeOfMultipleChoice;
 
+    private Boolean isNewTest;
+
     @NotNull(message = "Remaining Time Question is required.")
+    @TimeRange(minMinute = 5, maxHour = 5)
     private LocalTime remainingTime;
+
+    private String testModeName;
 }

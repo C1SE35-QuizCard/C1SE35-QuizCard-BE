@@ -1,12 +1,15 @@
 package com.example.quizcards.service.impl;
 
+import com.example.quizcards.dto.SortListDTO;
 import com.example.quizcards.dto.request.FlashcardSettingRequest;
 import com.example.quizcards.dto.response.FlashcardSettingResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserFlashcardSetting;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.IFlashcardSettingRepository;
+import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFlashcardSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +21,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
 
 @Service
 public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
     @Autowired
     private IFlashcardSettingRepository flashcardSettingRepository;
+    @Autowired
+    private ISetFlashcardRepository setFlashcardRepository;
 
+    @Autowired
+    private IAppUserRepository appUserRepository;
+    @Override
+    public List<SortListDTO> getSortedFlashcards(String sortBy) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        if ("recent".equals(sortBy)) {
+            return flashcardSettingRepository.findAllRecentByUserId(up.getId());
+        } else if ("created".equals(sortBy)) {
+            return flashcardSettingRepository.findSortedByCreated(up.getId());
+        } else if ("learned".equals(sortBy)) {
+            return flashcardSettingRepository.findSortedByLearned(up.getId());
+        }
+        return new ArrayList<>();
+    }
     @Override
     public ResponseEntity<FlashcardSettingResponse> getaFlashcardSettingByUserAndSetId(Long userId, Long setId) {
-        AppUser au = AppUser.builder().userId(userId).build();
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
         SetFlashcard s = SetFlashcard.builder().setId(setId).build();
-        UserFlashcardSetting setting = flashcardSettingRepository.findByUserAndAndSetFlashcard(au, s)
+        UserFlashcardSetting setting = flashcardSettingRepository.findByUser_UserIdAndSetFlashcard_SetId(userId, setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard setting", "set id", setId.toString()));
         FlashcardSettingResponse response = new FlashcardSettingResponse(setting.getLastCardId(),
                 setting.isShuffleMode(), setting.isFlipCardMode(), setting.getLastAccessed());
@@ -40,9 +64,8 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
     @Transactional
     public ResponseEntity<FlashcardSettingResponse> updateOrCreateNewFlashcardSetting(
             Long userId, FlashcardSettingRequest request) {
-        AppUser au = AppUser.builder().userId(userId).build();
-        SetFlashcard s = SetFlashcard.builder().setId(request.getSetId()).build();
-        Optional<UserFlashcardSetting> setting = flashcardSettingRepository.findByUserAndAndSetFlashcard(au, s);
+        Optional<UserFlashcardSetting> setting = flashcardSettingRepository.findByUser_UserIdAndSetFlashcard_SetId(userId,request.getSetId());
+        System.out.println(setting);
         return setting.map(userFlashcardSetting -> ResponseEntity.ok().body(updateSetting(userFlashcardSetting, request)))
                 .orElseGet(() -> ResponseEntity.ok().body(createSetting(userId, request)));
     }

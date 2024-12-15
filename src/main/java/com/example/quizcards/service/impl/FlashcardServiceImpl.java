@@ -9,6 +9,7 @@ import com.example.quizcards.helpers.FlashcardHelpers.IFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFlashcardService;
+import com.example.quizcards.utils.HandleString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,8 +60,8 @@ public class FlashcardServiceImpl implements IFlashcardService {
     public ResponseEntity<?> addFlashcard_2(FlashcardRequest request) {
         flashcardHelpers.handleAddFlashcard(request);
         Flashcard newCard = Flashcard.builder()
-                .question(request.getQuestion())
-                .answer(request.getAnswer())
+                .question(HandleString.popExtraNewLineAndSpace(request.getQuestion()))
+                .answer(HandleString.popExtraNewLineAndSpace(request.getAnswer()))
                 .imageLink(request.getImageLink())
                 .isApproved(true)
                 .set(SetFlashcard.builder().setId(request.getSetId()).build())
@@ -74,8 +75,10 @@ public class FlashcardServiceImpl implements IFlashcardService {
         flashcardHelpers.handleUpdateFlashcard(request);
         Flashcard card = flashcardRepository.findById(request.getCardId())
                 .orElseThrow(() -> new ResourceNotFoundException("Card", "id", request.getCardId()));
-        card.setQuestion(request.getQuestion() == null ? card.getQuestion() : request.getQuestion());
-        card.setAnswer(request.getAnswer() == null ? card.getAnswer() : request.getAnswer());
+        card.setQuestion(request.getQuestion() == null ? card.getQuestion() :
+                HandleString.popExtraNewLineAndSpace(request.getQuestion()));
+        card.setAnswer(request.getAnswer() == null ? card.getAnswer() :
+                HandleString.popExtraNewLineAndSpace(request.getAnswer()));
         card.setImageLink(request.getImageLink());
         card.setIsApproved(true);
         flashcardRepository.save(card);
@@ -95,8 +98,8 @@ public class FlashcardServiceImpl implements IFlashcardService {
         response.put("userId",
                 ((UserPrincipal) (SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getId());
         response.put("imageUrl", card.getImageLink());
-//        response.put("createdAt", card.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-//        response.put("updatedAt", card.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+//        response.put("createdAt", card.getCreatedAt());
+//        response.put("updatedAt", card.getUpdatedAt());
         return response;
     }
 

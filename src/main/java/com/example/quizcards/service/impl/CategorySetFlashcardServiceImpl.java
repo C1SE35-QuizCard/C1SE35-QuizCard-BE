@@ -18,7 +18,7 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
 
-    private final int MAX_SIZE_PER_PAGE = 4;
+    private final int MAX_SIZE_PER_PAGE = 5;
 
     @Override
     public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId) {

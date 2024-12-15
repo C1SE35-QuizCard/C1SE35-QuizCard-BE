@@ -38,7 +38,9 @@ public class FolderServiceImpl implements IFolderService {
 
     @Override
     public List<IFolderDTO> searchFolderByTitle(String title) {
-        return folderRepository.searchFolderByTitle(title);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return folderRepository.searchFolderByTitle(title,up.getId());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.quizcards.service;
 
+import com.example.quizcards.dto.DeadlineReminderListDTO;
 import com.example.quizcards.dto.IDeadlineReminderDTO;
 import com.example.quizcards.dto.request.DeadlineReminderRequest;
 
@@ -9,7 +10,7 @@ import java.util.List;
 public interface IDeadlineReminderService {
     IDeadlineReminderDTO getDeadlineReminderById(Long id);
 
-    List<IDeadlineReminderDTO> getDeadlineReminderByUserId(Long userId);
+    List<DeadlineReminderListDTO> getDeadlineReminderByUserId(Long userId);
 
     List<IDeadlineReminderDTO> getDeadlineReminderBySetId(Long setId);
 

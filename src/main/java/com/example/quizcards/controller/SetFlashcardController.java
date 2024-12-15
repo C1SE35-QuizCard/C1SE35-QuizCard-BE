@@ -63,11 +63,6 @@ public class SetFlashcardController {
         }
     }
 
-//    @GetMapping("/detail/cards/{id}")
-//    public ResponseEntity<?> findAllFlashcardBySetId_2(@PathVariable("id") Long setId) {
-//        return setFlashcardService.getAllFlashcardBySetId_2(setId);
-//    }
-
     @GetMapping("/detail/{id}")
     public ResponseEntity<Object> detailSetFlashcardById(@PathVariable("id") Long setId) {
         try {

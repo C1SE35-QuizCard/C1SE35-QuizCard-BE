@@ -2,6 +2,8 @@ package com.example.quizcards.service;
 
 import com.example.quizcards.dto.request.TestCreationRequest;
 import com.example.quizcards.dto.request.TestRequest;
+import com.example.quizcards.security.UserPrincipal;
+import jakarta.transaction.NotSupportedException;
 import org.springframework.http.ResponseEntity;
 
 public interface ITestService {
@@ -15,6 +17,18 @@ public interface ITestService {
 
     ResponseEntity<?> createEssayTest(Long testId);
 
+    ResponseEntity<?> createTestBySetInUser(UserPrincipal up,
+                                            TestRequest request) throws NotSupportedException;
 
-    ResponseEntity<?> createTestWithQuestionReturn(Long setId, TestRequest request);
+    ResponseEntity<?> getAllTests();
+
+    ResponseEntity<?> getTestByUserId(Long userId);
+
+    ResponseEntity<?> getTestBySetId(Long SetId);
+
+    ResponseEntity<?> getDetailsTestByTestIdInUser(Long userId);
+
+    ResponseEntity<?> getDetailsTestByTestIdWithoutQuestionsInUser(Long testId);
+
+    ResponseEntity<?> getTestByUserIdInUser();
 }

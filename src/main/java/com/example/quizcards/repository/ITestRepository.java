@@ -1,8 +1,10 @@
 package com.example.quizcards.repository;
 
 import com.example.quizcards.dto.ITestDTO;
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Test;
 import jakarta.transaction.Transactional;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -52,6 +54,5 @@ public interface ITestRepository extends JpaRepository<Test, Long> {
             """, nativeQuery = true)
     Integer countTestsById(@Param("test_id") Long testId);
 
-
-
+    List<Test> findByUser(AppUser user);
 }

@@ -127,7 +127,7 @@ public class CategorySetFlashcardController {
 
     @GetMapping("/list2/{id}")
     public ResponseEntity<Object> findAllSetFlashcardsByCategoryId2(@PathVariable("id") Long categoryId,
-                                                                    @RequestParam(value = "pages", required = false) Integer pages,
+                                                                    @RequestParam(value = "page", required = false) Integer pages,
                                                                     PagedResourcesAssembler<ISetFlashcardDTO> assembler) {
         try {
             if (pages == null) { pages = 0; }

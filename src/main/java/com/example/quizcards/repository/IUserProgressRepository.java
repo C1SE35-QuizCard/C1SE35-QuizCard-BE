@@ -120,6 +120,18 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             """, nativeQuery = true)
     IProgressDTO findUserProgressById(@Param("progress_id") Long progressId);
 
+    @Query(value = """
+            select u.progress_id,
+                   u.progress_type as progress_type,
+                   u.marked_for_attention as is_attention,
+                   u.user_id, u.card_id
+            from user_progress u
+            join flashcards f on u.card_id = f.card_id
+            where u.user_id = :user_id and f.set_id = :set_id
+            """, nativeQuery = true)
+    List<IProgressDTO> findUserProgressBySetIdAndUserId(@Param("set_id") Long setId,
+                                                        @Param("user_id") Long userId);
+
 
     @Query(value = """
             select count(u.progress_id)
