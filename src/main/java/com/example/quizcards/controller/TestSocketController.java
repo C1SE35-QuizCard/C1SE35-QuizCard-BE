@@ -1,9 +1,6 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.TestSendAnswerRequest;
-import com.example.quizcards.entities.TestDataPackage.ESQuestion;
-import com.example.quizcards.entities.TestDataPackage.IQuestion;
-import com.example.quizcards.entities.TestDataPackage.MCQuestion;
 import com.example.quizcards.entities.TestDataPackage.TestData;
 import com.example.quizcards.entities.questionTypes.QTypes;
 import com.example.quizcards.helpers.TestHelpers.TestExecutorSession;
@@ -12,6 +9,7 @@ import com.example.quizcards.repository.ITestDataMongoDbRepo;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.impl.TestSubmitServiceImpl;
 import com.example.quizcards.utils.global_vars.TestVars;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -92,18 +91,34 @@ public class TestSocketController {
     }
 
     private void saveEsResult(TestData test, TestSendAnswerRequest request) {
-        Query query = new Query(Criteria.where("testId").is(test.getTestId())
-                .and("questions.id").is(request.getEsData().getQuestionId()));
-        Update update = new Update().set("questions.$.yourAnswer", request.getEsData().getAnswer());
-        mongoTemplate.updateFirst(query, update, TestData.class);
+        Document query = new Document("testId", test.getTestId());
+        Document pipeline = new Document("$set", new Document("questions", new Document("$map", new Document("input", "$questions")
+                .append("as", "q")
+                .append("in", new Document("$cond", Arrays.asList(
+                        new Document("$eq", Arrays.asList("$$q._id", request.getEsData().getQuestionId())),
+                        new Document("$mergeObjects", Arrays.asList(
+                                "$$q",
+                                new Document("yourAnswer", request.getEsData().getAnswer())
+                                        .append("answerTrue", new Document("$eq", Arrays.asList(
+                                                new Document("$toLower", request.getEsData().getAnswer()),
+                                                new Document("$toLower", "$$q.answer")
+                                        )))
+                        )),
+                        "$$q"
+                ))))));
+
+        mongoTemplate.getCollection("test_exams").updateOne(query, Arrays.asList(pipeline));
+
+//        Query query = new Query(Criteria.where("testId").is(test.getTestId())
+//                .and("questions.id").is(request.getEsData().getQuestionId()));
+//        Update update = new Update().set("questions.$.yourAnswer", request.getEsData().getAnswer());
+//        mongoTemplate.updateFirst(query, update, TestData.class);
     }
 
     private void changeEsAnswerResult(TestData test, TestSendAnswerRequest request) {
         Query query = new Query(Criteria.where("testId").is(test.getTestId())
-                .and("questions.id").is(request.getEsData().getQuestionId())
-                .and("questions.yourAnswer").exists(true));
-        Update update = new Update().set("questions.$[elem].answerTrue", request.getEsData().getChangeIsTrue());
-        update.filterArray("elem.id", request.getEsData().getQuestionId());
+                .and("questions.id").is(request.getEsData().getQuestionId()));
+        Update update = new Update().set("questions.$.answerTrue", request.getEsData().getChangeIsTrue());
         mongoTemplate.updateFirst(query, update, TestData.class);
     }
 
@@ -125,15 +140,6 @@ public class TestSocketController {
                 throw new RuntimeException("Test " + request.getTestId() + " must have es data");
             }
             saveEsResult(testData, request);
-            TestData data =
-                    mongoDbRepo.findESQuestionByTestIdAndQuestionId(request.getTestId(), request.getEsData().getQuestionId());
-            if (data.getQuestions() != null && !data.getQuestions().isEmpty()) {
-                IQuestion question =  data.getQuestions().get(0);
-                if (question instanceof ESQuestion esq) {
-                    boolean result = esq.getAnswerTrue();
-                    messagingTemplate.convertAndSend("/topic/test/es-result/" + request.getTestId(), result);
-                }
-            }
         }
     }
 
@@ -164,8 +170,8 @@ public class TestSocketController {
 
     @MessageMapping("/force-submit-test")
     public void forceSubmitTest(@Payload TestSendAnswerRequest request,
-                                   Principal principal,
-                                   @Header("simpSessionAttributes") Map<String, Object> sessionAttributes) {
+                                Principal principal,
+                                @Header("simpSessionAttributes") Map<String, Object> sessionAttributes) {
         UserPrincipal up = extractPrincipal(principal);
         TestData testData = extractTestDataFromSessions(sessionAttributes, request.getTestId());
         checkTestCanEdit(testData, up);

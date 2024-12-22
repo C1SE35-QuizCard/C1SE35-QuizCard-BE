@@ -4,6 +4,7 @@ import com.example.quizcards.dto.response.TestDataResponse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MCQuestion implements IQuestion {
     @Indexed
     private Long id; // ID của câu hỏi
