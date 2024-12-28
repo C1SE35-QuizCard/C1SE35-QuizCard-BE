@@ -1,6 +1,6 @@
 package com.example.quizcards.dto.request;
 
-import com.example.quizcards.validation.ValidPassword;
+
 import lombok.*;
 import jakarta.validation.constraints.*;
 

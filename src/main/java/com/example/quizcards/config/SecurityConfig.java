@@ -71,6 +71,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/users/**").authenticated()
                         .requestMatchers("/api/v1/category/create", "/api/v1/category/update", "/api/v1/category/delete").authenticated()
                         .requestMatchers("/api/auth/forgot-password").permitAll()
+                        .requestMatchers("/api/v1/ka").permitAll()
+                        .requestMatchers("/api/v1/ka/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().permitAll()
                 )

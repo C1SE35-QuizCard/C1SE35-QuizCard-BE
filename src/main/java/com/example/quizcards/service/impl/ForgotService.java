@@ -64,7 +64,6 @@ public class ForgotService implements ForgotPasswordService {
             throw new IllegalArgumentException("Invalid verification code.");
         }
 
-        // Remove verification code after successful verification
         verificationCodes.remove(email);
         codeExpiration.remove(email);
     }

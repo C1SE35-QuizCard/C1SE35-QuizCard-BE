@@ -2,12 +2,14 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IAppUserDTO;
 import com.example.quizcards.dto.request.AppUserRequest;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.UserPrincipal;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -35,10 +38,10 @@ public class AppUserServiceImpl implements IAppUserService {
     private IAppUserRepository userRepository;
 
     @Autowired
-    private IAppRoleRepository roleRepository;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private IAppRoleRepository roleRepository;
 
     @Override
     public boolean existsByUsername(String username) {

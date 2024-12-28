@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Data
@@ -18,33 +19,24 @@ public class KaAnswer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "answer_id")
-    private Long answerId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private KaPlayer kaPlayer;
+    @Column(name = "ka_answer_id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ka_question_id", nullable = false)
     private KaQuestion kaQuestion;
 
-    @Column(name = "player_answer", length = 255, nullable = false)
-    private String playerAnswer;
+    @Column(name = "answer_id")
+    private Long answerId;
 
-    @Column(name = "is_correct", nullable = false)
+    @Column(name = "completion_time")
+    private BigDecimal completionTime;
+
+    @Column(name = "is_correct")
     private Boolean isCorrect;
 
-    @Column(name = "answer_time")
-    private Timestamp answerTime;
-
-    @Column(name = "answered_first")
-    private Boolean answeredFirst;
-
-    @Column(name = "is_fastest")
-    private Boolean isFastest;
-
-    @Column(name = "round_number")
-    private Integer roundNumber;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private KaPlayer kaPlayer;
 
 }

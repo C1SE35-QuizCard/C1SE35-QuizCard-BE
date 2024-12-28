@@ -15,12 +15,15 @@ import com.example.quizcards.repository.ICategorySubscriptionRepository;
 import com.example.quizcards.repository.ITestModeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -28,7 +31,6 @@ import java.util.Optional;
 public class Database {
     // logger
     private static final Logger logger = LoggerFactory.getLogger(Database.class);
-
     @Bean
     CommandLineRunner initRoles(IAppRoleRepository repo) {
         return new CommandLineRunner() {
@@ -174,4 +176,5 @@ public class Database {
             }
         };
     }
+
 }
