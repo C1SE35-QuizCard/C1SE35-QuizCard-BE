@@ -16,7 +16,8 @@ public class TestSocketSession {
 
     public static void shutdownTest(Long testId) {
         if (testSessions.get(testId) != null) {
-            for (String sessionId : testSessions.get(testId)) {
+            List<String> sessions = new ArrayList<>(testSessions.get(testId));
+            for (String sessionId : sessions) {
                 try {
                     WebSocketHandlerFactoryService.closeSession(sessionId);
                 } catch (Exception e) {

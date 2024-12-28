@@ -2,6 +2,7 @@ package com.example.quizcards.helpers.TestHelpers;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.entities.Test;
+import com.example.quizcards.entities.TestDataPackage.ESQuestion;
 import com.example.quizcards.entities.TestDataPackage.IQuestion;
 import com.example.quizcards.entities.TestDataPackage.MCQuestion;
 import com.example.quizcards.entities.questionTypes.QTypes;
@@ -85,15 +86,8 @@ public class TestHelpersImpl implements ITestHelpers {
 
     }
 
-    private List<IQuestion> handleQToAMulQuestions(
-            Long numberQuestions) {
-
-        return null;
-    }
-
     private IQuestion handleCreateAToQMulQuestion(IFlashcardDTO card,
                                                   List<String> questionList,
-                                                  Long numberQuestions,
                                                   Long numQuiz,
                                                   Random random) {
         List<String> wrongQuestion =
@@ -155,7 +149,6 @@ public class TestHelpersImpl implements ITestHelpers {
 
     private IQuestion handleCreateQToAMulQuestion(IFlashcardDTO card,
                                                   List<String> answerList,
-                                                  Long numberQuestions,
                                                   Long numQuiz,
                                                   Random random) {
         IQuestion question = extractMulQuestion(card, numQuiz);
@@ -215,14 +208,14 @@ public class TestHelpersImpl implements ITestHelpers {
             int typeQ = random.nextInt(typeMin, typeMax);
             if (typeQ == 0) {
                 IQuestion question = handleCreateQToAMulQuestion(card,
-                        answerList, numberQuestions, numQuiz, random);
+                        answerList, numQuiz, random);
                 if (question != null) {
                     questions.add(question);
                     ++numQuiz;
                 }
             } else {
                 IQuestion question = handleCreateAToQMulQuestion(card,
-                        questionList, numberQuestions, numQuiz, random);
+                        questionList, numQuiz, random);
                 if (question != null) {
                     questions.add(question);
                     ++numQuiz;
@@ -233,7 +226,6 @@ public class TestHelpersImpl implements ITestHelpers {
 
     @Override
     public List<IQuestion> handleCreateMulQuestion(List<IFlashcardDTO> cards, String type, Long numberQuestions) {
-        Random random = new Random();
         Collections.shuffle(cards);
 
         ArrayList<IQuestion> questions = new ArrayList<>();
@@ -245,12 +237,12 @@ public class TestHelpersImpl implements ITestHelpers {
 
         int typeMin = 0;
         int typeMax = 2;
+
         if (type.equalsIgnoreCase("q-a")) {
             answerList = new ArrayList<>(cards.parallelStream()
                     .filter(DistinctFunction.distinctByKey(IFlashcardDTO::getAnswer))
                     .map(IFlashcardDTO::getAnswer)
                     .toList());
-
             typeMax = 1;
         } else if (type.equalsIgnoreCase("a-q")) {
             questionList = new ArrayList<>(cards.parallelStream()
@@ -275,5 +267,30 @@ public class TestHelpersImpl implements ITestHelpers {
         return questions.parallelStream().filter(
                 DistinctFunction.distinctByKey(c -> c.getQuestion().toLowerCase())
         ).toList();
+    }
+
+    @Override
+    public List<IQuestion> handleCreateEssayQuestion(List<IFlashcardDTO> cards, Long numberQuestions) {
+        Collections.shuffle(cards);
+
+        List<IFlashcardDTO> cardsUniqueQ = new ArrayList<>(cards.parallelStream()
+                .filter(DistinctFunction.distinctByKey(IFlashcardDTO::getQuestion))
+                .toList());
+
+        ArrayList<IQuestion> questions = new ArrayList<>();
+        questions.ensureCapacity(500);
+
+        long numQuiz = 1L;
+
+        for (IFlashcardDTO card : cardsUniqueQ) {
+            if (questions.size() >= numberQuestions) break;
+            questions.add(ESQuestion.builder().id(numQuiz++)
+                    .question(card.getQuestion())
+                    .answer(card.getAnswer())
+                    .cardId(card.getCardId())
+                    .build());
+        }
+
+        return questions;
     }
 }

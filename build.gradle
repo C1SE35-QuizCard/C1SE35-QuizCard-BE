@@ -68,10 +68,18 @@ dependencies {
 
     implementation 'javazoom:jlayer:1.0.1'
 
+
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
 
+
+
+    // Spring Data Reactive MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+
+    // Spring WebFlux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 }
 

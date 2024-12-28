@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class TestServiceImpl implements ITestService {
@@ -217,9 +218,7 @@ public class TestServiceImpl implements ITestService {
                 .testModeName(testDb.getTestMode().getTestModeName()).isEnded(test.getIsEnded()).build();
     }
 
-    private TestData generateMultipleChoiceTestByRequest(Long userId,
-                                                         TestRequest request,
-                                                         String idMongoRecord) {
+    private TestData buildTestData(Long userId, TestRequest request, String idMongoRecord) {
         TestData test = new TestData();
         test.setUserId(userId);
         test.setSetId(request.getSetId());
@@ -227,8 +226,15 @@ public class TestServiceImpl implements ITestService {
         test.setTestModeName(request.getTestModeName());
 
         List<IFlashcardDTO> cards = flashcardRepository.findAllFlashcardsBySetId(request.getSetId());
-        List<IQuestion> questions = testHelpers.handleCreateMulQuestion(cards,
-                request.getTypeOfMultipleChoice(), request.getTotalQuestion());
+        List<IQuestion> questions;
+        if (request.getTestModeName().equalsIgnoreCase(QTypes.MULTIPLE.name())) {
+            questions = testHelpers.handleCreateMulQuestion(cards,
+                    request.getTypeOfMultipleChoice(), request.getTotalQuestion());
+        } else if (request.getTestModeName().equalsIgnoreCase(QTypes.ESSAY.name())) {
+            questions = testHelpers.handleCreateEssayQuestion(cards, request.getTotalQuestion());
+        } else {
+            throw new RuntimeException("Error when creating questions");
+        }
 
         test.setQuestions(questions);
 
@@ -261,11 +267,11 @@ public class TestServiceImpl implements ITestService {
         return test;
     }
 
-    private ResponseEntity<?> generateMultipleChoiceTest(Test testDb, TestRequest r, String id) {
+    private ResponseEntity<?> generateTestByRequest(Test testDb, TestRequest r, String id) {
         validateTestRequest(r, setFlashcardService.countFlashcardsBySetId(r.getSetId()));
         r.setTestId(testDb.getTestId());
         r.setTestModeName(testDb.getTestMode().getTestModeName());
-        TestData data = generateMultipleChoiceTestByRequest(testDb.getUser().getUserId(), r, id);
+        TestData data = buildTestData(testDb.getUser().getUserId(), r, id);
         if (data.getQuestions() == null || data.getQuestions().isEmpty())
             return ResponseEntity.unprocessableEntity().body(new ApiResponse(false, "System cannot create the question base"));
         testMongoRepo.save(data);
@@ -307,11 +313,11 @@ public class TestServiceImpl implements ITestService {
                 .setFlashcards(SetFlashcard.builder().setId(r.getSetId()).build())
                 .totalQuestion(0).goalScore(0).createdAt(LocalDateTime.now()).build();
         testRepository.save(test);
-        if (mode.getTestModeName().equalsIgnoreCase(QTypes.MULTIPLE.name())) {
-            return generateMultipleChoiceTest(test, r, null);
+        if (Stream.of(QTypes.MULTIPLE, QTypes.ESSAY)
+                .map(Enum::name)
+                .anyMatch(name -> name.equalsIgnoreCase(mode.getTestModeName()))) {
+            return generateTestByRequest(test, r, null);
         }
-        if (mode.getTestModeName().equalsIgnoreCase(QTypes.ESSAY.name()))
-            throw new NotSupportedException("Not implement essay question.");
         throw new NotSupportedException("Unknown type of test mode.");
     }
 

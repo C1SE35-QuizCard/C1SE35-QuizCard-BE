@@ -2,6 +2,7 @@ package com.example.quizcards.entities.TestDataPackage;
 
 import com.example.quizcards.dto.response.TestDataResponse;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ESQuestion implements IQuestion {
     @Indexed
     private Long id; // ID của câu hỏi
@@ -27,7 +29,7 @@ public class ESQuestion implements IQuestion {
         if (question == null || answer == null || yourAnswer == null) {
             return false;
         }
-        return answer.equalsIgnoreCase(yourAnswer);
+        return answerTrue = answer.equalsIgnoreCase(yourAnswer);
     }
 
     @Override
