@@ -35,30 +35,29 @@ public class PaymentService {
 
     public String processPayment(PaymentRequest paymentRequest) throws StripeException {
         try {
-            // In ra thông tin paymentRequest để kiểm tra
+
             System.out.println(paymentRequest);
 
-            // Kiểm tra xem gói đăng ký có tồn tại không
             Optional<CategorySubscription> subscription = categorySubscriptionRepository.findByName(paymentRequest.getSubcription());
             System.out.println(subscription);
             if (subscription.isEmpty()) {
                 return "Subscription plan not found!";
             }
 
-            // Kiểm tra nếu người dùng đã có subscription
+
             UserSubscription userSubscription = userSubscriptionRepository.findByAppUser_UserId(paymentRequest.getUserId()).orElse(null);
             if (userSubscription != null && userSubscription.getStatusPaid() == UserSubscription.StatusPaid.PAID &&
                     userSubscription.getExpiredDate().after(new Timestamp(System.currentTimeMillis()))) {
                 return "Your premium account is still active.";
             }
 
-            // Tạo PaymentIntent từ Stripe
+
             com.stripe.Stripe.apiKey = stripeApiKey;
 
-            // Tính số tiền cần thanh toán
+
             BigDecimal amount = paymentRequest.getAmount();
 
-            // Thiết lập thông số cho PaymentIntent
+
             Map<String, Object> paymentIntentParams = new HashMap<>();
             paymentIntentParams.put("amount", amount.multiply(BigDecimal.valueOf(100)).longValue()); // Chuyển đổi sang cent
             paymentIntentParams.put("currency", "usd");
@@ -66,17 +65,17 @@ public class PaymentService {
             paymentIntentParams.put("confirmation_method", "manual");
             paymentIntentParams.put("confirm", true);
 
-            // Tạo PaymentIntent từ Stripe API
+
             PaymentIntent paymentIntent = PaymentIntent.create(paymentIntentParams);
 
-            // Kiểm tra trạng thái thanh toán
+
             if (!paymentIntent.getStatus().equals("succeeded")) {
                 return "Payment failed.";
             }
 
-            // Nếu thanh toán thành công, cập nhật trạng thái người dùng
+
             if (userSubscription == null) {
-                // Nếu người dùng chưa có subscription, tạo mới
+
                 userSubscription = new UserSubscription();
                 userSubscription.setAppUser(new AppUser(paymentRequest.getUserId()));
                 userSubscription.setStatusPaid(UserSubscription.StatusPaid.PAID);
@@ -84,21 +83,19 @@ public class PaymentService {
                 userSubscription.setType(UserSubscription.TokenType.CARD);
                 userSubscription.setCategorySubscription(subscription.orElse(null));
             } else {
-                // Nếu người dùng đã có subscription, gia hạn
+
                 userSubscription.setStatusPaid(UserSubscription.StatusPaid.PAID);
                 userSubscription.setTokenPayment(paymentIntent.getId());
             }
             Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 
-            Timestamp newExpiryDate = new Timestamp(currentTimestamp.getTime()); // Bắt đầu với thời gian hiện tại
+            Timestamp newExpiryDate = new Timestamp(currentTimestamp.getTime());
 
             switch (paymentRequest.getPlanType().toLowerCase()) {
                 case "monthly":
-                    // Gia hạn 1 tháng
                     newExpiryDate.setMonth(newExpiryDate.getMonth() + 1);
                     break;
                 case "annually":
-                    // Gia hạn 1 năm
                     newExpiryDate.setYear(newExpiryDate.getYear() + 1);
                     break;
                 default:
@@ -108,19 +105,17 @@ public class PaymentService {
 
             userSubscription.setCategorySubscription(subscription.get());
 
-//             Lưu subscription mới vào cơ sở dữ liệu
             userSubscriptionRepository.save(userSubscription);
 
-            // Cập nhật role của người dùng
             appUserService.updateUserRole(paymentRequest.getUserId(), subscription.get().getId());
 
             return "Payment successful! Your account has been upgraded to Premium.";
         } catch (StripeException e) {
-            // Xử lý lỗi từ Stripe API
+
             e.printStackTrace();
             return "Payment failed due to Stripe error: " + e.getMessage();
         } catch (Exception e) {
-            // Xử lý các lỗi khác
+
             e.printStackTrace();
             return "An error occurred: " + e.getMessage();
         }

@@ -285,7 +285,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     public long countFlashcardsBySetId(Long setId) {
-        return 0;
+        return setFlashcardRepository.countFlashcardsBySetId(setId);
     }
 
     @Override

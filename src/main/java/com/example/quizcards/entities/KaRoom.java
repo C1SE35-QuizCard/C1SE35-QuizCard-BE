@@ -28,7 +28,7 @@ public class KaRoom {
     @JoinColumn(name = "set_id", nullable = false)
     private SetFlashcard setFlashcard;
 
-    @Column(name = "pin_code", length = 8, unique = true)
+    @Column(name = "pin_code", length = 6, unique = true, nullable = false)
     private String pinCode;
 
     @Column(name = "current_round")
@@ -53,8 +53,25 @@ public class KaRoom {
     @Column(name = "current_question_id")
     private Long currentQuestionId;
 
+    @Column(name = "time_per_question")
+    private Integer timePerQuestion;
 
-    // Enum for Room Status
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private AppUser appUser;
+    @Column(name = "current_joiner")
+    private Integer currentJoiners = 0;
+    public boolean canJoinRoom() {
+        return currentJoiners < maxJoiner;
+    }
+    public void addParticipant() {
+        if (currentJoiners == null) {
+            currentJoiners = 0;
+        }
+        if (canJoinRoom()) {
+            this.currentJoiners++;
+        }
+    }
     public enum RoomStatus {
         WAITING, PLAYING, FINISHED
     }

@@ -14,6 +14,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "ka_players")
 public class KaPlayer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     private AppUser user;
@@ -25,7 +30,7 @@ public class KaPlayer {
     @Column(name = "user_score")
     private Integer userScore;
 
-    @Column(name = "answered_correctly", nullable = false)
+    @Column(name = "answered_correctly")
     private Integer answeredCorrectly;
 
     @Column(name = "rounds_won")
@@ -34,4 +39,5 @@ public class KaPlayer {
     @ManyToOne
     @JoinColumn(name = "ka_answer_id", referencedColumnName = "answer_id", nullable = true)
     private KaAnswer kaAnswer;
+
 }
