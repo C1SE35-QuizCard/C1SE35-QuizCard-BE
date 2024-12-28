@@ -35,7 +35,7 @@ public interface ISetFlashcardService {
 
     void updateSetFlashcard(SetFlashcardRequest request);
 
-    ResponseEntity<?> createNewSetFlashcards(SetFlashcardInitializeRequest request);
+    Long createNewSetFlashcards(SetFlashcardInitializeRequest request);
 
     ISetFlashcardDTO findBySetId(Long setId);
 

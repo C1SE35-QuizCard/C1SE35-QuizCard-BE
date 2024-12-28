@@ -75,6 +75,7 @@ dependencies {
 
     // Spring WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 }
 
 tasks.named('test') {

@@ -6,6 +6,7 @@ import com.example.quizcards.dto.request.FlashcardRequest;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IFlashcardService {
     List<IFlashcardDTO> getAllBySetId(Long id);
@@ -18,9 +19,9 @@ public interface IFlashcardService {
 
     void updateFlashcard(FlashcardRequest request);
 
-    ResponseEntity<?> addFlashcard_2(FlashcardRequest request);
+    Map<String, Object> addFlashcard_2(FlashcardRequest request);
 
-    ResponseEntity<?> updateFlashcard_2(FlashcardRequest request);
+    Map<String, Object> updateFlashcard_2(FlashcardRequest request);
 
     void deleteFlashcard_2(Long cardId, Long setId);
 

@@ -100,7 +100,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> createNewSetFlashcards(SetFlashcardInitializeRequest request) {
+    public Long createNewSetFlashcards(SetFlashcardInitializeRequest request) {
         setFlashcardHelpers.handleAddSetFlashcard(request);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
@@ -127,9 +127,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
         flashcardRepository.saveAll(flashcards);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Created set successfully",
-                        HttpStatus.OK, set.getSetId()));
+        return set.getSetId();
     }
 
 

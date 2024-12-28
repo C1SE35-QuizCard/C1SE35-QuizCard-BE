@@ -228,8 +228,7 @@ public class TestHelpersImpl implements ITestHelpers {
     public List<IQuestion> handleCreateMulQuestion(List<IFlashcardDTO> cards, String type, Long numberQuestions) {
         Collections.shuffle(cards);
 
-        ArrayList<IQuestion> questions = new ArrayList<>();
-        questions.ensureCapacity(500);
+        List<IQuestion> questions = new ArrayList<>(500);
 
         List<String> questionList = new ArrayList<>();
 

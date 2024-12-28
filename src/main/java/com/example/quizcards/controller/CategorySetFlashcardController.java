@@ -5,9 +5,11 @@ import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.CategorySetFlashcardAdminRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.ICategorySetFlashcardService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -66,17 +68,8 @@ public class CategorySetFlashcardController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createCategorySetFlashcard(@RequestBody @Validated CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<Object> createCategorySetFlashcard(@Valid @RequestBody CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
         try {
             categorySetFlashcardService.addCategorySetFlashcard(request.getCategoryName());
             return ResponseEntity.status(HttpStatus.CREATED).body("Category Set Flashcard created successfully");
@@ -86,6 +79,7 @@ public class CategorySetFlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Object> deleteCategorySetFlashcardById(@PathVariable("id") Long categoryId) {
         if (categorySetFlashcardService.getCategorySetFlashcardById(categoryId) != null) {
             try {
@@ -100,17 +94,8 @@ public class CategorySetFlashcardController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateCategorySetFlashcard(@Validated @RequestBody CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<Object> updateCategorySetFlashcard(@Valid @RequestBody CategorySetFlashcardAdminRequest request, BindingResult bindingResult) {
         try {
             if (categorySetFlashcardService.getCategorySetFlashcardById(request.getCategoryId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Category Set Flashcard not found");

@@ -19,6 +19,7 @@ import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.TestHelpers.ITestHelpers;
+import com.example.quizcards.helpers.TestHelpers.TestSocketSession;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.repository.ITestDataMongoDbRepo;
@@ -31,6 +32,10 @@ import com.example.quizcards.service.ITestService;
 import jakarta.transaction.NotSupportedException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -70,6 +75,9 @@ public class TestServiceImpl implements ITestService {
 
     @Autowired
     private TestScheduleRegisterServiceImpl scheduleRegisterService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     public ResponseEntity<?> createTest(Long setId, Long userId, TestCreationRequest request) {
@@ -267,6 +275,31 @@ public class TestServiceImpl implements ITestService {
         return test;
     }
 
+    private void shutdownOldTestNotEnded(Long userId, Long setId) {
+        List<TestData> activeTests = testMongoRepo.findIdTestNotEnded(userId,
+                setId,
+                LocalDateTime.now());
+
+        Query query = new Query(
+                Criteria.where("userId").is(userId)
+                        .and("setId").is(setId)
+                        .andOperator(
+                                new Criteria().orOperator(
+                                        Criteria.where("isEnded").is(false),
+                                        Criteria.where("endAt").gt(LocalDateTime.now())
+                                )
+                        )
+        );
+
+        Update update = new Update().set("isEnded", true);
+
+        mongoTemplate.updateMulti(query, update, TestData.class);
+
+        for (TestData testData : activeTests) {
+            TestSocketSession.shutdownTest(testData.getTestId());
+        }
+    }
+
     private ResponseEntity<?> generateTestByRequest(Test testDb, TestRequest r, String id) {
         validateTestRequest(r, setFlashcardService.countFlashcardsBySetId(r.getSetId()));
         r.setTestId(testDb.getTestId());
@@ -275,6 +308,7 @@ public class TestServiceImpl implements ITestService {
         if (data.getQuestions() == null || data.getQuestions().isEmpty())
             return ResponseEntity.unprocessableEntity().body(new ApiResponse(false, "System cannot create the question base"));
         testMongoRepo.save(data);
+        shutdownOldTestNotEnded(testDb.getUser().getUserId(), r.getSetId());
         scheduleRegisterService.setupSubmitExecutor(data.getTestId(), data.getEndAt());
         return ResponseEntity.ok(convertFromTestDataWithNoResult(testDb, data));
     }
@@ -291,7 +325,7 @@ public class TestServiceImpl implements ITestService {
     @Transactional
     public ResponseEntity<?> createTestBySetInUser(UserPrincipal up, TestRequest r) throws NotSupportedException {
         if (Boolean.FALSE.equals(r.getIsNewTest())) {
-            List<TestData> activeTests = testMongoRepo.findTestByUserAndSetWithEndAtAfterNow(up.getId(), r.getSetId(), LocalDateTime.now());
+            List<TestData> activeTests = testMongoRepo.findTestNotEndedInUserAndSet(up.getId(), r.getSetId(), LocalDateTime.now());
             if (!activeTests.isEmpty() && !activeTests.get(0).getIsEnded()) {
                 Test t = testRepository.findById(activeTests.get(0).getTestId())
                         .orElseThrow(() -> new ResourceNotFoundException("Test", "id", activeTests.get(0).getTestId()));
