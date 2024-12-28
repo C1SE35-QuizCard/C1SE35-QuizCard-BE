@@ -9,6 +9,7 @@ import com.example.quizcards.entities.TestDataPackage.MCQuestion;
 import com.example.quizcards.entities.TestDataPackage.TestData;
 import com.example.quizcards.entities.UserProgress;
 import com.example.quizcards.helpers.TestHelpers.TestSocketSession;
+import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.ITestDataMongoDbRepo;
 import com.example.quizcards.repository.IUserProgressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,17 +41,31 @@ public class TestSubmitServiceImpl {
         if (test == null || test.getIsEnded()) {
             return;
         }
-        long numQuestionsTrue = 0;
         Long setId = test.getSetId();
-        List<IProgressDTO> progressInSetInUsers = progressRepo.findUserProgressBySetIdAndUserId(
+        ArrayList<UserProgress> progressesUpdate = new ArrayList<>();
+        progressesUpdate.ensureCapacity(500);
+        List<IProgressDTO> currentProgresses = progressRepo.findUserProgressBySetIdAndUserId(
                 setId, test.getUserId()
         );
-        Map<Long, IProgressDTO> progressInSet = progressInSetInUsers.stream()
-                .collect(Collectors.toMap(p -> p.getUserId() + p.getCardId(), progressDTO -> progressDTO));
-        ArrayList<UserProgress> listProgressUpdates = new ArrayList<>();
-        listProgressUpdates.ensureCapacity(progressInSet.size());
+        Map<String, IProgressDTO> mapProgresses = currentProgresses.stream()
+                .collect(Collectors.toMap(p -> p.getUserId().toString() + p.getCardId().toString(),
+                        progressDTO -> progressDTO));
+        Long numQuestionsTrue = updateProcessAndCountTrueAnswers(mapProgresses, test.getQuestions(),
+                progressesUpdate, test.getUserId());
+        Query query = new Query(Criteria.where("testId").is(test.getTestId()));
+        Update update = new Update().set("isEnded", true).set("numQuestionsTrue", numQuestionsTrue);
+        mongoTemplate.updateFirst(query, update, TestData.class);
+        progressRepo.saveAll(progressesUpdate);
+        TestSocketSession.shutdownTest(test.getTestId());
+    }
 
-        for (IQuestion question : test.getQuestions()) {
+    private Long updateProcessAndCountTrueAnswers(Map<String, IProgressDTO> progressInSet,
+                                                  List<IQuestion> questions,
+                                                  List<UserProgress> progresses,
+                                                  Long userId) {
+        String userIdStr = String.valueOf(userId);
+        long numQuestionsTrue = 0L;
+        for (IQuestion question : questions) {
             Boolean isAnswerTrue = null;
             if (question instanceof MCQuestion mc) {
                 isAnswerTrue = mc.getAnswerTrue();
@@ -58,21 +73,17 @@ public class TestSubmitServiceImpl {
                 isAnswerTrue = es.getAnswerTrue();
             }
             numQuestionsTrue += Boolean.TRUE.equals(isAnswerTrue) ? 1 : 0;
-            IProgressDTO progress = progressInSet.get(test.getUserId() + question.getCardId());
+            IProgressDTO progress = progressInSet.get(userIdStr + question.getCardId().toString());
             UserProgress up = UserProgress.builder()
                     .progressId(progress != null ? progress.getProgressId() : null)
-                    .appUser(AppUser.builder().userId(test.getUserId()).build())
+                    .appUser(AppUser.builder().userId(userId).build())
                     .flashcard(Flashcard.builder().cardId(question.getCardId()).build())
                     .progressType(Boolean.TRUE.equals(isAnswerTrue))
                     .isAttention(progress != null ? progress.getIsAttention() : false)
                     .build();
-            listProgressUpdates.add(up);
+            progresses.add(up);
         }
-        Query query = new Query(Criteria.where("testId").is(test.getTestId()));
-        Update update = new Update().set("isEnded", true).set("numQuestionsTrue", numQuestionsTrue);
-        mongoTemplate.updateFirst(query, update, TestData.class);
-        progressRepo.saveAll(listProgressUpdates);
-        TestSocketSession.shutdownTest(test.getTestId());
+        return numQuestionsTrue;
     }
 //    private void cham() {
 //        Map<BaiTest, Map<UserId, DapAn>> set = ... // cac dap an cua nguoi dung

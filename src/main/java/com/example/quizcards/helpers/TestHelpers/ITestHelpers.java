@@ -15,4 +15,6 @@ public interface ITestHelpers {
     void handleAdminDeleteTest(Long testId, Long userId);
 
     List<IQuestion> handleCreateMulQuestion(List<IFlashcardDTO> cards, String type, Long numberQuestions);
+
+    List<IQuestion> handleCreateEssayQuestion(List<IFlashcardDTO> cards, Long numberQuestions);
 }

@@ -1,7 +1,12 @@
 package com.example.quizcards.service;
 
+import com.example.quizcards.dto.IAppUserDTO;
+import com.example.quizcards.dto.request.AppUserRequest;
 import com.example.quizcards.entities.AppUser;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IAppUserService {
@@ -22,4 +27,12 @@ public interface IAppUserService {
     Optional<AppUser> findByUsernameOrEmail(String username, String email);
 
     void save(AppUser user);
+
+    Page<IAppUserDTO> getAllUsers(int pages);
+
+    IAppUserDTO detailUser(Long userId);
+
+    ResponseEntity<?> updateAppUser(Long userId, AppUserRequest request);
+
+    ResponseEntity<?> deleteAppUser(Long userId);
 }
