@@ -69,6 +69,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/progress/user/assign-progress").authenticated()
                         .requestMatchers("/api/v1/progress/user/reset-progress/").authenticated()
                         .requestMatchers("/api/auth/forgot-password").permitAll()
+                        .requestMatchers("/api/v1/ka").permitAll()
+                        .requestMatchers("/api/v1/ka/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().permitAll()
                 )
