@@ -6,14 +6,19 @@ import com.example.quizcards.dto.request.CategorySetFlashcardAdminRequest;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import com.example.quizcards.service.ICategorySetFlashcardService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
 public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardService {
     @Autowired
     private ICategorySetFlashcardRepository categoryRepository;
+
+    private final int MAX_SIZE_PER_PAGE = 5;
 
     @Override
     public ICategorySetFlashcardDTO getCategorySetFlashcardById(Long categoryId) {
@@ -49,4 +54,12 @@ public class CategorySetFlashcardServiceImpl implements ICategorySetFlashcardSer
     public void updateCategorySetFlashcard(CategorySetFlashcardAdminRequest request) {
         categoryRepository.updateCategorySetFlashcard(request.getCategoryId(), request.getCategoryName());
     }
+
+    @Override
+    public Page<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId2(Long categoryId, int pages) {
+        Pageable pageable = PageRequest.of(pages, MAX_SIZE_PER_PAGE);
+        return categoryRepository.findAllSetFlashcardsByCategoryId2(categoryId, pageable);
+    }
+
+
 }
