@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class HomeServiceImpl implements IHomeService {
@@ -59,9 +60,30 @@ public class HomeServiceImpl implements IHomeService {
         return ResponseEntity.ok(homeDataFreeUserResponse);
     }
 
+    //    public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
+//        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
+//        return ResponseEntity.ok(response);
+//List<ISetFlashcardDTO> allSets = setService.getAll();
+//    List<ISetFlashcardDTO> dataList = new ArrayList<>();
+//    Map<String, List<ISetFlashcardDTO>> dataMap = new HashMap<>();
+//    for (ISetFlashcardDTO set : allSets) {
+//        List<ISetFlashcardDTO> datas = dataMap.computeIfAbsent(set.getCategoryName(), k -> new ArrayList<>());
+//        if (datas.size() < 10) {
+//            datas.add(set);
+//            dataList.add(set);
+//        }
+//    }
+//    HomeDataGuessUserResponse response = HomeDataGuessUserResponse.builder()
+//            .listSets(dataList).build();
+//    return ResponseEntity.ok(response);
+//    }
     public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
-        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
-        return ResponseEntity.ok(response);
+        List<ISetFlashcardDTO> dataList = setService.getAll().stream()
+                .collect(Collectors.groupingBy(ISetFlashcardDTO::getCategoryName))
+                .values().stream()
+                .flatMap(list -> list.stream().limit(10))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(HomeDataGuessUserResponse.builder().listSets(dataList).build());
     }
 
     @Override

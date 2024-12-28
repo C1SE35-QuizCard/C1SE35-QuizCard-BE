@@ -14,6 +14,7 @@ import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
@@ -204,17 +205,44 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    @Transactional
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
+        if (appUserService.findById(userId).isEmpty()) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
         setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, userId, categoryId);
     }
 
     @Override
+    @Transactional
+    public void deleteSetFlashcardAdmin(Long setId) {
+        setFlashcardRepository.deleteSetFlashcardById(setId);
+    }
+
+    @Override
+    @Transactional
+    public void updateSetFlashcardAdmin(SetFlashcardRequest request) {
+        if (appUserService.findById(request.getUserId()).isEmpty()) {
+            throw new ResourceNotFoundException("User", "id", request.getUserId());
+        }
+        setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(),
+                request.getIsApproved(),
+                request.getIsAnonymous(),
+                request.getSharingMode(),
+                request.getUserId(),
+                request.getCategoryId()
+        );
+    }
+
+    @Override
+    @Transactional
     public void deleteSetFlashcard(Long setId) {
         setFlashcardHelpers.handleDeleteSetFlashcard(setId);
         setFlashcardRepository.deleteSetFlashcardById(setId);
     }
 
     @Override
+    @Transactional
     public void updateSetFlashcard(SetFlashcardRequest request) {
         setFlashcardHelpers.handleUpdateSetFlashcard(request);
 
