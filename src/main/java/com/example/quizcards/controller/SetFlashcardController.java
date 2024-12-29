@@ -108,27 +108,15 @@ public class SetFlashcardController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
-    public ResponseEntity<Object> createSetFlashcard(@RequestBody @Validated SetFlashcardRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest request) {
         try {
             setFlashcardService.addSetFlashcard(request.getTitle(),
                     request.getDescriptionSet(),
                     request.getIsApproved(),
                     request.getIsAnonymous(),
                     request.getSharingMode(),
-                    up.getId(),
+                    request.getUserId(),
                     request.getCategoryId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
         } catch (Exception e) {
@@ -137,11 +125,11 @@ public class SetFlashcardController {
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Object> deleteSetFlashcardById(@PathVariable("id") Long setId) {
         if (setFlashcardService.findBySetId(setId) != null) {
             try {
-                setFlashcardService.deleteSetFlashcard(setId);
+                setFlashcardService.deleteSetFlashcardAdmin(setId);
                 return new ResponseEntity<>("Set Flashcard deleted successfully", HttpStatus.OK);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the set flashcard");
@@ -152,23 +140,13 @@ public class SetFlashcardController {
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAnyRole('NO_ROLE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardRequest request, BindingResult bindingResult) {
-        if (request == null) {
-            return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
-        }
-        if (bindingResult.hasErrors()) {
-            ErrorDetail errorDetail = new ErrorDetail("Validation errors");
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errorDetail.addError(error.getField(), error.getDefaultMessage());
-            }
-            return ResponseEntity.badRequest().body(errorDetail);
-        }
         try {
             if (setFlashcardService.findBySetId(request.getSetId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Set Flashcard not found");
             }
-            setFlashcardService.updateSetFlashcard(request);
+            setFlashcardService.updateSetFlashcardAdmin(request);
             return new ResponseEntity<>("Set Flashcard updated successfully", HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the set flashcard");
@@ -178,14 +156,17 @@ public class SetFlashcardController {
     @PostMapping("/create-new-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
-        return setFlashcardService.createNewSetFlashcards(request);
+        Long setId = setFlashcardService.createNewSetFlashcards(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse(true, "Created set successfully",
+                        HttpStatus.OK, setId));
     }
 
     @PutMapping("/update-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> updateSetFlashcard_2(@Valid @RequestBody SetFlashcardRequest request) {
         setFlashcardService.updateSetFlashcard(request);
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Set Flashcard updated successfully"));
     }
 
@@ -193,7 +174,7 @@ public class SetFlashcardController {
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> deleteSetFlashcardById_2(@Valid @RequestBody SetFlashcardRequest request) {
         setFlashcardService.deleteSetFlashcard(request.getSetId());
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Set Flashcard deleted successfully"));
     }
 

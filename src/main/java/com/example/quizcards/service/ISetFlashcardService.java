@@ -31,11 +31,15 @@ public interface ISetFlashcardService {
                          Long userId,
                          Long categoryId);
 
+    void deleteSetFlashcardAdmin(Long setId);
+
+    void updateSetFlashcardAdmin(SetFlashcardRequest request);
+
     void deleteSetFlashcard(Long setId);
 
     void updateSetFlashcard(SetFlashcardRequest request);
 
-    ResponseEntity<?> createNewSetFlashcards(SetFlashcardInitializeRequest request);
+    Long createNewSetFlashcards(SetFlashcardInitializeRequest request);
 
     ISetFlashcardDTO findBySetId(Long setId);
 

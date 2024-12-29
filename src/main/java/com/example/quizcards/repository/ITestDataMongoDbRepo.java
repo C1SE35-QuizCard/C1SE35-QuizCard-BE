@@ -12,7 +12,10 @@ import java.util.List;
 @Repository
 public interface ITestDataMongoDbRepo extends MongoRepository<TestData, Long> {
     @Query("{ 'userId': ?0, 'setId': ?1, 'endAt' : { $gt: ?2 } }")
-    List<TestData> findTestByUserAndSetWithEndAtAfterNow(Long userId, Long setId, LocalDateTime now);
+    List<TestData> findTestNotEndedInUserAndSet(Long userId, Long setId, LocalDateTime now);
+
+    @Query(value = "{ 'userId': ?0, 'setId': ?1, '$or': [ { 'endAt': { $gt: ?2 } }, { 'isEnded': false } ], 'isEnded': false }", fields = "{ 'testId' : 1 }")
+    List<TestData> findIdTestNotEnded(Long userId, Long setId, LocalDateTime now);
 
     @Query(value = "{}", fields = "{ 'questions' : 0 }")
     List<TestData> findAllWithoutQuestions();

@@ -22,4 +22,6 @@ public class SetFlashcardRequest {
     private Boolean sharingMode;
 
     private Long categoryId;
+
+    private Long userId;
 }

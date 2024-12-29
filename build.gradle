@@ -9,8 +9,10 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(19)
     }
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
 configurations {
@@ -80,7 +82,6 @@ dependencies {
 
     // Spring WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
 }
 
 tasks.named('test') {

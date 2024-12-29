@@ -28,7 +28,6 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsernameOrEmail(String username, String email);
 
-
     @Query(value = """
             select a.user_id, 
             a.address, 
@@ -36,19 +35,17 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
             a.date_create, 
             a.date_of_birth, 
             a.email,
-            a.enabled,
+            a.enabled as enabled,
             a.first_name,
-            a.gender,
-            a.hash_password,
+            a.gender as gender,
             a.last_name,
             a.phone_number,
-            a.user_code,
-            a.user_name,
+            a.user_name as username,
             a.role_id,
             ar.role_name
             from app_users a
             join app_roles ar on a.role_id = ar.role_id
-            where a.role_id <> 3
+            where ar.role_name != 'ROLE_ADMIN'
             """, nativeQuery = true)
     Page<IAppUserDTO> getAll(Pageable pageable);
 
@@ -59,14 +56,33 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
             a.date_create, 
             a.date_of_birth, 
             a.email,
-            a.enabled,
+            a.enabled as enabled,
             a.first_name,
-            a.gender,
-            a.hash_password,
+            a.gender as gender,
             a.last_name,
             a.phone_number,
-            a.user_code,
-            a.user_name,
+            a.user_name as username,
+            a.role_id,
+            ar.role_name
+            from app_users a
+            join app_roles ar on a.role_id = ar.role_id
+            where ar.role_name != 'ROLE_ADMIN'
+            """, nativeQuery = true)
+    List<IAppUserDTO> getAll();
+
+    @Query(value = """
+            select a.user_id, 
+            a.address, 
+            a.avatar, 
+            a.date_create, 
+            a.date_of_birth, 
+            a.email,
+            a.enabled as enabled,
+            a.first_name,
+            a.gender as gender,
+            a.last_name,
+            a.phone_number,
+            a.user_name as username,
             a.role_id,
             ar.role_name
             from app_users a
@@ -74,10 +90,4 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
             where a.user_id = :user_id
             """, nativeQuery = true)
     IAppUserDTO detailUser(@Param("user_id") Long userId);
-
-    @Query("SELECT COUNT(u) > 0 FROM AppUser u WHERE u.username = :username AND u.userId != :id")
-    boolean existsByUsernameExcludingUserId(@Param("username") String username, @Param("id") Long userId);
-
-    @Query("SELECT COUNT(u) > 0 FROM AppUser u WHERE u.email = :email AND u.userId != :id")
-    boolean existsByEmailExcludingUserId(@Param("email") String email, @Param("id") Long userId);
 }
