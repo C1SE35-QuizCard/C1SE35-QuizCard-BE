@@ -1,22 +1,24 @@
 package com.example.quizcards.controller.admin;
 
+import com.example.quizcards.dto.IAppUserDTO;
+import com.example.quizcards.dto.request.AppUserRequest;
 import com.example.quizcards.service.IAppUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.quizcards.dto.IAppUserDTO;
-import com.example.quizcards.dto.request.AppUserRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -29,7 +31,9 @@ public class UserController {
     public ResponseEntity<?> getAllUsers(@RequestParam(value = "page", required = false) Integer pages,
                                          PagedResourcesAssembler<IAppUserDTO> assembler) {
         try {
-            if (pages == null) { pages = 0; }
+            if (pages == null) {
+                pages = 0;
+            }
             Page<IAppUserDTO> data = appUserService.getAllUsers(pages);
             System.out.println("Requested page: " + pages);
             return ResponseEntity.ok(assembler.toModel(data));
@@ -55,6 +59,27 @@ public class UserController {
                     ));
         }
     }
+
+
+//    @Async("taskExecutorc")
+//    @GetMapping("/data")
+//    public CompletableFuture<ResponseEntity<List<IAppUserDTO>>> getAllUsers() {
+//        return appUserService.getAllUsers()
+//                .thenApply(ResponseEntity::ok)
+//                .exceptionally(ex -> {
+//                    // Xử lý ngoại lệ nếu cần
+//                    return ResponseEntity.internalServerError().body(null);
+//                });
+//    }
+
+//    @GetMapping("/test")
+////    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+//    public CompletableFuture<ResponseEntity<String>> testAsync() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        System.out.println("Controller Authentication: " + (authentication != null ? authentication.getName() : "No Authentication"));
+//        return appUserService.testAsync()
+//                .thenApply(ResponseEntity::ok); // Đóng gói dữ liệu vào ResponseEntity
+//    }
 
 
     @GetMapping("/user/{id}")

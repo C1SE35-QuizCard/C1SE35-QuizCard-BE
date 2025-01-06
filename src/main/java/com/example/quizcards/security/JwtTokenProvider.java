@@ -17,7 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtTokenProvider {
+public class    JwtTokenProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenProvider.class);
 

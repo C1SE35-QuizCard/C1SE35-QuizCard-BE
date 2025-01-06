@@ -17,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
@@ -29,6 +28,16 @@ public class SecurityConfig {
 
     private final CustomUserDetailsServiceImpl userDetailsService;
 
+//    private final SecurityContextRepository securityContextRepository;
+
+
+//    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+//                          CustomUserDetailsServiceImpl userDetailsService,
+//                          @Lazy SecurityContextRepository securityContextRepository) {
+//        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+//        this.userDetailsService = userDetailsService;
+//        this.securityContextRepository = securityContextRepository;
+//    }
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           CustomUserDetailsServiceImpl userDetailsService) {
@@ -77,6 +86,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .securityContext(request -> request.securityContextRepository(securityContextRepository))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(h -> h.disable())
                 .formLogin(f -> f.disable())
@@ -102,19 +112,19 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // Cho phép gửi cookie
-        config.addAllowedOrigin("http://localhost:3000"); // Chỉ định origin cụ thể
-        config.addAllowedHeader("*"); // Chấp nhận tất cả các header
-        config.addAllowedMethod("*"); // Cho phép tất cả các phương thức HTTP
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
-    }
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowCredentials(true); // Cho phép gửi cookie
+//        config.addAllowedOrigin("http://localhost:3000"); // Chỉ định origin cụ thể
+//        config.addAllowedHeader("*"); // Chấp nhận tất cả các header
+//        config.addAllowedMethod("*"); // Cho phép tất cả các phương thức HTTP
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//
+//        return new CorsFilter(source);
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -127,4 +137,11 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+//    @Bean
+//    public SecurityContextRepository securityContextRepository() {
+//        return new DelegatingSecurityContextRepository(
+//                new RequestAttributeSecurityContextRepository(),
+//                new HttpSessionSecurityContextRepository()
+//        );
+//    }
 }

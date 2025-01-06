@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -37,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+//        SecurityContextHolder.clearContext(); // cho async (hiện tại chưa dùng)
         String jwt = getJwtFromRequest(request);
         if (StringUtils.hasText(jwt)) {
             UserDetails userDetails;
@@ -53,6 +55,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     setAuthentication(request, userDetails);
                 }
+
+                // cho async (hiện tại chưa dùng)
+//                SecurityContext context = SecurityContextHolder.createEmptyContext();
+//                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+//                        userDetails,
+//                        null,
+//                        userDetails.getAuthorities()
+//                );
+//                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                context.setAuthentication(authToken);
+//                SecurityContextHolder.setContext(context);
             } catch (Exception ex) {
                 LOGGER.error("Could not set user authentication in security context", ex);
             }

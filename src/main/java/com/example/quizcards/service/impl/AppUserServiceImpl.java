@@ -2,14 +2,12 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IAppUserDTO;
 import com.example.quizcards.dto.request.AppUserRequest;
-import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
-import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.UserPrincipal;
@@ -20,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,8 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Service
 public class AppUserServiceImpl implements IAppUserService {
@@ -119,6 +120,13 @@ public class AppUserServiceImpl implements IAppUserService {
     public List<IAppUserDTO> getAllUsers() {
         return userRepository.getAll();
     }
+
+//    @Override
+//    @Async("asyncExecutor")
+//    public CompletableFuture<List<IAppUserDTO>> getAllUsers() {
+//        List<IAppUserDTO> users = userRepository.getAll(); // Lấy dữ liệu đồng bộ
+//        return CompletableFuture.completedFuture(users);
+//    }
 
     @Override
     public IAppUserDTO detailUser(Long userId) {

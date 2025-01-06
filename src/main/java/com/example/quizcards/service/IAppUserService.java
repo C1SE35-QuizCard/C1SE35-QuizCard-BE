@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface IAppUserService {
     boolean existsByUsername(String username);
@@ -30,6 +32,8 @@ public interface IAppUserService {
     Page<IAppUserDTO> getAllUsers(int pages);
 
     List<IAppUserDTO> getAllUsers();
+
+//    CompletableFuture<List<IAppUserDTO>> getAllUsers();
 
     IAppUserDTO detailUser(Long userId);
 

@@ -307,8 +307,8 @@ public class TestServiceImpl implements ITestService {
         TestData data = buildTestData(testDb.getUser().getUserId(), r, id);
         if (data.getQuestions() == null || data.getQuestions().isEmpty())
             return ResponseEntity.unprocessableEntity().body(new ApiResponse(false, "System cannot create the question base"));
-        testMongoRepo.save(data);
         shutdownOldTestNotEnded(testDb.getUser().getUserId(), r.getSetId());
+        testMongoRepo.save(data);
         scheduleRegisterService.setupSubmitExecutor(data.getTestId(), data.getEndAt());
         return ResponseEntity.ok(convertFromTestDataWithNoResult(testDb, data));
     }
