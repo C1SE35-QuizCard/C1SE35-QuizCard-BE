@@ -189,7 +189,7 @@ This is a section for installation and usage for Backend. For more details, go t
 For more examples, see our documents on [Quizcard documents][qc-document-link].
 
 ## 🤝 Contributing
-We welcome contributions from the open-source community. Check out our contribution guidelines on [README.md](README.md#-contributing) for more information.
+We welcome contributions from the open-source community. Check out our contribution guidelines on [README.md](https://github.com/C1SE35-QuizCard/C1SE35-QC-Home/blob/main/README.md#-contributing) for more information.
 
 ## 📧 Contact 
 
