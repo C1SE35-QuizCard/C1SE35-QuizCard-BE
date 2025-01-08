@@ -30,9 +30,9 @@ This is a section for installation and usage for Backend. For more details, go t
 ## 👉 Note
 
 - This backend only runs on Windows 10 (or latest), cannot run on other operating systems.
-- You must install all tools from [⚙️ Require tools](#id-require-tools) before going to the [🛠️ Installation & Usage](#️id-inst-usage) for setup and running the application.
+- You must install all tools from [⚙️ Require tools](#id-require-tools) before going to the [🛠️ Installation & Usage](#️-installation--usage) for setup and running the application.
 
-## 🛠️ Installation & Usage<a id="id-inst-usage"></a>
+## 🛠️ Installation & Usage
 **🔧 Installation**
 
 1. Clone the repository:
