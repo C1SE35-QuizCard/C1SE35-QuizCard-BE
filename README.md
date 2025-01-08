@@ -10,7 +10,7 @@
 
 ## 📜 Overview
 
-This is a section for installation and usage for Backend. For more details, go to Quizcards [details](README.md)
+This is a section for installation and usage for Backend. For more details, go to Quizcards [details](https://github.com/C1SE35-QuizCard/C1SE35-QC-Home/blob/main/README.md)
 
 
 ## ⚙️ Require system & tools<a id="id-require-tools"></a>
