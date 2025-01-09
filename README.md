@@ -196,12 +196,19 @@ We welcome contributions from the open-source community. Check out our contribut
 For questions, suggestions, or feedback, feel free to reach out:
 
 - Email:
-  [An, Trang Thanh](thanhannbk0912@gmail.com)
-  [Kien, Le Trung](letrungkien6@dtu.edu.vn)
-  [Nhi, Nguyen Thi Yen](yennhi0402dn@gmail.com)  
+
+  thanhannbk0912@gmail.com
+
+  letrungkien6@dtu.edu.vn
+
+  yennhi0402dn@gmail.com
+
 - GitHub:
+
   [An, Trang Thanh](https://github.com/TrangThanhAn)
+
   [Kien, Le Trung](https://github.com/conmeobeo121)
+
   [Nhi, Nguyen Thi Yen](https://github.com/macca0402)
 
 Happy Running! 🕸️🚀
