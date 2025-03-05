@@ -38,12 +38,6 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
     }
 
     private String getAccessTokenFromCode(String code) {
-        MultiValueMap<String, String> params = getGoogleOAuth2Params(code);
-        GoogleAccessTokenResponse tokenResponse = googleOAuth2Client.getAccessToken(params);
-        return tokenResponse.getAccess_token();
-    }
-
-    private String getAccessTokenFromCode_2(String code) {
         GoogleAccessTokenResponse tokenResponse = googleOAuth2Client.getAccessToken_2(
                 code,
                 clientRegistration.getClientId(),
@@ -65,7 +59,7 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
         }
 
         String code = request.getCode();
-        GoogleUserInfoResponse userResponse = getInfoUserFromAccessToken(getAccessTokenFromCode_2(code));
+        GoogleUserInfoResponse userResponse = getInfoUserFromAccessToken(getAccessTokenFromCode(code));
 
         GoogleInfoUser userInfo = GoogleInfoUser
                 .builder()
