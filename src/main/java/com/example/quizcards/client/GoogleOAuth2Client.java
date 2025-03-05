@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface GoogleOAuth2Client {
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Headers("Content-Type: " + MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    GoogleAccessTokenResponse getAccessToken(MultiValueMap<String, String> form);
-
-    @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    @Headers("Content-Type: " + MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    GoogleAccessTokenResponse getAccessToken_2(@RequestParam("code") String code,
+    GoogleAccessTokenResponse getAccessToken(@RequestParam("code") String code,
                                                @RequestParam("client_id") String clientId,
                                                @RequestParam("client_secret") String clientSecret,
                                                @RequestParam("redirect_uri") String redirectUri,
