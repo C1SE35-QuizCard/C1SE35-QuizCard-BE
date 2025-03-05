@@ -7,6 +7,7 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserFlashcardSetting;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.mapper.UserFlashcardSettingMapper;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.IFlashcardSettingRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -32,6 +34,9 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
     private IFlashcardSettingRepository flashcardSettingRepository;
     @Autowired
     private ISetFlashcardRepository setFlashcardRepository;
+
+    @Autowired
+    private UserFlashcardSettingMapper userFlashcardSettingMapper;
 
     @Autowired
     private IAppUserRepository appUserRepository;
@@ -50,14 +55,11 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
     }
     @Override
     public ResponseEntity<FlashcardSettingResponse> getaFlashcardSettingByUserAndSetId(Long userId, Long setId) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
-        SetFlashcard s = SetFlashcard.builder().setId(setId).build();
+        if (!appUserRepository.existsById(userId)) throw new IllegalArgumentException("User not found with ID: " + userId);
+        if (!setFlashcardRepository.existsById(setId)) throw  new IllegalArgumentException("Set not found with ID: " + setId);
         UserFlashcardSetting setting = flashcardSettingRepository.findByUser_UserIdAndSetFlashcard_SetId(userId, setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard setting", "set id", setId.toString()));
-        FlashcardSettingResponse response = new FlashcardSettingResponse(setting.getLastCardId(),
-                setting.isShuffleMode(), setting.isFlipCardMode(), setting.getLastAccessed());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userFlashcardSettingMapper.toFlashcardSettingResponse(setting));
     }
 
     @Override
@@ -94,13 +96,9 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
 
 
     private FlashcardSettingResponse updateSetting(UserFlashcardSetting setting, FlashcardSettingRequest request) {
-        setting.setLastCardId(request.getLastCardId() == null ? setting.getLastCardId() : request.getLastCardId());
-        setting.setShuffleMode(request.getShuffleMode() == null ? setting.isShuffleMode() : request.getShuffleMode());
-        setting.setFlipCardMode(request.getFlipCardMode() == null ? setting.isFlipCardMode() : request.getFlipCardMode());
-        setting.setLastAccessed(LocalDateTime.now());
+        userFlashcardSettingMapper.updateUserFromDto(request, setting);
         UserFlashcardSetting new_setting = flashcardSettingRepository.save(setting);
-        return new FlashcardSettingResponse(new_setting.getLastCardId(), new_setting.isShuffleMode(),
-                new_setting.isFlipCardMode(), new_setting.getLastAccessed());
+        return userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
     }
 
     private FlashcardSettingResponse createSetting(Long userId, FlashcardSettingRequest request) {
@@ -109,12 +107,10 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
         UserFlashcardSetting new_setting = flashcardSettingRepository.save(UserFlashcardSetting.builder()
                 .user(au)
                 .setFlashcard(s)
-                .lastCardId(request.getLastCardId() == null ? -1 : request.getLastCardId())
-                .shuffleMode(request.getShuffleMode() != null && request.getShuffleMode())
-                .flipCardMode(request.getFlipCardMode() != null && request.getShuffleMode())
-                .lastAccessed(LocalDateTime.now())
+                .lastCardId(Objects.isNull(request.getLastCardId()) ? -1 : request.getLastCardId())
+                .shuffleMode(!Objects.isNull(request.getShuffleMode()) && request.getShuffleMode())
+                .flipCardMode(!Objects.isNull(request.getFlipCardMode()) && request.getFlipCardMode())
                 .build());
-        return new FlashcardSettingResponse(new_setting.getLastCardId(), new_setting.isShuffleMode(),
-                new_setting.isFlipCardMode(), new_setting.getLastAccessed());
+        return userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
     }
 }

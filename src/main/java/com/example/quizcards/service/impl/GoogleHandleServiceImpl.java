@@ -2,6 +2,8 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.GoogleInfoUser;
 import com.example.quizcards.dto.request.GoogleLoginRequest;
+import com.example.quizcards.dto.response.GoogleAccessTokenResponse;
+import com.example.quizcards.dto.response.GoogleUserInfoResponse;
 import com.example.quizcards.service.IGoogleHandleService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,25 +67,15 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectMapper mapper = new ObjectMapper();
 
-            Map data = mapper.readValue(responseEntity.getBody(), Map.class);
+            GoogleAccessTokenResponse response = mapper.readValue(responseEntity.getBody(), GoogleAccessTokenResponse.class);
 
-            return (String) data.get("access_token");
+            return response.getAccess_token();
         }
 
         return null;
     }
 
-    private Map<String, Object> getInfoUserFromAccessToken(String accessToken) throws JsonProcessingException {
-        Set<String> requiredKeys = Set.of(
-                "email",
-                "email_verified",
-                "family_name",
-                "given_name",
-                "name",
-                "picture",
-                "sub"
-        );
-
+    private GoogleUserInfoResponse getInfoUserFromAccessToken(String accessToken) throws JsonProcessingException {
         String userInfoUri = clientRegistration.getProviderDetails().getUserInfoEndpoint().getUri();
 
         String urlUserInfoBody = userInfoUri + "?access_token=" + accessToken;
@@ -95,13 +87,7 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
         if (userDataJsonString.getStatusCode().is2xxSuccessful()) {
             ObjectMapper mapper = new ObjectMapper();
 
-            Map data = mapper.readValue(userDataJsonString.getBody(), Map.class);
-
-            for (String key : requiredKeys) {
-                assert data.containsKey(key) : "Missing key: " + key;
-            }
-
-            return data;
+            return mapper.readValue(userDataJsonString.getBody(), GoogleUserInfoResponse.class);
         }
 
         return null;
@@ -115,24 +101,25 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
 
         String code = request.getCode();
 
-        Map<String, Object> user = getInfoUserFromAccessToken(getAccessTokenFromCode(code));
+        GoogleUserInfoResponse user = getInfoUserFromAccessToken(getAccessTokenFromCode(code));
 
         GoogleInfoUser userInfo = new GoogleInfoUser();
 
-        userInfo.setEmail(user.get("email").toString());
-        userInfo.setAvatarUrl(user.get("picture").toString());
-        userInfo.setFirstName(user.get("given_name").toString());
-        userInfo.setLastName(user.get("family_name").toString());
-        userInfo.setUserCode(user.get("sub").toString());
+        assert user != null;
+        userInfo.setEmail(user.getEmail());
+        userInfo.setAvatarUrl(user.getPicture());
+        userInfo.setFirstName(user.getGiven_name());
+        userInfo.setLastName(user.getFamily_name());
+        userInfo.setUserCode(user.getSub());
 
-        int atIndex = user.get("email").toString().indexOf("@");
+        int atIndex = user.getEmail().indexOf("@");
         if (atIndex != -1) {
-            userInfo.setUserName(user.get("email").toString().substring(0, atIndex));
+            userInfo.setUserName(user.getEmail().substring(0, atIndex));
         } else {
-            userInfo.setUserName(user.get("email").toString());
+            userInfo.setUserName(user.getEmail());
         }
 
-        userInfo.setEnabled((Boolean) user.get("email_verified"));
+        userInfo.setEnabled(user.isEmail_verified());
 
         return userInfo;
     }

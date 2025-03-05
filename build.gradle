@@ -24,6 +24,7 @@ configurations {
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.spring.io/release' }
 }
 
 dependencies {
@@ -75,7 +76,11 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
 
+    implementation 'org.mapstruct:mapstruct:1.5.2.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1' // Bỏ version vì đã được quản lý bởi BOM
+    implementation 'io.github.openfeign.form:feign-form-spring:3.8.0' // Kiểm tra tương thích với Spring Cloud 2023.0.x
 
     // Spring Data Reactive MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'

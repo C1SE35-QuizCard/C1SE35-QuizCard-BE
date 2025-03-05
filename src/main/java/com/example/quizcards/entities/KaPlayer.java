@@ -36,8 +36,9 @@ public class KaPlayer {
     @Column(name = "rounds_won")
     private Integer roundsWon;
 
+//    @ManyToOne
+//    @JoinColumn(name = "ka_answer_id", referencedColumnName = "answer_id", nullable = true)
+//    private KaAnswer kaAnswer;
     @ManyToOne
-    @JoinColumn(name = "ka_answer_id", referencedColumnName = "answer_id", nullable = true)
     private KaAnswer kaAnswer;
-
 }

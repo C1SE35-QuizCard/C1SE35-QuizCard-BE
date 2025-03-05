@@ -16,9 +16,9 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 -- Drop and re-create database again
-DROP DATABASE IF EXISTS quizcards_demo_01;
-CREATE DATABASE IF NOT EXISTS quizcards_demo_01;
-USE quizcards_demo_01;
+DROP DATABASE IF EXISTS quizcards_demo_01; -- or replace by your database name
+CREATE DATABASE IF NOT EXISTS quizcards_demo_01; -- or replace by your database name
+USE quizcards_demo_01; -- or replace by your database name
 
 --
 -- Table structure for table `app_roles`
