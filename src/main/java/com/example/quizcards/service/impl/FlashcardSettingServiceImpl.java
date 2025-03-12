@@ -54,22 +54,22 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
         return new ArrayList<>();
     }
     @Override
-    public ResponseEntity<FlashcardSettingResponse> getaFlashcardSettingByUserAndSetId(Long userId, Long setId) {
+    public FlashcardSettingResponse getaFlashcardSettingByUserAndSetId(Long userId, Long setId) {
         if (!appUserRepository.existsById(userId)) throw new IllegalArgumentException("User not found with ID: " + userId);
         if (!setFlashcardRepository.existsById(setId)) throw  new IllegalArgumentException("Set not found with ID: " + setId);
         UserFlashcardSetting setting = flashcardSettingRepository.findByUser_UserIdAndSetFlashcard_SetId(userId, setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard setting", "set id", setId.toString()));
-        return ResponseEntity.ok(userFlashcardSettingMapper.toFlashcardSettingResponse(setting));
+        return userFlashcardSettingMapper.toFlashcardSettingResponse(setting);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<FlashcardSettingResponse> updateOrCreateNewFlashcardSetting(
+    public FlashcardSettingResponse updateOrCreateNewFlashcardSetting(
             Long userId, FlashcardSettingRequest request) {
         Optional<UserFlashcardSetting> setting = flashcardSettingRepository.findByUser_UserIdAndSetFlashcard_SetId(userId,request.getSetId());
         System.out.println(setting);
-        return setting.map(userFlashcardSetting -> ResponseEntity.ok().body(updateSetting(userFlashcardSetting, request)))
-                .orElseGet(() -> ResponseEntity.ok().body(createSetting(userId, request)));
+        return setting.map(userFlashcardSetting -> updateSetting(userFlashcardSetting, request))
+                .orElseGet(() -> createSetting(userId, request));
     }
 
     @Override
@@ -98,7 +98,9 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
     private FlashcardSettingResponse updateSetting(UserFlashcardSetting setting, FlashcardSettingRequest request) {
         userFlashcardSettingMapper.updateUserFromDto(request, setting);
         UserFlashcardSetting new_setting = flashcardSettingRepository.save(setting);
-        return userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
+        var response = userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
+        response.setUserId(new_setting.getUser().getUserId());
+        return response;
     }
 
     private FlashcardSettingResponse createSetting(Long userId, FlashcardSettingRequest request) {
@@ -111,6 +113,10 @@ public class FlashcardSettingServiceImpl implements IFlashcardSettingService {
                 .shuffleMode(!Objects.isNull(request.getShuffleMode()) && request.getShuffleMode())
                 .flipCardMode(!Objects.isNull(request.getFlipCardMode()) && request.getFlipCardMode())
                 .build());
-        return userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
+
+        FlashcardSettingResponse response = userFlashcardSettingMapper.toFlashcardSettingResponse(new_setting);
+        response.setUserId(userId);
+
+        return response;
     }
 }

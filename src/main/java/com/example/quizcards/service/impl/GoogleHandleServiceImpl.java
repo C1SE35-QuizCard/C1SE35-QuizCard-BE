@@ -38,7 +38,7 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
     }
 
     private String getAccessTokenFromCode(String code) {
-        GoogleAccessTokenResponse tokenResponse = googleOAuth2Client.getAccessToken_2(
+        GoogleAccessTokenResponse tokenResponse = googleOAuth2Client.getAccessToken(
                 code,
                 clientRegistration.getClientId(),
                 clientRegistration.getClientSecret(),

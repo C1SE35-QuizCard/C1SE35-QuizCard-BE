@@ -31,8 +31,6 @@ public class TestRequest {
 
     private String typeOfMultipleChoice;
 
-    private Boolean isNewTest;
-
     @NotNull(message = "Remaining Time Question is required.")
     @TimeRange(minMinute = 5, maxHour = 5)
     private LocalTime remainingTime;

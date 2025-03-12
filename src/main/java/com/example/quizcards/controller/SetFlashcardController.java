@@ -12,6 +12,7 @@ import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,24 +77,42 @@ public class SetFlashcardController {
 
     @GetMapping("/set-detail/{id}")
     public ResponseEntity<?> detailSetFlashcardById_2(@PathVariable("id") Long setId) {
-        return setFlashcardService.findBySetId_2(setId);
+        ISetFlashcardDTO result = setFlashcardService.findBySetId_2(setId);
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
+                            HttpStatus.NOT_FOUND, null)
+            );
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse(true, "Get data ok.",
+                        HttpStatus.OK, result)
+        );
     }
 
     @GetMapping("/count-public-set/{id}")
     public ResponseEntity<?> countSetFlashcardCreatedPublicByUserName(@PathVariable("id") Long userId) {
-        return setFlashcardService.countSetFlashcardCreatedPublic(userId);
+        return ResponseEntity.ok().body(
+                new ApiResponse(true, "...", HttpStatus.OK,
+                        setFlashcardService.countSetFlashcardCreatedPublic(userId))
+        );
     }
 
     @GetMapping("/count-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> countSetFlashcardCreated() {
-        return setFlashcardService.countSetFlashcardCreatedInCurrentUser();
+        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
+                setFlashcardService.countSetFlashcardCreatedInCurrentUser());
+        return ResponseEntity.status(200).body(apiResponse);
     }
 
     @GetMapping("/count-set-in-current-date")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> countSetFlashcardCreatedPerDate() {
-        return setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser();
+        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
+                setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser());
+
+        return ResponseEntity.status(200).body(apiResponse);
     }
 
     @GetMapping("/get-current-sets-by-settings")
@@ -104,7 +123,7 @@ public class SetFlashcardController {
         if (limit == null || limit < 1) {
             limit = Long.MAX_VALUE;
         }
-        return setFlashcardService.getListFlashcardsByNearbySetting(up.getId(), limit);
+        return ResponseEntity.ok(setFlashcardService.getListFlashcardsByNearbySetting(up.getId(), limit));
     }
 
     @PostMapping("/create")
@@ -170,12 +189,21 @@ public class SetFlashcardController {
                 .body(new ApiResponse(true, "Set Flashcard updated successfully"));
     }
 
-    @DeleteMapping("/delete-set")
+    @DeleteMapping("/delete-set/{id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> deleteSetFlashcardById_2(@Valid @RequestBody SetFlashcardRequest request) {
-        setFlashcardService.deleteSetFlashcard(request.getSetId());
+    public ResponseEntity<?> deleteSetFlashcardById_2(@PathVariable("id") Long setId) {
+        setFlashcardService.deleteSetFlashcard(setId);
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Set Flashcard deleted successfully"));
+    }
+
+    @GetMapping("/filter")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<Page<ISetFlashcardDTO>> filterByUserIdAndCategoryName(@RequestParam(value = "user_id", defaultValue = "") Long userId,
+                                                              @RequestParam(value = "category_name", defaultValue = "") String categoryName,
+                                                              @RequestParam(value = "page", defaultValue = "0") int page,
+                                                              @RequestParam(value = "size", defaultValue = "10") int size) {
+            return ResponseEntity.ok(setFlashcardService.filterByUserIdAndCategoryName(userId, categoryName, page, size));
     }
 
     @GetMapping("/search")

@@ -79,14 +79,16 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.2.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1' // Bỏ version vì đã được quản lý bởi BOM
-    implementation 'io.github.openfeign.form:feign-form-spring:3.8.0' // Kiểm tra tương thích với Spring Cloud 2023.0.x
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1'
+    implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 
     // Spring Data Reactive MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
 
     // Spring WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    implementation 'nl.martijndwars:web-push:5.1.1'
 }
 
 tasks.named('test') {

@@ -111,14 +111,15 @@ public class AppUserServiceImpl implements IAppUserService {
     }
 
     @Override
-    public Page<IAppUserDTO> getAllUsers(int pages) {
-        Pageable pageable = PageRequest.of(pages, MAX_SIZE_PER_PAGE);
+    public Page<IAppUserDTO> getAllUsersWithPagination(int pages, int size) {
+        if (pages < 0) {
+            throw new BadRequestException("Page must be greater than or equal to 0");
+        }
+        if (size < 1 || size > 100) {
+            throw new BadRequestException("Size must be greater than 0 and less than or equal to 100");
+        }
+        Pageable pageable = PageRequest.of(pages, size);
         return userRepository.getAll(pageable);
-    }
-
-    @Override
-    public List<IAppUserDTO> getAllUsers() {
-        return userRepository.getAll();
     }
 
 //    @Override

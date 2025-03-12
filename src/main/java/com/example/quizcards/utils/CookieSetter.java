@@ -16,10 +16,9 @@ public class CookieSetter {
     @Value("${jwt.refreshTokenExpirationInSec}")
     private Long refreshTokenDurationSec;
 
-    public ResponseEntity<JwtAuthenticationResponse> generateTokenToCookie(HttpServletResponse response,
-                                                                           String accessToken,
-                                                                           String refreshToken,
-                                                                           String message) {
+    public JwtAuthenticationResponse generateTokenToCookie(HttpServletResponse response,
+                                                           String accessToken,
+                                                           String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
                 .secure(true)
@@ -39,7 +38,6 @@ public class CookieSetter {
         response.addHeader("set-cookie", cookie.toString());
         response.addHeader("set-cookie", newRefreshTokenCookie.toString());
 
-        return new ResponseEntity<>(new JwtAuthenticationResponse(
-                accessToken, refreshToken, message), HttpStatus.CREATED);
+        return new JwtAuthenticationResponse(accessToken, refreshToken, "success");
     }
 }

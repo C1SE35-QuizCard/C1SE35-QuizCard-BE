@@ -29,9 +29,7 @@ public interface IAppUserService {
 
     void save(AppUser user);
 
-    Page<IAppUserDTO> getAllUsers(int pages);
-
-    List<IAppUserDTO> getAllUsers();
+    Page<IAppUserDTO> getAllUsersWithPagination(int pages, int size);
 
 //    CompletableFuture<List<IAppUserDTO>> getAllUsers();
 

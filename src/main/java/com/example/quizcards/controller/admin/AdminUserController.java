@@ -9,48 +9,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/api/v1/users")
-public class UserController {
+@RequestMapping("/api/v1/admin/users")
+public class AdminUserController {
     @Autowired
     private IAppUserService appUserService;
 
-    @GetMapping("/user-list")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getAllUsers(@RequestParam(value = "page", required = false) Integer pages,
-                                         PagedResourcesAssembler<IAppUserDTO> assembler) {
-        try {
-            if (pages == null) {
-                pages = 0;
-            }
-            Page<IAppUserDTO> data = appUserService.getAllUsers(pages);
-            System.out.println("Requested page: " + pages);
-            return ResponseEntity.ok(assembler.toModel(data));
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.internalServerError()
-                    .body(Map.of(
-                            "message", "An unknown error occurred."
-                    ));
-        }
-    }
 
     @GetMapping("/data")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUsersWithPagination(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                       @RequestParam(value = "size", defaultValue = "10") int size) {
         try {
-            return ResponseEntity.ok(appUserService.getAllUsers());
+            return ResponseEntity.ok(appUserService.getAllUsersWithPagination(page, size));
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.internalServerError()

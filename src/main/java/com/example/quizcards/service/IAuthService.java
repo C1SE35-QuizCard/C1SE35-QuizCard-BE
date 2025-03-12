@@ -7,20 +7,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface IAuthService {
-    ResponseEntity<JwtAuthenticationResponse> registerUser(SignupRequest signupRequest, HttpServletResponse response);
+    JwtAuthenticationResponse registerUser(SignupRequest signupRequest, HttpServletResponse response);
 
-    ResponseEntity<JwtAuthenticationResponse> loginUser(LoginRequest loginRequest, HttpServletResponse response);
+    JwtAuthenticationResponse loginUser(LoginRequest loginRequest, HttpServletResponse response);
 
-    ResponseEntity<JwtAuthenticationResponse> googleLogin(GoogleLoginRequest googleLoginRequest, HttpServletResponse response)
+    JwtAuthenticationResponse googleLogin(GoogleLoginRequest googleLoginRequest, HttpServletResponse response)
             throws Exception;
 
-    ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response);
+    void logoutUser(HttpServletRequest request, HttpServletResponse response);
 
-    ResponseEntity<?> getUserRole();
+    String getUserRole();
 
-    ResponseEntity<?> isFreeUser();
+    boolean isFreeUser();
 
-    ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
+    JwtAuthenticationResponse getAccessToken(RefreshTokenRequest request, HttpServletResponse response);
 
-    ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request, HttpServletResponse response);
+    //    void updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
 }

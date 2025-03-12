@@ -19,8 +19,7 @@ import java.time.LocalDateTime;
 @Table(name = "user_flashcard_settings", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_set_id", columnList = "set_id"),
-        @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id"),
-        @Index(name = "idx_set_id_user_id", columnList = "set_id,user_id")
+        @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id", unique = true),
 })
 public class UserFlashcardSetting {
     @Id

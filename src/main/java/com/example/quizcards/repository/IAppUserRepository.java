@@ -46,7 +46,14 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
             from app_users a
             join app_roles ar on a.role_id = ar.role_id
             where ar.role_name != 'ROLE_ADMIN'
-            """, nativeQuery = true)
+            """,
+            countQuery = """
+                                    select count(a.user_id)
+                                    from app_users a
+                                    join app_roles ar on a.role_id = ar.role_id
+                                    where ar.role_name != 'ROLE_ADMIN'
+                    """,
+            nativeQuery= true)
     Page<IAppUserDTO> getAll(Pageable pageable);
 
     @Query(value = """

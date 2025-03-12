@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,53 @@ public class SecurityConfig {
 //        this.securityContextRepository = securityContextRepository;
 //    }
 
+
+    // Mảng chứa các endpoint cần xác thực
+    String[] authEndpoints = {
+            "/api/v1/auth/user-info",
+            "/api/v1/auth/logout",
+            "/api/v1/auth/update-password",
+            "/api/v1/home/data",
+            "/api/v1/home/admin",
+            "/api/v1/set/count-set",
+            "/api/v1/set/count-set-in-current-date",
+            "/api/v1/set/create-new-set",
+            "/api/v1/set/update-set",
+            "/api/v1/set/delete-set/",
+            "/api/v1/flashcards/create-new-flashcard",
+            "/api/v1/flashcards/update-flashcard",
+            "/api/v1/flashcards/delete-flashcard",
+            "/api/v1/folder/create-new-folder",
+            "/api/v1/folder/update-folder",
+            "/api/v1/folder/delete-folder",
+            "/api/v1/folder/user",
+            "/api/v1/collection/create-new-collection",
+            "/api/v1/collection/delete-collection",
+            "/api/v1/deadline/create-deadline",
+            "/api/v1/deadline/update-deadline",
+            "/api/v1/deadline/delete-deadline/",
+            "/api/v1/category-subscription/current-benefit",
+            "/api/v1/category-subscription/current-subscription",
+            "/api/v1/flashcard-settings/update",
+            "/api/v1/flashcard-settings/",
+            "/api/v1/flashcard-settings/sort",
+            "/api/v1/progress/user/set/",
+            "/api/v1/progress/user/assign-progress",
+            "/api/v1/progress/user/reset-progress/",
+            "/api/v1/users/**",
+            "/api/v1/category/create",
+            "/api/v1/category/update",
+            "/api/v1/category/delete"
+    };
+
+    // Mảng chứa các endpoint cho phép truy cập công khai
+    String[] permitAllEndpoints = {
+            "/api/auth/forgot-password",
+            "/api/v1/ka",
+            "/api/v1/ka/**",
+            "/ws/**"
+    };
+
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           CustomUserDetailsServiceImpl userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -48,41 +96,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // Sử dụng phương pháp mới để vô hiệu hóa CSRF
+                .csrf(AbstractHttpConfigurer::disable)  // Sử dụng phương pháp mới để vô hiệu hóa CSRF
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/auth/user-info").authenticated()
-                        .requestMatchers("/api/v1/auth/logout").authenticated()
-                        .requestMatchers("/api/v1/auth/update-password").authenticated()
-                        .requestMatchers("/api/v1/set/count-set").authenticated()
-                        .requestMatchers("/api/v1/set/count-set-in-current-date").authenticated()
-                        .requestMatchers("/api/v1/set/create-new-set").authenticated()
-                        .requestMatchers("/api/v1/set/update-set").authenticated()
-                        .requestMatchers("/api/v1/set/delete-set/").authenticated()
-                        .requestMatchers("/api/v1/flashcards/create-new-flashcard").authenticated()
-                        .requestMatchers("/api/v1/flashcards/update-flashcard").authenticated()
-                        .requestMatchers("/api/v1/flashcards/delete-flashcard").authenticated()
-                        .requestMatchers("/api/v1/folder/create-new-folder").authenticated()
-                        .requestMatchers("/api/v1/folder/update-folder").authenticated()
-                        .requestMatchers("/api/v1/folder/delete-folder").authenticated()
-                        .requestMatchers("/api/v1/collection/create-new-collection").authenticated()
-                        .requestMatchers("/api/v1/collection/delete-collection").authenticated()
-                        .requestMatchers("/api/v1/deadline/create-deadline").authenticated()
-                        .requestMatchers("/api/v1/deadline/update-deadline").authenticated()
-                        .requestMatchers("/api/v1/deadline/delete-deadline/").authenticated()
-                        .requestMatchers("/api/v1/category-subscription/current-benefit").authenticated()
-                        .requestMatchers("/api/v1/category-subscription/current-subscription").authenticated()
-                        .requestMatchers("/api/v1/flashcard-settings/update").authenticated()
-                        .requestMatchers("/api/v1/flashcard-settings/").authenticated()
-                        .requestMatchers("/api/v1/progress/user/set/").authenticated()
-                        .requestMatchers("/api/v1/progress/user/assign-progress").authenticated()
-                        .requestMatchers("/api/v1/progress/user/reset-progress/").authenticated()
-                        .requestMatchers("/api/v1/users/**").authenticated()
-                        .requestMatchers("/api/v1/category/create", "/api/v1/category/update", "/api/v1/category/delete").authenticated()
-                        .requestMatchers("/api/auth/forgot-password").permitAll()
-                        .requestMatchers("/api/v1/ka").permitAll()
-                        .requestMatchers("/api/v1/ka/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers(authEndpoints).authenticated()
+                        .requestMatchers(permitAllEndpoints).permitAll()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

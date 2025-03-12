@@ -11,6 +11,7 @@ import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
+import com.example.quizcards.exception.UnauthorizedException;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
@@ -69,7 +70,7 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
-    public ResponseEntity<JwtAuthenticationResponse> registerUser(SignupRequest signupRequest, HttpServletResponse response) {
+    public JwtAuthenticationResponse registerUser(SignupRequest signupRequest, HttpServletResponse response) {
         if (appUserService.existsByUsername(signupRequest.getUsername())) {
             throw new ErrorsDataException("Register failed", Map.of("username", "Username is already taken"),
                     HttpStatus.BAD_REQUEST);
@@ -101,12 +102,12 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User register successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
     @Override
     @Transactional
-    public ResponseEntity<JwtAuthenticationResponse> loginUser(LoginRequest loginRequest, HttpServletResponse response) {
+    public JwtAuthenticationResponse loginUser(LoginRequest loginRequest, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsernameOrEmail(), loginRequest.getPassword())
         );
@@ -117,12 +118,12 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User login successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
     @Override
     @Transactional
-    public ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response) {
+    public void logoutUser(HttpServletRequest request, HttpServletResponse response) {
         String rft = null;
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -155,12 +156,10 @@ public class AuthServiceImpl implements IAuthService {
 
             rfService.deleteByToken(rft);
         }
-
-        return ResponseEntity.ok(new ApiResponse(true, "User logout successfully"));
     }
 
     @Override
-    public ResponseEntity<?> getUserRole() {
+    public String getUserRole() {
         String role = "ROLE_GUEST";
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() != null
@@ -171,11 +170,11 @@ public class AuthServiceImpl implements IAuthService {
                 role = user.get().getRole().getRoleName();
             }
         }
-        return ResponseEntity.status(200).body(role);
+        return role;
     }
 
     @Override
-    public ResponseEntity<?> isFreeUser() {
+    public boolean isFreeUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         boolean isFreeUser = false;
@@ -187,13 +186,12 @@ public class AuthServiceImpl implements IAuthService {
                 throw new RuntimeException("Invalid role");
             }
         }
-        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK, isFreeUser);
-        return ResponseEntity.status(200).body(apiResponse);
+        return isFreeUser;
     }
 
     @Override
     @Transactional
-    public ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request,
+    public JwtAuthenticationResponse getAccessToken(RefreshTokenRequest request,
                                                                     HttpServletResponse response) {
         String rft = request.getRefreshToken();
         return rfService.findByToken(rft)
@@ -206,16 +204,14 @@ public class AuthServiceImpl implements IAuthService {
 
                     JwtAuthenticationResponse jwtResponse = cs.generateTokenToCookie(response,
                             token,
-                            refreshToken.getToken(),
-                            "Get access token succesfully!").getBody();
+                            refreshToken.getToken());
 
                     return Optional.of(jwtResponse);
                 })
-                .map(responseEntity -> ResponseEntity.ok(responseEntity))
                 .orElseThrow(() -> new TokenRefreshException(rft, "Invalid refresh token!"));
     }
 
-    private ResponseEntity<JwtAuthenticationResponse> authenOAuth2Login(String email,
+    private JwtAuthenticationResponse authenOAuth2Login(String email,
                                                                         HttpServletResponse response) {
         AppUser user = appUserService.findByEmail(email).get();
 
@@ -229,10 +225,10 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User login successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
-    private ResponseEntity<JwtAuthenticationResponse> registerByGoogleInfo(GoogleInfoUser g_user,
+    private JwtAuthenticationResponse registerByGoogleInfo(GoogleInfoUser g_user,
                                                                            HttpServletResponse response) {
         AppRole role = appRoleService.findByRoleName(RoleName.ROLE_FREE_USER.name())
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "Free user"));
@@ -264,12 +260,12 @@ public class AuthServiceImpl implements IAuthService {
 
         RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken(), "User register successfully!");
+        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
     @Override
     @Transactional
-    public ResponseEntity<JwtAuthenticationResponse> googleLogin(GoogleLoginRequest request, HttpServletResponse response)
+    public JwtAuthenticationResponse googleLogin(GoogleLoginRequest request, HttpServletResponse response)
             throws Exception {
         GoogleInfoUser user = googleHandleService.extractDataFromCode(request);
         if (appUserService.existsByEmail(user.getEmail())) {
@@ -279,21 +275,18 @@ public class AuthServiceImpl implements IAuthService {
         }
     }
 
-    @Override
-    @Transactional
-    public ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response) {
-        AppUser user = appUserService.findById(id).orElseThrow();
-
-        if ((user.getHashPassword() != null && !user.getHashPassword().isEmpty()) &&
-                !passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getHashPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, "Wrong old password!"));
-        }
-
-        user.setHashPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
-
-        appUserService.save(user);
-
-        return ResponseEntity.ok().body(new ApiResponse(true,
-                "User password has been updated successfully"));
-    }
+//    @Override
+//    @Transactional
+//    public void updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response) {
+//        AppUser user = appUserService.findById(id).orElseThrow();
+//
+//        if ((user.getHashPassword() != null && !user.getHashPassword().isEmpty()) &&
+//                !passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getHashPassword())) {
+//            throw new UnauthorizedException("Wrong old password!");
+//        }
+//
+//        user.setHashPassword(passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
+//
+//        appUserService.save(user);
+//    }
 }
