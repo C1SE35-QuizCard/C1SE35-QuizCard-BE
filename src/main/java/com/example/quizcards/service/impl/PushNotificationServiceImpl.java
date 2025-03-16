@@ -33,14 +33,6 @@ public class PushNotificationServiceImpl implements IPushNotificaitonService {
 
     ISetFlashcardRepository setFlashcardRepository;
 
-    @Value("${spring.web-push-notifications.public-key}")
-    @NonFinal
-    String push_publicKey;
-
-    @Value("${spring.web-push-notifications.private-key}")
-    @NonFinal
-    String push_privateKey;
-
     PushService pushService;
 
     KafkaTemplate<String, Object> kafkaTemplate;
