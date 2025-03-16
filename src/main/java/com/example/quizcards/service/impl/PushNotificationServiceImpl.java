@@ -72,23 +72,6 @@ public class PushNotificationServiceImpl implements IPushNotificaitonService {
         Long setId = setFlashcardRepository.getRandomIdSetFlashcard();
 
         for (PushNotificationSubscription sub : subs) {
-//            Map<String, Object> payload = Map.of("title", title, "body", body, "setId", setId);
-//
-//            String jsonPayload = new ObjectMapper().writeValueAsString(payload);
-//
-//            Subscription.Keys keys = new ObjectMapper().readValue(sub.getKeys(), Subscription.Keys.class);
-//
-//            nl.martijndwars.webpush.Subscription subscription =
-//                    new nl.martijndwars.webpush.Subscription(
-//                            sub.getEndpoint(),
-//                            new nl.martijndwars.webpush.Subscription.Keys(
-//                                    keys.p256dh,
-//                                    keys.auth
-//                            )
-//                    );
-//
-//            Notification notification = new Notification(subscription, jsonPayload);
-//            pushService.send(notification);
             kafkaTemplate.send("push-notification-delievery", PushNotificationRequest.builder()
                     .id(sub.getId())
                     .endpoint(sub.getEndpoint())
