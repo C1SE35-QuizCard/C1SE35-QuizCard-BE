@@ -40,4 +40,6 @@ public interface IAppUserService {
     IAppUserDTO updateAppUser(Long userId, AppUserRequest request);
 
     void deleteAppUser(Long userId);
+
+    void getNewOtpInUser();
 }

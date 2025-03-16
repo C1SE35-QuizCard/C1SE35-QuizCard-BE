@@ -567,6 +567,18 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
     @Query(value = "select count(set_id) from flashcards where set_id = :setId", nativeQuery = true)
     int countFlashcardsBySetId(@Param("setId") Long setId);
+
+
+
+    // holy shiet, do not touch
+
+    @Query(value = """
+                select s.set_id
+                from set_flashcards s
+                ORDER BY RAND()
+                LIMIT 1;
+            """, nativeQuery = true)
+    Long getRandomIdSetFlashcard();
 }
 
 

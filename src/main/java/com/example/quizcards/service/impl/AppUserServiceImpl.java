@@ -2,22 +2,31 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IAppUserDTO;
 import com.example.quizcards.dto.request.AppUserRequest;
+import com.example.quizcards.dto.request.email.MessageVersion;
+import com.example.quizcards.dto.request.email.OtpParam;
+import com.example.quizcards.dto.request.email.Recipient;
+import com.example.quizcards.dto.request.email.SenderTemplateEmailRequest;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.mapper.AppUserMapper;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.utils.CodeRandom;
 import com.example.quizcards.validation.PasswordConstraintValidator;
+import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,12 +37,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Service
 public class AppUserServiceImpl implements IAppUserService {
     private final int MAX_SIZE_PER_PAGE = 20;
+
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Value("OTP_CHANGE_PASSWORD_")
+    private String otpStringPrefix;
+
+    @Value("2")
+    private Integer maxOtpAttempt;
+
+    @Value("${spring.brevo.template.id-otp}")
+    private Integer idTemplateOtp;
 
     @Autowired
     private IAppUserRepository userRepository;
@@ -43,6 +69,9 @@ public class AppUserServiceImpl implements IAppUserService {
 
     @Autowired
     private IAppRoleRepository roleRepository;
+
+    @Autowired
+    private AppUserMapper appUserMapper;
 
     @Override
     public boolean existsByUsername(String username) {
@@ -135,6 +164,76 @@ public class AppUserServiceImpl implements IAppUserService {
     }
 
 
+//    @Override
+//    @Transactional
+//    public IAppUserDTO createAppUser(AppUserRequest request) {
+//        AppRole role = roleRepository.findById(request.getRoleId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
+//        if (existsByUsername(request.getUsername()) || existsByEmail(request.getEmail())) {
+//            throw new RuntimeException("Username or email address already in use");
+//        }
+//        PasswordConstraintValidator validator = new PasswordConstraintValidator();
+//        if (!validator.isValid(request.getPassword(), null)) {
+//            throw new BadRequestException("Invalid password");
+//        }
+//        AppUser user = AppUser.builder()
+//                .address(request.getAddress())
+//                .avatar(request.getAvatar())
+//                .dateOfBirth(request.getDateOfBirth())
+//                .email(request.getEmail())
+//                .hashPassword(passwordEncoder.encode(request.getPassword()))
+//                .enabled(request.getEnabled())
+//                .username(request.getUsername())
+//                .gender(request.getGender() != null && request.getGender())
+//                .phoneNumber(request.getPhoneNumber())
+//                .firstName(request.getFirstName())
+//                .lastName(request.getLastName())
+//                .userCode(CodeRandom.generateRandomCode(28))
+//                .role(role)
+//                .build();
+//        return IAppUserDTO.AppUserDTO.from(userRepository.save(user));
+//    }
+//
+//    @Override
+//    @Transactional
+//    public IAppUserDTO updateAppUser(Long userId, AppUserRequest request) {
+//        AppUser appUser = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+//        if (!up.getId().equals(appUser.getUserId()) &&
+//                appUser.getRole().getRoleName().equals(RoleName.ROLE_ADMIN.name())) {
+//            throw new AccessDeniedException("Cannot edit user with role admin");
+//        }
+//        AppRole role = roleRepository.findById(request.getRoleId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
+//        if (!appUser.getUsername().equals(request.getUsername()) && existsByUsername(request.getUsername())) {
+//            throw new BadRequestException("Username or email address already in use");
+//        }
+//        if (!appUser.getEmail().equals(request.getEmail()) && existsByEmail(request.getEmail())) {
+//            throw new BadRequestException("Email address already in use");
+//        }
+//        PasswordConstraintValidator validator = new PasswordConstraintValidator();
+//        if (request.getPassword() != null && !validator.isValid(request.getPassword(), null)) {
+//            throw new BadRequestException("Invalid password");
+//        }
+//        appUser.setAddress(request.getAddress() == null ? appUser.getAddress() : request.getAddress());
+//        appUser.setAvatar(request.getAvatar() == null ? appUser.getAvatar() : request.getAvatar());
+//        appUser.setDateOfBirth(request.getDateOfBirth() == null ? appUser.getDateOfBirth() : request.getDateOfBirth());
+//        appUser.setEmail(request.getEmail() == null ? appUser.getEmail() : request.getEmail());
+//        appUser.setHashPassword(request.getPassword() == null ? appUser.getHashPassword() :
+//                passwordEncoder.encode(request.getPassword()));
+//        appUser.setEnabled(request.getEnabled() == null ? appUser.getEnabled() : request.getEnabled());
+//        appUser.setUsername(request.getUsername() == null ? appUser.getUsername() : request.getUsername());
+//        appUser.setGender(request.getGender() == null ? appUser.getGender() : request.getGender());
+//        appUser.setPhoneNumber(request.getPhoneNumber() == null ? appUser.getPhoneNumber() : request.getPhoneNumber());
+//        appUser.setFirstName(request.getFirstName() == null ? appUser.getFirstName() : request.getFirstName());
+//        appUser.setLastName(request.getLastName() == null ? appUser.getLastName() : request.getLastName());
+//        appUser.setRole(request.getRoleId() == null ? appUser.getRole() : role);
+//        userRepository.save(appUser);
+//        return IAppUserDTO.AppUserDTO.from(userRepository.save(appUser));
+//    }
+
     @Override
     @Transactional
     public IAppUserDTO createAppUser(AppUserRequest request) {
@@ -147,21 +246,13 @@ public class AppUserServiceImpl implements IAppUserService {
         if (!validator.isValid(request.getPassword(), null)) {
             throw new BadRequestException("Invalid password");
         }
-        AppUser user = AppUser.builder()
-                .address(request.getAddress())
-                .avatar(request.getAvatar())
-                .dateOfBirth(request.getDateOfBirth())
-                .email(request.getEmail())
-                .hashPassword(passwordEncoder.encode(request.getPassword()))
-                .enabled(request.getEnabled())
-                .username(request.getUsername())
-                .gender(request.getGender() != null && request.getGender())
-                .phoneNumber(request.getPhoneNumber())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .userCode(CodeRandom.generateRandomCode(28))
-                .role(role)
-                .build();
+
+        // Sử dụng mapper để chuyển đổi request sang entity
+        AppUser user = appUserMapper.toEntity(request);
+        user.setRole(role);
+        user.setHashPassword(passwordEncoder.encode(request.getPassword()));
+        user.setUserCode(CodeRandom.generateRandomCode(28));
+
         return IAppUserDTO.AppUserDTO.from(userRepository.save(user));
     }
 
@@ -176,6 +267,7 @@ public class AppUserServiceImpl implements IAppUserService {
                 appUser.getRole().getRoleName().equals(RoleName.ROLE_ADMIN.name())) {
             throw new AccessDeniedException("Cannot edit user with role admin");
         }
+
         AppRole role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "id", request.getRoleId()));
         if (!appUser.getUsername().equals(request.getUsername()) && existsByUsername(request.getUsername())) {
@@ -188,22 +280,18 @@ public class AppUserServiceImpl implements IAppUserService {
         if (request.getPassword() != null && !validator.isValid(request.getPassword(), null)) {
             throw new BadRequestException("Invalid password");
         }
-        appUser.setAddress(request.getAddress() == null ? appUser.getAddress() : request.getAddress());
-        appUser.setAvatar(request.getAvatar() == null ? appUser.getAvatar() : request.getAvatar());
-        appUser.setDateOfBirth(request.getDateOfBirth() == null ? appUser.getDateOfBirth() : request.getDateOfBirth());
-        appUser.setEmail(request.getEmail() == null ? appUser.getEmail() : request.getEmail());
-        appUser.setHashPassword(request.getPassword() == null ? appUser.getHashPassword() :
-                passwordEncoder.encode(request.getPassword()));
-        appUser.setEnabled(request.getEnabled() == null ? appUser.getEnabled() : request.getEnabled());
-        appUser.setUsername(request.getUsername() == null ? appUser.getUsername() : request.getUsername());
-        appUser.setGender(request.getGender() == null ? appUser.getGender() : request.getGender());
-        appUser.setPhoneNumber(request.getPhoneNumber() == null ? appUser.getPhoneNumber() : request.getPhoneNumber());
-        appUser.setFirstName(request.getFirstName() == null ? appUser.getFirstName() : request.getFirstName());
-        appUser.setLastName(request.getLastName() == null ? appUser.getLastName() : request.getLastName());
-        appUser.setRole(request.getRoleId() == null ? appUser.getRole() : role);
-        userRepository.save(appUser);
+
+        // Sử dụng mapper để cập nhật entity từ request
+        appUserMapper.updateEntityFromRequest(request, appUser);
+        if (request.getPassword() != null) {
+            appUser.setHashPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        if (request.getRoleId() != null) {
+            appUser.setRole(role);
+        }
         return IAppUserDTO.AppUserDTO.from(userRepository.save(appUser));
     }
+
 
     @Override
     @Transactional
@@ -214,5 +302,36 @@ public class AppUserServiceImpl implements IAppUserService {
             throw new BadRequestException("Cannot delete admin");
         }
         userRepository.delete(appUser);
+    }
+
+    @Override
+    public void getNewOtpInUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        String userEmail = up.getEmail();
+        String userName = up.getUsername();
+        String otpCode = String.format("%06d", new Random().nextInt(1000000));
+        redisTemplate.opsForValue().set(otpStringPrefix + userName, otpCode, maxOtpAttempt, TimeUnit.MINUTES);
+        SenderTemplateEmailRequest emailRequest = SenderTemplateEmailRequest.builder()
+                .templateId(idTemplateOtp)
+                .messageVersions(List.of(
+                        MessageVersion.builder()
+                                .to(List.of(
+                                        Recipient.builder()
+                                                .email(userEmail)
+                                                .name(up.getFirstName() + up.getLastName())
+                                                .build()
+                                ))
+                                .params(
+                                        OtpParam.builder()
+                                                .yourOtpCode(otpCode)
+                                                .emailAddress(userEmail)
+                                                .username(userName)
+                                                .build()
+                                )
+                                .build())
+                )
+                .build();
+        kafkaTemplate.send("otp-email-change-password-delievery", emailRequest);
     }
 }

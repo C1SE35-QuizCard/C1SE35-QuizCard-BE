@@ -72,12 +72,6 @@ public class AppUser implements Serializable {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
-//    @Column(name = "code_sms")
-//    private String codeEmail;
-//
-//    @Column(name = "code_expired_at")
-//    private LocalDateTime codeExpiredAt;
-
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private AppRole role;
