@@ -1,77 +1,128 @@
 package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IAppUserDTO;
-import com.example.quizcards.dto.request.AppUserRequest;
-import com.example.quizcards.dto.request.email.MessageVersion;
-import com.example.quizcards.dto.request.email.OtpParam;
-import com.example.quizcards.dto.request.email.Recipient;
-import com.example.quizcards.dto.request.email.SenderTemplateEmailRequest;
+import com.example.quizcards.dto.request.app_user_request.*;
+import com.example.quizcards.dto.request.email.*;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
+import com.example.quizcards.exception.ResourceConflictException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.mapper.AppUserMapper;
 import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.IAppUserRepository;
+import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.utils.CodeRandom;
+import com.example.quizcards.utils.CookieUtils;
+import com.example.quizcards.utils.RedisUtils;
 import com.example.quizcards.validation.PasswordConstraintValidator;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
+import java.text.MessageFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppUserServiceImpl implements IAppUserService {
-    private final int MAX_SIZE_PER_PAGE = 20;
+    int MAX_SIZE_PER_PAGE = 20;
 
-    @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    RedisUtils redisUtils;
 
-    @Value("OTP_CHANGE_PASSWORD_")
-    private String otpStringPrefix;
+    @Value("OTP_CHANGE_PASSWORD")
+    @NonFinal
+    String otpStringPrefix;
 
-    @Value("2")
-    private Integer maxOtpAttempt;
+    @Value("IS_CONFIRMED")
+    @NonFinal
+    String isConfirmedSuffix;
 
-    @Value("${spring.brevo.template.id-otp}")
-    private Integer idTemplateOtp;
+    @Value("IS_SENDED_NEW_EMAIL")
+    @NonFinal
+    String isSendedEmailSuffix;
 
-    @Autowired
-    private IAppUserRepository userRepository;
+    @Value("TOKEN_EMAIL_CONFIRM")
+    @NonFinal
+    String tokenEmailConfirmPrefix;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Value("IS_CHANGED_PASSWORD")
+    @NonFinal
+    String isChangedPasswordSuffix;
 
-    @Autowired
-    private IAppRoleRepository roleRepository;
+    @Value("OTP_CONFIRM_CRITICAL_INFORMATION")
+    @NonFinal
+    String otpCriticalInformationPrefix;
 
-    @Autowired
-    private AppUserMapper appUserMapper;
+    @Value("${app.max-otp-attemp-mins}")
+    @NonFinal
+    Integer maxOtpAttempt;
+
+    @Value("${app.brevo.template.id-otp}")
+    @NonFinal
+    Integer idTemplateOtp;
+
+    @Value("${app.brevo.template.id-confirm-link}")
+    @NonFinal
+    Integer idConfirmLink;
+
+    @Value("${app.critical-information.confirm-duration-hours}")
+    @NonFinal
+    Integer confirmDurationHours;
+
+    @Value("${app.critical-information.changed-email-after-hours}")
+    @NonFinal
+    Integer changedEmailAfterHours;
+
+    @Value("${app.link-frontend-client}")
+    @NonFinal
+    String frontEndUrl;
+
+    @Value("${app.code-security-confirm}")
+    @NonFinal
+    String codeEncrypt;
+
+    @Value("${app.code-expire-in-minutes}")
+    @NonFinal
+    Integer codeExpireInMinutes;
+
+    IAppUserRepository userRepository;
+
+    PasswordEncoder passwordEncoder;
+
+    IAppRoleRepository roleRepository;
+
+    AppUserMapper appUserMapper;
+
+    JwtTokenProvider tokenProvider;
+
+    CookieUtils cookieUtils;
 
     @Override
     public boolean existsByUsername(String username) {
@@ -150,13 +201,6 @@ public class AppUserServiceImpl implements IAppUserService {
         Pageable pageable = PageRequest.of(pages, size);
         return userRepository.getAll(pageable);
     }
-
-//    @Override
-//    @Async("asyncExecutor")
-//    public CompletableFuture<List<IAppUserDTO>> getAllUsers() {
-//        List<IAppUserDTO> users = userRepository.getAll(); // Lấy dữ liệu đồng bộ
-//        return CompletableFuture.completedFuture(users);
-//    }
 
     @Override
     public IAppUserDTO detailUser(Long userId) {
@@ -292,7 +336,6 @@ public class AppUserServiceImpl implements IAppUserService {
         return IAppUserDTO.AppUserDTO.from(userRepository.save(appUser));
     }
 
-
     @Override
     @Transactional
     public void deleteAppUser(Long userId) {
@@ -304,34 +347,240 @@ public class AppUserServiceImpl implements IAppUserService {
         userRepository.delete(appUser);
     }
 
+
     @Override
-    public void getNewOtpInUser() {
+    @Transactional
+    public void changeBasicInformation(BasicAppUserInformationRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
-        String userEmail = up.getEmail();
-        String userName = up.getUsername();
+        AppUser appUser = userRepository.findById(up.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", up.getId()));
+        appUserMapper.updateBasicAppUserFromRequest(request, appUser);
+        userRepository.save(appUser);
+    }
+
+    @Override
+    public boolean checkConfirmedForChangeCriticalInformation(Long userId, HttpServletRequest request) {
+        Cookie jSessionId = cookieUtils.findCookie(request.getCookies(), "JSESSIONID");
+
+        String key = MessageFormat.format("{0}_{1}_{2}", userId,
+                jSessionId != null ? jSessionId.getValue() : "temp_session",
+                isConfirmedSuffix);
+
+        return redisUtils.hasKey(key);
+    }
+
+    @Override
+    public OtpParam getOtpForChangeCriticalInformation(Long userId, HttpServletRequest request) {
+        Cookie jSessionId = cookieUtils.findCookie(request.getCookies(), "JSESSIONID");
+
+        String key = MessageFormat.format("{0}_{1}_{2}", otpCriticalInformationPrefix,
+                userId,
+                jSessionId != null ? jSessionId.getValue() : "temp_session");
+
+        return redisUtils.getFromRedis(key, OtpParam.class);
+    }
+
+    @Override
+    public ConfirmEmailParam getEmailConfirmCriticalInformation() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+
+        String key = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
+
+        return redisUtils.getFromRedis(key, ConfirmEmailParam.class);
+    }
+
+    @Override
+    @Transactional
+    public void createNewOtpForChangeCriticalInformation(UserPrincipal up, HttpServletRequest request) {
+        Cookie jSessionId = cookieUtils.findCookie(request.getCookies(), "JSESSIONID");
+
+        String key = MessageFormat.format("{0}_{1}_{2}", otpCriticalInformationPrefix,
+                up.getId(),
+                jSessionId != null ? jSessionId.getValue() : "temp_session");
+
         String otpCode = String.format("%06d", new Random().nextInt(1000000));
-        redisTemplate.opsForValue().set(otpStringPrefix + userName, otpCode, maxOtpAttempt, TimeUnit.MINUTES);
+
+        OtpParam otp = OtpParam.builder()
+                .yourOtpCode(otpCode)
+                .emailAddress(up.getEmail())
+                .username(up.getUserName())
+                .sentAt(LocalDateTime.now())
+                .build();
+
+        redisUtils.saveToRedis(key, otp, maxOtpAttempt, TimeUnit.MINUTES);
+
         SenderTemplateEmailRequest emailRequest = SenderTemplateEmailRequest.builder()
                 .templateId(idTemplateOtp)
                 .messageVersions(List.of(
                         MessageVersion.builder()
                                 .to(List.of(
                                         Recipient.builder()
-                                                .email(userEmail)
+                                                .email(up.getEmail())
                                                 .name(up.getFirstName() + up.getLastName())
                                                 .build()
                                 ))
-                                .params(
-                                        OtpParam.builder()
-                                                .yourOtpCode(otpCode)
-                                                .emailAddress(userEmail)
-                                                .username(userName)
-                                                .build()
-                                )
+                                .params(otp)
                                 .build())
                 )
                 .build();
-        kafkaTemplate.send("otp-email-change-password-delievery", emailRequest);
+        kafkaTemplate.send("email-delivery", emailRequest);
+    }
+
+    @Override
+    @Transactional
+    public void confirmModifyCriticalInformation(ConfirmChangeCriticalInformationRequest confirmRequest,
+                                                 HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+
+        Cookie jSessionId = cookieUtils.findCookie(request.getCookies(), "JSESSIONID");
+
+        String key = MessageFormat.format("{0}_{1}_{2}", otpCriticalInformationPrefix,
+                up.getId(),
+                jSessionId != null ? jSessionId.getValue() : "temp_session");
+
+        OtpParam otpCodeResponse = redisUtils.getFromRedis(key, OtpParam.class);
+
+        if (otpCodeResponse == null) {
+            throw new BadRequestException("Error when confirm critical information");
+        }
+        if (!otpCodeResponse.getYourOtpCode().equals(confirmRequest.getOtpCode())) {
+            throw new BadRequestException("Error when confirm critical information");
+        }
+
+        redisUtils.deleteKey(key);
+
+        String isConfirmedKey = MessageFormat.format("{0}_{1}_{2}", up.getId(),
+                jSessionId != null ? jSessionId.getValue() : "temp_session",
+                isConfirmedSuffix);
+
+        redisUtils.saveToRedis(isConfirmedKey, true, confirmDurationHours, TimeUnit.HOURS);
+    }
+
+    @Override
+    @Transactional
+    public void changeEmail(EmailAppUserRequest emailRequest, HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+
+        String key = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
+
+        if (redisUtils.hasKey(key)) {
+            throw new BadRequestException(MessageFormat.format("Cannot change email now, please wait for {0} hours",
+                    changedEmailAfterHours));
+        }
+
+        if (!checkConfirmedForChangeCriticalInformation(up.getId(), request)) {
+            throw new AccessDeniedException("You must confirm your critical information before changing email");
+        }
+
+        if (userRepository.existsByEmail(emailRequest.getNewEmail())) {
+            throw new ResourceConflictException("Email address already in use");
+        }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", up.getId());
+        claims.put("email", emailRequest.getNewEmail());
+        claims.put("jti", UUID.randomUUID().toString());
+
+        String tokenConfirm = tokenProvider.generateToken(claims, codeExpireInMinutes * 60,
+                null, codeEncrypt);
+
+        ConfirmEmailParam emailParam = ConfirmEmailParam.builder()
+                .userName(up.getUserName())
+                .oldEmail(up.getEmail())
+                .newEmail(emailRequest.getNewEmail())
+                .link(MessageFormat.format("{0}{1}",
+                        frontEndUrl, tokenConfirm))
+                .sentAt(LocalDateTime.now())
+                .build();
+
+        SenderTemplateEmailRequest senderEmailRequest = SenderTemplateEmailRequest.builder()
+                .templateId(idConfirmLink)
+                .messageVersions(List.of(
+                        MessageVersion.builder()
+                                .to(List.of(
+                                        Recipient.builder()
+                                                .email(emailRequest.getNewEmail())
+                                                .name(up.getFirstName() + up.getLastName())
+                                                .build()
+                                ))
+                                .params(emailParam)
+                                .build())
+                )
+                .build();
+        kafkaTemplate.send("email-delivery", senderEmailRequest);
+
+        redisUtils.saveToRedis(key, emailParam, changedEmailAfterHours, TimeUnit.HOURS);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(PasswordAppUserRequest passwordRequest, HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+
+        if (!checkConfirmedForChangeCriticalInformation(up.getId(), request)) {
+            throw new AccessDeniedException("You must confirm your critical information before changing email");
+        }
+
+        AppUser au = userRepository.findById(up.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", up.getId()));
+
+        if (StringUtils.hasText(au.getHashPassword()) &&
+                !passwordEncoder.matches(passwordRequest.getOldPassword(), au.getHashPassword())) {
+            throw new BadRequestException("Old password is wrong!");
+        }
+        au.setHashPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+        userRepository.save(au);
+    }
+
+    @Override
+    @Transactional
+    public void confirmKeyToChangeEmail(String token) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+            Map<String, Object> claims = tokenProvider.extractAllClaims(token, codeEncrypt);
+
+            Long id = Long.parseLong(claims.get("id").toString());
+
+            if (!up.getId().equals(id)) {
+                throw new RuntimeException("ERROR: User cannot permission!");
+            }
+
+            String jti = (String) claims.get("jti");
+
+            String key = MessageFormat.format("{0}_{1}", tokenEmailConfirmPrefix, jti);
+
+            if (redisUtils.hasKey(key)) {
+                throw new RuntimeException("ERROR: Token is used");
+            }
+
+            String email = (String) claims.get("email");
+
+            AppUser au = userRepository.findById(up.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", up.getId()));
+
+            au.setEmail(email);
+            userRepository.save(au);
+            redisUtils.saveToRedis(key, true, codeExpireInMinutes, TimeUnit.MINUTES);
+
+            String keySendAt = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
+            ConfirmEmailParam confirmEmailParam = redisUtils.getFromRedis(keySendAt, ConfirmEmailParam.class);
+
+            if (confirmEmailParam != null) {
+                LocalDateTime lastSent = confirmEmailParam.getSentAt();
+                confirmEmailParam.setNewEmail("");
+                long newTiming = Duration.between(LocalDateTime.now(),
+                        lastSent.plusHours(changedEmailAfterHours)).getSeconds();
+                redisUtils.saveToRedis(keySendAt, confirmEmailParam, newTiming, TimeUnit.SECONDS);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new RuntimeException("Cannot handle change email!");
+        }
     }
 }

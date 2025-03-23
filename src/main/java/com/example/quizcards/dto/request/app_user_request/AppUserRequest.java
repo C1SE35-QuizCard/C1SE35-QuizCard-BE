@@ -1,4 +1,4 @@
-package com.example.quizcards.dto.request;
+package com.example.quizcards.dto.request.app_user_request;
 
 
 import lombok.*;

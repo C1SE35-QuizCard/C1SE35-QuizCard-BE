@@ -10,9 +10,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OtpParam implements IParam {
-    String yourOtpCode;
-    String emailAddress;
-    String username;
+public class ConfirmEmailParam implements IParam {
+    String userName;
+    String oldEmail;
+    String newEmail;
+    String link;
     LocalDateTime sentAt;
 }

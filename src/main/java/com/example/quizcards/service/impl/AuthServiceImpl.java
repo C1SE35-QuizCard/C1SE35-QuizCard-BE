@@ -1,17 +1,17 @@
 package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.GoogleInfoUser;
-import com.example.quizcards.dto.request.*;
-import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.dto.request.GoogleLoginRequest;
+import com.example.quizcards.dto.request.LoginRequest;
+import com.example.quizcards.dto.request.RefreshTokenRequest;
+import com.example.quizcards.dto.request.SignupRequest;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
-import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
-import com.example.quizcards.exception.UnauthorizedException;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.JwtTokenProvider;
 import com.example.quizcards.security.UserPrincipal;
@@ -20,15 +20,20 @@ import com.example.quizcards.service.IAuthService;
 import com.example.quizcards.service.IGoogleHandleService;
 import com.example.quizcards.service.IRefreshTokenService;
 import com.example.quizcards.utils.CodeRandom;
-import com.example.quizcards.utils.CookieSetter;
+import com.example.quizcards.utils.CookieUtils;
+import com.example.quizcards.utils.RedisUtils;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,37 +41,52 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthServiceImpl implements IAuthService {
-    @Autowired
-    private IGoogleHandleService googleHandleService;
+    @Value("TOKEN_BLACKLIST")
+    @NonFinal
+    String tokenBlacklistPrefix;
 
-    @Autowired
-    private IAppRoleService appRoleService;
+    @Value("TOKEN_IAT_AVAILABLE")
+    @NonFinal
+    String tokenIatPrefix;
 
-    @Autowired
-    private IAppUserRepository appUserService;
+    IGoogleHandleService googleHandleService;
 
-    @Autowired
-    private IRefreshTokenService rfService;
+    IAppRoleService appRoleService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    IAppUserRepository appUserService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    IRefreshTokenService rfService;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private CookieSetter cs;
+    AuthenticationManager authenticationManager;
 
+    JwtTokenProvider jwtTokenProvider;
+
+    CookieUtils cookieUtils;
+
+    RedisUtils redisUtils;
+
+    @Value("${jwt.jwtExpirationInSec}")
+    @NonFinal
+    private Long jwtExpirationInSec;
+
+    @Value("${jwt.refreshTokenExpirationInSec}")
+    @NonFinal
+    Long refreshTokenDurationSec;
 
     @Override
     @Transactional
@@ -100,9 +120,13 @@ public class AuthServiceImpl implements IAuthService {
 
         String accessToken = jwtTokenProvider.generateAccessToken(up);
 
-        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(up);
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
+        return cookieUtils.generateTokenToCookie(response, accessToken, refreshToken);
+
+//        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+
+//        return new JwtAuthenticationResponse(accessToken, refreshToken.getToken(), "success");
     }
 
     @Override
@@ -116,45 +140,101 @@ public class AuthServiceImpl implements IAuthService {
 
         String accessToken = jwtTokenProvider.generateAccessToken(up);
 
-        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(up);
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
+        return cookieUtils.generateTokenToCookie(response, accessToken, refreshToken);
+
+//        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+
+//        return new JwtAuthenticationResponse(accessToken, refreshToken.getToken(), "success");
     }
 
     @Override
     @Transactional
-    public void logoutUser(HttpServletRequest request, HttpServletResponse response) {
+    public void logoutUser_old(HttpServletRequest request, HttpServletResponse response) {
         String rft = null;
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("refresh_token".equals(cookie.getName())) {
-                    rft = cookie.getValue();
-                }
-            }
+        Cookie refreshTokenCookie = cookieUtils.findCookie(request.getCookies(), "refresh_token");
+
+        if (refreshTokenCookie != null) {
+            rft = refreshTokenCookie.getValue();
         }
 
         if (rft != null) {
-            ResponseCookie cookie = ResponseCookie.from("access_token", "")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("None")
-                    .path("/")
-                    .maxAge(0)
-                    .build(); // Thời gian tồn tại của cookie (0)
-
-            ResponseCookie newRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("None")
-                    .path("/")
-                    .maxAge(0)
-                    .build();
-
-            response.addHeader("set-Cookie", cookie.toString());
-            response.addHeader("set-Cookie", newRefreshTokenCookie.toString());
+            cookieUtils.removeTokenInClient(response);
 
             rfService.deleteByToken(rft);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void logoutUser(String accessToken,
+                           HttpServletRequest request,
+                           HttpServletResponse response) {
+        String refreshToken = "";
+        Cookie rft_cookie = cookieUtils.findCookie(request.getCookies(), "refresh_token");
+        if (rft_cookie != null && rft_cookie.getValue() != null) {
+            refreshToken = rft_cookie.getValue();
+        }
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long currentUserId = user.getId();
+
+        Map<String, Object> refreshClaims = safelyExtractClaims(refreshToken, "refresh_token");
+        Map<String, Object> accessClaims = safelyExtractClaims(accessToken, "access_token");
+
+        Long refreshUserId = refreshClaims != null ? Long.valueOf(refreshClaims.get("uid").toString()) : null;
+        Long accessUserId = accessClaims != null ? Long.valueOf(accessClaims.get("uid").toString()) : null;
+
+        if (refreshUserId != null && accessUserId != null && !refreshUserId.equals(accessUserId)) {
+            throw new JwtException("Invalid token paired");
+        }
+
+        if ((refreshUserId != null && !currentUserId.equals(refreshUserId)) ||
+                (accessUserId != null && !currentUserId.equals(accessUserId))) {
+            throw new JwtException("You don't have permission to logout this token");
+        }
+
+        blacklistToken(refreshClaims, currentUserId, refreshTokenDurationSec);
+        blacklistToken(accessClaims, currentUserId, jwtExpirationInSec);
+
+        cookieUtils.removeTokenInClient(response);
+    }
+
+    @Override
+    @Transactional
+    public void logoutAll(HttpServletRequest request,
+                          HttpServletResponse response) {
+        UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long currentUserId = user.getId();
+
+        redisUtils.saveToRedis(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId), Instant.now(),
+                30, TimeUnit.DAYS); // Tạm lưu 30 ngày
+
+        cookieUtils.removeTokenInClient(response);
+    }
+
+
+    private Map<String, Object> safelyExtractClaims(String token, String expectedType) {
+        try {
+            Map<String, Object> claims = jwtTokenProvider.getPropertiesFromClaims(token);
+            if (expectedType.equals(claims.get("type"))) {
+                return claims;
+            } else {
+                throw new JwtException("Invalid token type: expected " + expectedType);
+            }
+        } catch (Exception e) {
+            log.error("Error extracting {} token: {}", expectedType, e.getMessage());
+            return null;
+        }
+    }
+
+    private void blacklistToken(Map<String, Object> claims, Long userId, long duration) {
+        if (claims != null && claims.containsKey("jti")) {
+            String jti = claims.get("jti").toString();
+            if (StringUtils.hasText(jti)) {
+                String key = MessageFormat.format("{0}_{1}_{2}", tokenBlacklistPrefix, userId, jti);
+                redisUtils.saveToRedis(key, Instant.now(), duration, TimeUnit.SECONDS);
+            }
         }
     }
 
@@ -178,9 +258,9 @@ public class AuthServiceImpl implements IAuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         boolean isFreeUser = false;
-        if (!up.getRolesBaseAuthorities().contains(RoleName.ROLE_ADMIN)
-                && !up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER)) {
-            if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER)) {
+        if (!up.getRolesBaseAuthorities().contains(RoleName.ROLE_ADMIN.name())
+                && !up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER.name())) {
+            if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
                 isFreeUser = true;
             } else {
                 throw new RuntimeException("Invalid role");
@@ -191,8 +271,8 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
-    public JwtAuthenticationResponse getAccessToken(RefreshTokenRequest request,
-                                                                    HttpServletResponse response) {
+    public JwtAuthenticationResponse getAccessToken_old(RefreshTokenRequest request,
+                                                        HttpServletResponse response) {
         String rft = request.getRefreshToken();
         return rfService.findByToken(rft)
                 .map(rfService::verifyExpiration)
@@ -202,7 +282,7 @@ public class AuthServiceImpl implements IAuthService {
                     UserPrincipal up = UserPrincipal.create(user);
                     String token = jwtTokenProvider.generateAccessToken(up);
 
-                    JwtAuthenticationResponse jwtResponse = cs.generateTokenToCookie(response,
+                    JwtAuthenticationResponse jwtResponse = cookieUtils.generateTokenToCookie(response,
                             token,
                             refreshToken.getToken());
 
@@ -211,8 +291,73 @@ public class AuthServiceImpl implements IAuthService {
                 .orElseThrow(() -> new TokenRefreshException(rft, "Invalid refresh token!"));
     }
 
+    @Override
+    @Transactional
+    public JwtAuthenticationResponse getAccessToken(HttpServletRequest request,
+                                                    HttpServletResponse response) {
+        Cookie rft_cookie = cookieUtils.findCookie(request.getCookies(), "refresh_token");
+        try {
+            if (rft_cookie == null || rft_cookie.getValue() == null) {
+                throw new TokenRefreshException(null, "Invalid refresh token!");
+            }
+            String rft = rft_cookie.getValue();
+            // validate refresh token
+            if (!jwtTokenProvider.validateToken(rft)) {
+                throw new TokenRefreshException(rft, "Invalid refresh token!");
+            }
+            // lấy các thuộc tính claims từ refresh token
+            Map<String, Object> getPropertiesFromClaims = jwtTokenProvider.getPropertiesFromClaims(rft);
+
+            // lấy type và kiểm tra xem nó có phải là refresh token hay không
+            String type = getPropertiesFromClaims.get("type").toString();
+            if (!type.equals("refresh_token")) {
+                throw new TokenRefreshException(rft, "Invalid refresh token!");
+            }
+
+            // lấy uid và jti từ refresh token
+            Long userId = Long.parseLong(getPropertiesFromClaims.get("uid").toString());
+            String jti = getPropertiesFromClaims.get("jti").toString();
+            long created_at = Long.parseLong(getPropertiesFromClaims.get("created_at").toString());
+
+            String key = MessageFormat.format("{0}_{1}_{2}", tokenBlacklistPrefix, userId, jti);
+            // kiểm tra xem refresh token có trong blacklist hay không
+            if (redisUtils.hasKey(key)) {
+                throw new TokenRefreshException(rft, "Token is blacklisted!");
+            }
+
+            // Kiểm tra thời gian logout all lần cuối
+            String keyIat = MessageFormat.format("{0}_{1}", tokenIatPrefix, userId);
+
+            Instant iat = redisUtils.getFromRedis(keyIat, Instant.class);
+
+            // lấy thời gian đó và so sánh với thời gian tạo token
+            if (iat != null && created_at < iat.toEpochMilli()) {
+                throw new TokenRefreshException(rft, "Token is expired!");
+            }
+
+            // lấy user từ id
+            AppUser au = appUserService.findById(userId).orElseThrow();
+
+            // tạo access token mới từ user principal
+            String newAccessToken = jwtTokenProvider.generateAccessToken(UserPrincipal.create(au));
+
+            // tạo refresh token mới từ user principal
+            String newRefreshToken = jwtTokenProvider.generateRefreshToken(UserPrincipal.create(au));
+
+            // đưa refresh token cũ từ request vào redis để nó thành danh sách đen
+            redisUtils.saveToRedis(key, Instant.now(), refreshTokenDurationSec, TimeUnit.SECONDS);
+
+            // trả về cặp access token - refresh token mới
+            return cookieUtils.generateTokenToCookie(response, newAccessToken, newRefreshToken);
+        } catch (TokenRefreshException tre) {
+            throw tre;
+        } catch (Exception e) {
+            throw new RuntimeException("Error from server");
+        }
+    }
+
     private JwtAuthenticationResponse authenOAuth2Login(String email,
-                                                                        HttpServletResponse response) {
+                                                        HttpServletResponse response) {
         AppUser user = appUserService.findByEmail(email).get();
 
         if (!user.getEnabled()) {
@@ -223,13 +368,17 @@ public class AuthServiceImpl implements IAuthService {
 
         String accessToken = jwtTokenProvider.generateAccessToken(up);
 
-        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(up);
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
+        return cookieUtils.generateTokenToCookie(response, accessToken, refreshToken);
+
+//        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+//
+//        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
     private JwtAuthenticationResponse registerByGoogleInfo(GoogleInfoUser g_user,
-                                                                           HttpServletResponse response) {
+                                                           HttpServletResponse response) {
         AppRole role = appRoleService.findByRoleName(RoleName.ROLE_FREE_USER.name())
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", "Free user"));
 
@@ -239,18 +388,20 @@ public class AuthServiceImpl implements IAuthService {
         user.setAvatar(g_user.getAvatarUrl());
         user.setEmail(g_user.getEmail());
         user.setHashPassword("");
-        user.setUserCode(g_user.getUserCode());
         user.setRole(role);
         user.setGender(true);
         user.setEnabled(g_user.getEnabled());
 
-        String username = g_user.getUserName();
-
-        while (appUserService.existsByUsername(username)) {
-            username = g_user.getUserName() + "-" + UUID.randomUUID().toString().substring(0, 6);
+        while (appUserService.existsByUsername(g_user.getUserName())) {
+            g_user.setUserName(g_user.getUserName() + "-" + CodeRandom.generateRandomCode(10));
         }
 
-        user.setUsername(username);
+        while (appUserService.existsByUserCode(g_user.getUserCode())) {
+            g_user.setUserCode(g_user.getUserCode() + "-" + CodeRandom.generateRandomCode(10));
+        }
+
+        user.setUsername(g_user.getUserName());
+        user.setUserCode(g_user.getUserCode());
 
         appUserService.save(user);
 
@@ -258,9 +409,13 @@ public class AuthServiceImpl implements IAuthService {
 
         String accessToken = jwtTokenProvider.generateAccessToken(up);
 
-        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(up);
 
-        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
+        return cookieUtils.generateTokenToCookie(response, accessToken, refreshToken);
+
+//        RefreshToken refreshToken = rfService.createRefreshToken(up.getId());
+//
+//        return cs.generateTokenToCookie(response, accessToken, refreshToken.getToken());
     }
 
     @Override

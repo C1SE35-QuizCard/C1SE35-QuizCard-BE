@@ -1,4 +1,4 @@
-package com.example.quizcards.dto.request;
+package com.example.quizcards.dto.request.test;
 
 import com.example.quizcards.validation.TimeRange;
 import jakarta.validation.constraints.Min;

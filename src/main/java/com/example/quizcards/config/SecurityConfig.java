@@ -2,19 +2,30 @@ package com.example.quizcards.config;
 
 import com.example.quizcards.security.JwtAuthenticationFilter;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.DelegatingSecurityContextRepository;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -23,21 +34,28 @@ import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity
+//@RequiredArgsConstructor
+//@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final CustomUserDetailsServiceImpl userDetailsService;
 
-//    private final SecurityContextRepository securityContextRepository;
+    private final SecurityContextRepository securityContextRepository;
 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          CustomUserDetailsServiceImpl userDetailsService,
+                          @Lazy SecurityContextRepository securityContextRepository) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
+        this.securityContextRepository = securityContextRepository;
+    }
 
 //    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-//                          CustomUserDetailsServiceImpl userDetailsService,
-//                          @Lazy SecurityContextRepository securityContextRepository) {
+//                          CustomUserDetailsServiceImpl userDetailsService) {
 //        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
 //        this.userDetailsService = userDetailsService;
-//        this.securityContextRepository = securityContextRepository;
 //    }
 
 
@@ -76,7 +94,8 @@ public class SecurityConfig {
             "/api/v1/users/**",
             "/api/v1/category/create",
             "/api/v1/category/update",
-            "/api/v1/category/delete"
+            "/api/v1/category/delete",
+            "/api/v1/notification/**"
     };
 
     // Mảng chứa các endpoint cho phép truy cập công khai
@@ -86,12 +105,6 @@ public class SecurityConfig {
             "/api/v1/ka/**",
             "/ws/**"
     };
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          CustomUserDetailsServiceImpl userDetailsService) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.userDetailsService = userDetailsService;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -104,10 +117,10 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .securityContext(request -> request.securityContextRepository(securityContextRepository))
+                .securityContext(request -> request.securityContextRepository(securityContextRepository))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(h -> h.disable())
-                .formLogin(f -> f.disable())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
@@ -130,19 +143,6 @@ public class SecurityConfig {
         return source;
     }
 
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowCredentials(true); // Cho phép gửi cookie
-//        config.addAllowedOrigin("http://localhost:3000"); // Chỉ định origin cụ thể
-//        config.addAllowedHeader("*"); // Chấp nhận tất cả các header
-//        config.addAllowedMethod("*"); // Cho phép tất cả các phương thức HTTP
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//
-//        return new CorsFilter(source);
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -155,11 +155,11 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-//    @Bean
-//    public SecurityContextRepository securityContextRepository() {
-//        return new DelegatingSecurityContextRepository(
-//                new RequestAttributeSecurityContextRepository(),
-//                new HttpSessionSecurityContextRepository()
-//        );
-//    }
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new DelegatingSecurityContextRepository(
+                new RequestAttributeSecurityContextRepository(),
+                new HttpSessionSecurityContextRepository()
+        );
+    }
 }

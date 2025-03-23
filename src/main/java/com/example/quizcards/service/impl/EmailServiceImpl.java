@@ -24,11 +24,11 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl implements IEmailService {
     JavaMailSender mailSender;
 
-    @Value("${spring.email.default-system-email}")
+    @Value("${app.email.default-system-email}")
     @NonFinal
     String systemEmail;
 
-    @Value("${spring.email.default-system-name}")
+    @Value("${app.email.default-system-name}")
     @NonFinal
     String systemName;
 
@@ -48,7 +48,7 @@ public class EmailServiceImpl implements IEmailService {
     }
 
     @Override
-    public EmailResponse sendOtpEmail(SenderTemplateEmailRequest request) {
+    public EmailResponse sendEmailToBrevo(SenderTemplateEmailRequest request) {
         TemplateEmailRequest templateEmailRequest = TemplateEmailRequest.builder()
                 .sender(Sender.builder()
                         .name(systemName)

@@ -1,4 +1,4 @@
-package com.example.quizcards.dto.request;
+package com.example.quizcards.dto.request.test;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

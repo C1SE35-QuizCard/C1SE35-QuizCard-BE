@@ -32,14 +32,4 @@ public class PushNotificationController {
         notificaitonService.sendNotification(userId,"Xin chào", "Thông báo từ Java!");
         return ResponseEntity.ok().build();
     }
-
-    @KafkaListener(topics = "push-notification-delievery", groupId = "group_id")
-    public void sendPushNotification(PushNotificationRequest request) {
-       try {
-           notificaitonService.sendNotificationByKafka(request);
-       } catch (Exception e) {
-           e.printStackTrace();
-           throw new RuntimeException(e);
-       }
-    }
 }
