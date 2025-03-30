@@ -110,6 +110,21 @@ public class CategorySetFlashcardController {
         }
     }
 
+    @GetMapping("/list-pagination")
+    public ResponseEntity<Object> getAllCategoryWithPagination(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                               @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            Page<ICategorySetFlashcardDTO> data = categorySetFlashcardService.getAllCategoryWithPagination(page, size);
+            return ResponseEntity.ok(data);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "message", "An unknown error occurred."
+                    ));
+        }
+    }
+
     @GetMapping("/list2/{id}")
     public ResponseEntity<Object> findAllSetFlashcardsByCategoryId2(@PathVariable("id") Long categoryId,
                                                                     @RequestParam(value = "page", required = false) Integer pages,

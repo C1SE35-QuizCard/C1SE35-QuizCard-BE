@@ -206,20 +206,17 @@ public class TestHelpersImpl implements ITestHelpers {
             }
             questionUsed.add(sumQALower);
             int typeQ = random.nextInt(typeMin, typeMax);
+            IQuestion question;
             if (typeQ == 0) {
-                IQuestion question = handleCreateQToAMulQuestion(card,
+                question = handleCreateQToAMulQuestion(card,
                         answerList, numQuiz, random);
-                if (question != null) {
-                    questions.add(question);
-                    ++numQuiz;
-                }
             } else {
-                IQuestion question = handleCreateAToQMulQuestion(card,
+                question = handleCreateAToQMulQuestion(card,
                         questionList, numQuiz, random);
-                if (question != null) {
-                    questions.add(question);
-                    ++numQuiz;
-                }
+            }
+            if (question != null) {
+                questions.add(question);
+                ++numQuiz;
             }
         }
     }

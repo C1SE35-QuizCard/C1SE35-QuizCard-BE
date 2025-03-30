@@ -1,6 +1,7 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.entities.RefreshToken;
+import com.example.quizcards.security.UserPrincipal;
 
 import java.util.Optional;
 
@@ -10,8 +11,6 @@ public interface IRefreshTokenService {
     RefreshToken createRefreshToken(Long userId);
 
     RefreshToken verifyExpiration(RefreshToken refreshToken);
-
-    int deleteByUserId(Long userId);
 
     RefreshToken updateRefreshTokenWithCurrentExpiredDate(RefreshToken refreshToken);
 

@@ -8,42 +8,24 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 public class TestSocketSession {
-    private static final Map<Long, ConcurrentLinkedQueue<String>> testSessions = new ConcurrentHashMap<>();
+    private static final Map<Long, List<String>> testSessions = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2); // Chỉ 2 luồng cho shutdown
 
     public static void addNewTestSessions(Long testId, String sessionId) {
-        testSessions.computeIfAbsent(testId, k -> new ConcurrentLinkedQueue<>()).add(sessionId);
+        testSessions.computeIfAbsent(testId, k -> new ArrayList<>()).add(sessionId);
     }
 
     public static void shutdownTest(Long testId) {
-//        if (testSessions.get(testId) != null) {
-//            List<String> sessions = new ArrayList<>(testSessions.get(testId));
-//            for (String sessionId : sessions) {
-//                try {
-//                    WebSocketHandlerFactoryService.closeSession(sessionId);
-//                } catch (Exception e) {
-//                    //
-//                }
-//            }
-//            testSessions.remove(testId);
-//        }
-        ConcurrentLinkedQueue<String> sessions = testSessions.get(testId);
-        if (sessions != null) {
-            scheduler.scheduleAtFixedRate(() -> {
-                List<String> batch = pollBatch(sessions, 200); // Xử lý từng batch nhỏ
-                if (!batch.isEmpty()) {
-                    for (String sessionId : batch) {
-                        try {
-                            WebSocketHandlerFactoryService.closeSession(sessionId);
-                        } catch (Exception e) {
-                            System.err.println("Failed to close session: " + sessionId);
-                        }
-                    }
-                } else {
-                    testSessions.remove(testId);
-                    System.out.println("All sessions for testId " + testId + " have been closed.");
+        if (testSessions.get(testId) != null) {
+            List<String> sessions = new ArrayList<>(testSessions.get(testId));
+            for (String sessionId : sessions) {
+                try {
+                    WebSocketHandlerFactoryService.closeSession(sessionId);
+                } catch (Exception e) {
+                    //
                 }
-            }, 0, 500, TimeUnit.MILLISECONDS); // Mỗi 500ms xử lý 100 kết nối
+            }
+            testSessions.remove(testId);
         }
     }
 
@@ -52,7 +34,7 @@ public class TestSocketSession {
 //        if (listSessions != null) {
 //            listSessions.remove(sessionId);
 //        }
-        ConcurrentLinkedQueue<String> sessions = testSessions.get(testId);
+        List<String> sessions = testSessions.get(testId);
         if (sessions != null) {
             sessions.remove(sessionId);
         }

@@ -1,11 +1,15 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.IAppUserDTO;
-import com.example.quizcards.dto.request.AppUserRequest;
+import com.example.quizcards.dto.request.app_user_request.*;
+import com.example.quizcards.dto.request.email.ConfirmEmailParam;
+import com.example.quizcards.dto.request.email.OtpParam;
 import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface IAppUserService {
@@ -27,9 +31,9 @@ public interface IAppUserService {
 
     void save(AppUser user);
 
-    Page<IAppUserDTO> getAllUsers(int pages);
+    Page<IAppUserDTO> getAllUsersWithPagination(int pages, int size);
 
-    List<IAppUserDTO> getAllUsers();
+//    CompletableFuture<List<IAppUserDTO>> getAllUsers();
 
     IAppUserDTO detailUser(Long userId);
 
@@ -38,4 +42,22 @@ public interface IAppUserService {
     IAppUserDTO updateAppUser(Long userId, AppUserRequest request);
 
     void deleteAppUser(Long userId);
+
+    void changeBasicInformation(BasicAppUserInformationRequest request);
+
+    boolean checkConfirmedForChangeCriticalInformation(Long userId, HttpServletRequest request);
+
+    OtpParam getOtpForChangeCriticalInformation(Long userId, HttpServletRequest request);
+
+    void createNewOtpForChangeCriticalInformation(UserPrincipal up, HttpServletRequest request);
+
+    void confirmModifyCriticalInformation(ConfirmChangeCriticalInformationRequest confirmRequest, HttpServletRequest request);
+
+    void changeEmail(EmailAppUserRequest emailRequest, HttpServletRequest request);
+
+    void changePassword(PasswordAppUserRequest passwordRequest, HttpServletRequest request);
+
+    void confirmKeyToChangeEmail(String key);
+
+    ConfirmEmailParam getEmailConfirmCriticalInformation();
 }

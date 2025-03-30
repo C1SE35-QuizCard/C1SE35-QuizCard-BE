@@ -14,7 +14,7 @@ public interface ICategorySetFlashcardService {
 
     List<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId(Long categoryId);
 
-    List<ICategorySetFlashcardDTO> findTop1MostAccessedCategory(Long userId);
+    List<ICategorySetFlashcardDTO> findTop1MostAccessedCategory();
 
     void addCategorySetFlashcard(String categoryName);
 
@@ -24,4 +24,5 @@ public interface ICategorySetFlashcardService {
 
     Page<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId2(Long categoryId, int pages);
 
+    Page<ICategorySetFlashcardDTO> getAllCategoryWithPagination(int pages, int size);
 }

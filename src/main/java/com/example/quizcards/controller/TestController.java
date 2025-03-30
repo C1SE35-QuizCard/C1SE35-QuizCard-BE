@@ -1,7 +1,7 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.request.TestCreationRequest;
-import com.example.quizcards.dto.request.TestRequest;
+import com.example.quizcards.dto.request.test.TestCreationRequest;
+import com.example.quizcards.dto.request.test.TestRequest;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ITestService;
 import jakarta.transaction.NotSupportedException;

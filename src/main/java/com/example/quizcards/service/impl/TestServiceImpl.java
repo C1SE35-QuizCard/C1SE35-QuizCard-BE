@@ -4,8 +4,8 @@ import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ITestModeDTO;
 import com.example.quizcards.dto.request.EssayTestRequest;
 import com.example.quizcards.dto.request.MultipleChoiceTestRequest;
-import com.example.quizcards.dto.request.TestCreationRequest;
-import com.example.quizcards.dto.request.TestRequest;
+import com.example.quizcards.dto.request.test.TestCreationRequest;
+import com.example.quizcards.dto.request.test.TestRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.TestDataResponse;
 import com.example.quizcards.entities.AppUser;
@@ -307,8 +307,8 @@ public class TestServiceImpl implements ITestService {
         TestData data = buildTestData(testDb.getUser().getUserId(), r, id);
         if (data.getQuestions() == null || data.getQuestions().isEmpty())
             return ResponseEntity.unprocessableEntity().body(new ApiResponse(false, "System cannot create the question base"));
-        testMongoRepo.save(data);
         shutdownOldTestNotEnded(testDb.getUser().getUserId(), r.getSetId());
+        testMongoRepo.save(data);
         scheduleRegisterService.setupSubmitExecutor(data.getTestId(), data.getEndAt());
         return ResponseEntity.ok(convertFromTestDataWithNoResult(testDb, data));
     }
@@ -324,16 +324,6 @@ public class TestServiceImpl implements ITestService {
     @Override
     @Transactional
     public ResponseEntity<?> createTestBySetInUser(UserPrincipal up, TestRequest r) throws NotSupportedException {
-        if (Boolean.FALSE.equals(r.getIsNewTest())) {
-            List<TestData> activeTests = testMongoRepo.findTestNotEndedInUserAndSet(up.getId(), r.getSetId(), LocalDateTime.now());
-            if (!activeTests.isEmpty() && !activeTests.get(0).getIsEnded()) {
-                Test t = testRepository.findById(activeTests.get(0).getTestId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Test", "id", activeTests.get(0).getTestId()));
-                return ResponseEntity.ok(convertFromTestDataWithNoResult(t, activeTests.get(0)));
-            }
-            return ResponseEntity.notFound().build();
-        }
-
         ITestModeDTO mode = testModeService.findAllTestMode().stream()
                 .filter(m -> m.getTestModeId().equals(r.getTestModeId())).findFirst()
                 .orElseThrow(() -> new BadRequestException("Test mode ID " + r.getTestModeId() + " does not exist."));

@@ -45,9 +45,6 @@ public class CategorySubscriptionServiceImpl implements ICategorySubscriptionSer
 
     @Override
     public ResponseEntity<?> getSubscriptionByRoles() throws ResourceNotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-
         CategorySubscription cs = getCategorySubscriptionBaseOfRoles();
 
         Map<String, Object> currentSubscription = new HashMap<>();
@@ -56,15 +53,11 @@ public class CategorySubscriptionServiceImpl implements ICategorySubscriptionSer
         currentSubscription.put("name", cs.getName());
         currentSubscription.put("expiredMonth", cs.getExpiredMonth());
 
-
         return ResponseEntity.ok().body(currentSubscription);
     }
 
     @Override
     public ResponseEntity<BenefitPlanResponse> getBenefitByRoles() throws ResourceNotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-
         CategorySubscription cs = getCategorySubscriptionBaseOfRoles();
 
         BenefitPlanResponse response = new BenefitPlanResponse();

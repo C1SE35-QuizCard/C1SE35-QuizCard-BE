@@ -3,8 +3,14 @@ package com.example.quizcards.service.impl;
 import com.example.quizcards.entities.RefreshToken;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.repository.IRefreshTokenRepository;
+import com.example.quizcards.security.JwtTokenProvider;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IRefreshTokenService;
 import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,15 +22,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RefreshTokenServiceImpl implements IRefreshTokenService {
     @Value("${jwt.refreshTokenExpirationInSec}")
-    private Long refreshTokenDurationSec;
+    @NonFinal
+    Long refreshTokenDurationSec;
 
-    @Autowired
-    private IRefreshTokenRepository IRefreshTokenRepository;
+    IRefreshTokenRepository IRefreshTokenRepository;
 
-    @Autowired
-    private IAppUserRepository userRepository;
+    IAppUserRepository userRepository;
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {
@@ -50,12 +57,6 @@ public class RefreshTokenServiceImpl implements IRefreshTokenService {
             return null;
         }
         return refreshToken;
-    }
-
-    @Override
-    @Transactional
-    public int deleteByUserId(Long userId) {
-        return IRefreshTokenRepository.deleteByUser(userRepository.findById(userId).get());
     }
 
     @Override

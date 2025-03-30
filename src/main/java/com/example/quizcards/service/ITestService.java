@@ -1,7 +1,7 @@
 package com.example.quizcards.service;
 
-import com.example.quizcards.dto.request.TestCreationRequest;
-import com.example.quizcards.dto.request.TestRequest;
+import com.example.quizcards.dto.request.test.TestCreationRequest;
+import com.example.quizcards.dto.request.test.TestRequest;
 import com.example.quizcards.security.UserPrincipal;
 import jakarta.transaction.NotSupportedException;
 import org.springframework.http.ResponseEntity;

@@ -30,7 +30,7 @@ public class FlashcardSettingController {
     public ResponseEntity<FlashcardSettingResponse> getSetSettingsByIdOnCurrentUser(@PathVariable("setId") Long setId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        return flashcardSettingService.getaFlashcardSettingByUserAndSetId(up.getId(), setId);
+        return ResponseEntity.ok(flashcardSettingService.getaFlashcardSettingByUserAndSetId(up.getId(), setId));
     }
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
@@ -59,6 +59,6 @@ public class FlashcardSettingController {
             @Valid @RequestBody FlashcardSettingRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        return flashcardSettingService.updateOrCreateNewFlashcardSetting(up.getId(), request);
+        return ResponseEntity.ok(flashcardSettingService.updateOrCreateNewFlashcardSetting(up.getId(), request));
     }
 }

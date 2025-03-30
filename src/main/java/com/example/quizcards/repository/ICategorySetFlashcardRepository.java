@@ -46,7 +46,6 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
             """, nativeQuery = true)
     List<ICategorySetFlashcardDTO> findAllCategorySetFlashcard();
 
-
     @Query(value = """
             SELECT\s
                 c.category_id,\s
@@ -65,7 +64,7 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
                 total_sets DESC, last_accessed DESC  -- Sắp xếp theo số bộ flashcard và thời gian truy cập gần nhất
             LIMIT 10;
             """, nativeQuery = true)
-    List<ICategorySetFlashcardDTO> findTopMostAccessedCategory(@Param("user_id") Long userId);
+    List<ICategorySetFlashcardDTO> findTopMostAccessedCategory();
 
     @Modifying
     @Transactional
@@ -110,4 +109,15 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
     Page<ISetFlashcardDTO> findAllSetFlashcardsByCategoryId2(@Param("categoryId") Long categoryId,
                                                              Pageable pageable);
 
+
+    @Query(value = """
+                select c.category_id, c.category_name
+                from category_set_flashcards c
+            """,
+            countQuery = """
+               select count(c.category_id)
+                from category_set_flashcards c
+            """,
+            nativeQuery = true)
+    Page<ICategorySetFlashcardDTO> getAllByPagination(Pageable pageable);
 }

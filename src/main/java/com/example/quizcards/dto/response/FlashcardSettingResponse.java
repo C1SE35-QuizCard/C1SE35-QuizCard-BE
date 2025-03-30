@@ -14,4 +14,6 @@ public class FlashcardSettingResponse {
     private boolean shuffleMode;
     private boolean flipCardMode;
     private LocalDateTime lastAccessed;
+    private Long settingId;
+    private Long userId;
 }

@@ -6,14 +6,14 @@ import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
-import com.example.quizcards.dto.response.ApiResponse;
-import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.ITopCreatorsResponse;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.exception.AccessDeniedException;
+import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.SetFlashcardHelpers.ISetFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
@@ -24,11 +24,13 @@ import com.example.quizcards.service.ISetFlashcardService;
 import com.example.quizcards.utils.HandleString;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,45 +51,15 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     private IAppUserService appUserService;
 
     @Override
-    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
-        return setFlashcardRepository.findAllFlashcardsBySetId(setId);
+    public SetFlashcard findById(Long setId) {
+        return setFlashcardRepository.findById(setId)
+                .orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
     }
 
     @Override
-    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
-        return null;
+    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
+        return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
-
-//    @Override
-//    public ResponseEntity<?> getAllFlashcardBySetId_2(Long setId) {
-//        Long userId = Long.MIN_VALUE;
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
-//            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
-//            userId = up.getId();
-//        }
-//        if (setId == null) {
-//            throw new BadRequestException("Set id is null.");
-//        }
-//        SetFlashcard set = setFlashcardRepository.findById(setId).orElseThrow(
-//                () -> new ResourceNotFoundException("Set", "id", setId)
-//        );
-//        if (!userId.equals(set.getUser().getUserId()) && !set.getSharingMode()) {
-//            throw new AccessDeniedException("Set cannot access by you");
-//        }
-//        List<IFlashcardDTO> results = setFlashcardRepository.findAllFlashcardsBySetId(setId);
-//        if (results.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-//                    new ApiResponse(false, "This set does not contain any cards.",
-//                            HttpStatus.NOT_FOUND, null)
-//            );
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body(
-//                new ApiResponse(false, "Get data ok.",
-//                        HttpStatus.OK, results)
-//        );
-//    }
-
 
     @Override
     public List<ISetFlashcardDTO> getAll() {
@@ -95,8 +67,13 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public ResponseEntity<?> getListFlashcardsByNearbySetting(Long userId, Long limit) {
-        return ResponseEntity.ok(setFlashcardRepository.findAllSetPublicNearbySettings(userId, limit));
+    public List<ISetFlashcardDTO> getAllLimit(int limitData) {
+        return setFlashcardRepository.findAllSetFlashcardsLimit(limitData);
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> getListFlashcardsByNearbySetting(Long userId, Long limit) {
+        return setFlashcardRepository.findAllSetPublicNearbySettings(userId, limit);
     }
 
     @Override
@@ -138,7 +115,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public ResponseEntity<?> findBySetId_2(Long setId) {
+    public ISetFlashcardDTO findBySetId_2(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
@@ -147,56 +124,69 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         }
         ISetFlashcardDTO result = setFlashcardRepository.findSetFlashcardsById(setId);
         if (result == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
-                            HttpStatus.NOT_FOUND, null)
-            );
+            return null;
         }
         if (!Objects.equals(result.getUserId(), userId) && !result.getSharingMode()) {
             throw new AccessDeniedException("Set cannot access by you");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ApiResponse(true, "Get data ok.",
-                        HttpStatus.OK, result)
-        );
+        return result;
     }
 
     @Override
-    public ResponseEntity<?> countSetFlashcardCreatedPublic(Long userId) {
-        return ResponseEntity.ok().body(
-                new ApiResponse(true, "...", HttpStatus.OK,
-                        setFlashcardRepository.countAllSetPublicByUserId(userId))
-        );
+    public Integer countSetFlashcardCreatedPublic(Long userId) {
+        return setFlashcardRepository.countAllSetPublicByUserId(userId);
     }
 
     @Override
-    public ResponseEntity<?> countSetFlashcardCreatedPublicByUserName(String userName) {
-        return ResponseEntity.ok().body(
-                new ApiResponse(true, "...", HttpStatus.OK,
-                        setFlashcardRepository.countAllSetPublicByUserName(userName))
-        );
+    public Integer countSetFlashcardCreatedPublicByUserName(String userName) {
+//        return ResponseEntity.ok().body(
+//                new ApiResponse(true, "...", HttpStatus.OK,
+//                        setFlashcardRepository.countAllSetPublicByUserName(userName))
+//        );
+        return setFlashcardRepository.countAllSetPublicByUserName(userName);
     }
 
     @Override
-    public ResponseEntity<?> countSetFlashcardCreatedInCurrentUser() {
+    public Integer countSetFlashcardCreatedInCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
-        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
-                setFlashcardRepository.countNumberOfSetCreated(up.getId()));
-
-        return ResponseEntity.status(200).body(apiResponse);
+        return setFlashcardRepository.countNumberOfSetCreated(up.getId());
     }
 
     @Override
-    public ResponseEntity<?> countSetFlashcardCreatedPerDayInCurrentUser() {
+    public Integer countSetFlashcardCreatedPerDayInCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
-        ApiResponse apiResponse = new ApiResponse(true, "ok", HttpStatus.OK,
-                setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(up.getId()));
+        return setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(up.getId());
+    }
 
-        return ResponseEntity.status(200).body(apiResponse);
+    @Override
+    public Integer countNumberOfSetCreated(Long userId) {
+        return setFlashcardRepository.countNumberOfSetCreated(userId);
+    }
+
+    @Override
+    public Integer countNumberOfSetCreatedInCurrentDay(Long userId) {
+        return setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(userId);
+    }
+
+    @Override
+    public Page<ISetFlashcardDTO> filterByUserIdAndCategoryName(Long userId, String categoryName, int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page must be greater than or equal to 0");
+        }
+        if (size < 1 || size > 100) {
+            throw new BadRequestException("Size must be greater than 0 and less than or equal to 100");
+        }
+        if (userId == null && !StringUtils.hasText(categoryName)) {
+            throw new BadRequestException("Unknown user and category to filter");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return setFlashcardRepository.filterByUserIdAndCategoryName(userId, categoryName, pageable);
     }
 
     @Override
@@ -206,7 +196,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     @Transactional
-    public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
+    public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean
+            isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
         if (appUserService.findById(userId).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", userId);
         }
@@ -315,7 +306,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO,Long userId) {
-        return setFlashcardRepository.searchByMyCourse(queryDTO.getTitle(),userId);
+    public List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO, Long userId) {
+        return setFlashcardRepository.searchByMyCourse(queryDTO.getTitle(), userId);
     }
 }
