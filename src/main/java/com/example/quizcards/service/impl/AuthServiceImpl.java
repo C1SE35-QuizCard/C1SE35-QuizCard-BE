@@ -109,7 +109,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
         user.setHashPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        user.setUserCode(CodeRandom.generateRandomCode(28));
+        user.setUserCode("USER-DATA-" + CodeRandom.generateRandomCode(20));
         user.setRole(role);
         user.setGender(true);
         user.setEnabled(true);
@@ -396,12 +396,8 @@ public class AuthServiceImpl implements IAuthService {
             g_user.setUserName(g_user.getUserName() + "-" + CodeRandom.generateRandomCode(10));
         }
 
-        while (appUserService.existsByUserCode(g_user.getUserCode())) {
-            g_user.setUserCode(g_user.getUserCode() + "-" + CodeRandom.generateRandomCode(10));
-        }
-
         user.setUsername(g_user.getUserName());
-        user.setUserCode(g_user.getUserCode());
+        user.setUserCode("USER-DATA-" + CodeRandom.generateRandomCode(20));
 
         appUserService.save(user);
 

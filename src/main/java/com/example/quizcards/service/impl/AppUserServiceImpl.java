@@ -112,6 +112,10 @@ public class AppUserServiceImpl implements IAppUserService {
     @NonFinal
     Integer codeExpireInMinutes;
 
+    @Value("${app.critical-information.resend-email-after-secs}")
+    @NonFinal
+    Integer resendEmailAfterSecs;
+
     IAppUserRepository userRepository;
 
     PasswordEncoder passwordEncoder;
@@ -467,9 +471,18 @@ public class AppUserServiceImpl implements IAppUserService {
 
         String key = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
 
-        if (redisUtils.hasKey(key)) {
-            throw new BadRequestException(MessageFormat.format("Cannot change email now, please wait for {0} hours",
-                    changedEmailAfterHours));
+        ConfirmEmailParam emailParam = getEmailConfirmCriticalInformation();
+
+        if (emailParam != null) {
+            if (StringUtils.hasText(emailParam.getNewEmail())) {
+                if (emailParam.getSentAt().plusSeconds(resendEmailAfterSecs).isAfter(LocalDateTime.now())) {
+                    throw new BadRequestException("Cannot change email now, please wait after 300 seconds to resend " +
+                            "email again");
+                }
+            } else {
+                throw new BadRequestException(MessageFormat.format("Cannot change email now, please wait for {0} hours",
+                        changedEmailAfterHours));
+            }
         }
 
         if (!checkConfirmedForChangeCriticalInformation(up.getId(), request)) {
@@ -488,7 +501,7 @@ public class AppUserServiceImpl implements IAppUserService {
         String tokenConfirm = tokenProvider.generateToken(claims, codeExpireInMinutes * 60,
                 null, codeEncrypt);
 
-        ConfirmEmailParam emailParam = ConfirmEmailParam.builder()
+        emailParam = ConfirmEmailParam.builder()
                 .userName(up.getUserName())
                 .oldEmail(up.getEmail())
                 .newEmail(emailRequest.getNewEmail())

@@ -173,7 +173,7 @@ public class SetFlashcardController {
     }
 
     @PostMapping("/create-new-set")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
         Long setId = setFlashcardService.createNewSetFlashcards(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -182,7 +182,7 @@ public class SetFlashcardController {
     }
 
     @PutMapping("/update-set")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> updateSetFlashcard_2(@Valid @RequestBody SetFlashcardRequest request) {
         setFlashcardService.updateSetFlashcard(request);
         return ResponseEntity.ok()
@@ -190,7 +190,7 @@ public class SetFlashcardController {
     }
 
     @DeleteMapping("/delete-set/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteSetFlashcardById_2(@PathVariable("id") Long setId) {
         setFlashcardService.deleteSetFlashcard(setId);
         return ResponseEntity.ok()

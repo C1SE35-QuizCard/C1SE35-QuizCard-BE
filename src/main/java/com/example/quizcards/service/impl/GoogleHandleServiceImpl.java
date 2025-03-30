@@ -67,7 +67,7 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
                 .avatarUrl(userResponse.getPicture())
                 .firstName(userResponse.getGiven_name())
                 .lastName(userResponse.getFamily_name())
-                .userCode(userResponse.getSub())
+                .sub(userResponse.getSub())
                 .build();
 
         int atIndex = userResponse.getEmail().indexOf("@");

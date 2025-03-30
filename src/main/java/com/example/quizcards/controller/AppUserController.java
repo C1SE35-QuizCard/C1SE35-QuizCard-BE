@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.MessageFormat;
@@ -39,6 +40,10 @@ public class AppUserController {
     @Value("${app.critical-information.changed-email-after-hours}")
     @NonFinal
     Integer changedEmailAfterHours;
+
+    @Value("${app.critical-information.resend-email-after-secs}")
+    @NonFinal
+    Integer resendEmailAfterSecs;
 
     @GetMapping("/data")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
@@ -175,11 +180,39 @@ public class AppUserController {
             return ResponseEntity.ok().build();
         }
         LocalDateTime lastSendEmail = emailParam.getSentAt();
+        String emailSent = emailParam.getNewEmail();
         LocalDateTime currentTime = LocalDateTime.now();
-        if (lastSendEmail != null && lastSendEmail.plusHours(changedEmailAfterHours).isAfter(currentTime)) {
+
+        if (StringUtils.hasText(emailSent)) {
+            if (lastSendEmail.plusSeconds(resendEmailAfterSecs).isAfter(currentTime)) {
+                return ResponseEntity.status(HttpStatus.TOO_EARLY)
+
+                        .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Retry-Email-After",
+                                "X-User-Email",
+                                "X-Is-Resend-Again",
+                                "X-Resend-Again")
+                        .header("X-Retry-Email-After",
+                                String.valueOf(Duration.between(currentTime,
+                                        lastSendEmail.plusHours(changedEmailAfterHours)).getSeconds() / 3600))
+                        .header("X-Is-Resend-Again", "true")
+                        .header("X-User-Email", emailSent)
+                        .header("X-Resend-Again",
+                                String.valueOf(Duration.between(currentTime,
+                                        lastSendEmail.plusSeconds(resendEmailAfterSecs)).getSeconds()))
+                        .body(Map.of(
+                                "message",
+                                MessageFormat.format("Please wait for {0} seconds before resend email.",
+                                        Duration.between(lastSendEmail.plusSeconds(resendEmailAfterSecs),
+                                                currentTime).getSeconds())
+                        ));
+            }
+            return ResponseEntity.ok().build();
+        }
+
+        if (lastSendEmail.plusHours(changedEmailAfterHours).isAfter(currentTime)) {
             return ResponseEntity.status(HttpStatus.TOO_EARLY)
-                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Retry-After", "X-User-Email")
-                    .header(HttpHeaders.RETRY_AFTER,
+                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Retry-Email-After", "X-User-Email")
+                    .header("X-Retry-Email-After",
                             String.valueOf(Duration.between(currentTime,
                                     lastSendEmail.plusHours(changedEmailAfterHours)).getSeconds() / 3600))
                     .header("X-User-Email", emailParam.getNewEmail())

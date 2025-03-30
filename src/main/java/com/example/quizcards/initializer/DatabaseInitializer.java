@@ -1,4 +1,4 @@
-package com.example.quizcards.database;
+package com.example.quizcards.initializer;
 
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.ITestModeDTO;
@@ -13,24 +13,20 @@ import com.example.quizcards.repository.IAppRoleRepository;
 import com.example.quizcards.repository.ICategorySetFlashcardRepository;
 import com.example.quizcards.repository.ICategorySubscriptionRepository;
 import com.example.quizcards.repository.ITestModeRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 
 @Configuration
-public class Database {
-    // logger
-    private static final Logger logger = LoggerFactory.getLogger(Database.class);
+@Slf4j
+public class DatabaseInitializer {
+    
     @Bean
     CommandLineRunner initRoles(IAppRoleRepository repo) {
         return new CommandLineRunner() {
@@ -43,11 +39,11 @@ public class Database {
                 for (String role : roles) {
                     Optional<AppRole> chkRole = repo.findByRoleName(role);
                     if (chkRole.isPresent()) {
-                        logger.info(String.format("Role: %s valid", role));
+                        log.info("Role: {} valid", role);
                     } else {
                         AppRole roleEntity = new AppRole();
                         roleEntity.setRoleName(role);
-                        logger.info("Insert role: " + repo.save(roleEntity));
+                        log.info("Insert role: {}", repo.save(roleEntity));
                     }
                 }
             }
@@ -85,11 +81,11 @@ public class Database {
                 for (String category : categories) {
                     List<ICategorySetFlashcardDTO> chkCategory = repo.findByCategoryName(category);
                     if (!chkCategory.isEmpty()) {
-                        logger.info(String.format("Category: %s valid", category));
+                        log.info("Category: {} valid", category);
                     } else {
                         CategorySetFlashcard categoryEntity = new CategorySetFlashcard();
                         categoryEntity.setCategoryName(category);
-                        logger.info("Insert category: " + repo.save(categoryEntity));
+                        log.info("Insert category: {}", repo.save(categoryEntity));
                     }
                 }
             }
@@ -143,9 +139,9 @@ public class Database {
                 for (CategorySubscription category : subscriptions) {
                     Optional<CategorySubscription> data = repo.findByName(category.getName());
                     if (data.isPresent()) {
-                        logger.info(String.format("Subscription: %s valid", category.getName()));
+                        log.info("Subscription: {} valid", category.getName());
                     } else {
-                        logger.info("Insert subscription: " + repo.save(category));
+                        log.info("Insert subscription: {}", repo.save(category));
                     }
                 }
             }
@@ -168,9 +164,9 @@ public class Database {
                 for (TestMode test : subscriptions) {
                     List<ITestModeDTO> data = repo.findByTestModeName(test.getTestModeName());
                     if (!data.isEmpty()) {
-                        logger.info(String.format("Test mode: %s valid", test.getTestModeName()));
+                        log.info("Test mode: {} valid", test.getTestModeName());
                     } else {
-                        logger.info("Insert test mode: " + repo.save(test));
+                        log.info("Insert test mode: {}", repo.save(test));
                     }
                 }
             }
