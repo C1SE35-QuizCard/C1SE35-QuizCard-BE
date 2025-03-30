@@ -25,7 +25,7 @@ public class CookieSetter {
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .maxAge(jwtExpirationInSec)
+                .maxAge(10000)
                 .build();
 
         ResponseCookie newRefreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)

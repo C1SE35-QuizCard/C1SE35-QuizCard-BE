@@ -56,6 +56,7 @@ public class TestSubmitServiceImpl {
         Update update = new Update().set("isEnded", true).set("numQuestionsTrue", numQuestionsTrue);
         mongoTemplate.updateFirst(query, update, TestData.class);
         progressRepo.saveAll(progressesUpdate);
+        TestSocketSession.shutdownTest(test.getTestId());
     }
 
     private Long updateProcessAndCountTrueAnswers(Map<String, IProgressDTO> progressInSet,

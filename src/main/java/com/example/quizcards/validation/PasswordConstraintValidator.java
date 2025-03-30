@@ -27,14 +27,12 @@ public class PasswordConstraintValidator implements ConstraintValidator<ValidPas
             return true;
         }
 
-        if (context != null) {
-            context.disableDefaultConstraintViolation();
+        context.disableDefaultConstraintViolation();
 //        context.buildConstraintViolationWithTemplate(
 //                        String.join(" ", validator.getMessages(result)))
 //                .addConstraintViolation();
-            context.buildConstraintViolationWithTemplate(validator.getMessages(result).get(0))
-                    .addConstraintViolation();
-        }
+        context.buildConstraintViolationWithTemplate(validator.getMessages(result).get(0))
+                .addConstraintViolation();
         return false;
     }
 }

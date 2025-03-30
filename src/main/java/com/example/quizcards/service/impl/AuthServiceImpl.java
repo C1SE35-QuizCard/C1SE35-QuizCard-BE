@@ -88,7 +88,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setUsername(signupRequest.getUsername());
         user.setEmail(signupRequest.getEmail());
         user.setHashPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        user.setUserCode(CodeRandom.generateRandomCode(28));
+        user.setUserCode(createUserCode());
         user.setRole(role);
         user.setGender(true);
         user.setEnabled(true);
@@ -295,5 +295,14 @@ public class AuthServiceImpl implements IAuthService {
 
         return ResponseEntity.ok().body(new ApiResponse(true,
                 "User password has been updated successfully"));
+    }
+
+
+    private String createUserCode() {
+        String newUserCode;
+        do {
+            newUserCode = CodeRandom.generateRandomCode(24);
+        } while (appUserService.existsByUserCode(newUserCode));
+        return newUserCode;
     }
 }

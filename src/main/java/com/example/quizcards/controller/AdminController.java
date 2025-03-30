@@ -48,13 +48,12 @@ public class AdminController {
     @PutMapping("/update-user/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable("id") Long userId, @Valid @RequestBody AppUserRequest request) {
-        return ResponseEntity.ok().body(appUserService.updateAppUser(userId, request));
+        return appUserService.updateAppUser(userId, request);
     }
 
     @DeleteMapping("/delete-user/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long userId) {
-        appUserService.deleteAppUser(userId);
-        return ResponseEntity.ok().build();
+        return appUserService.deleteAppUser(userId);
     }
 }

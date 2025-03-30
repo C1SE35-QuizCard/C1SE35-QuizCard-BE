@@ -68,8 +68,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/progress/user/set/").authenticated()
                         .requestMatchers("/api/v1/progress/user/assign-progress").authenticated()
                         .requestMatchers("/api/v1/progress/user/reset-progress/").authenticated()
-                        .requestMatchers("/api/v1/users/**").authenticated()
-                        .requestMatchers("/api/v1/category/create", "/api/v1/category/update", "/api/v1/category/delete").authenticated()
                         .requestMatchers("/api/auth/forgot-password").permitAll()
                         .requestMatchers("/api/v1/ka").permitAll()
                         .requestMatchers("/api/v1/ka/**").permitAll()

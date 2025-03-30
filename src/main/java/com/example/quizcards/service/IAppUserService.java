@@ -4,6 +4,7 @@ import com.example.quizcards.dto.IAppUserDTO;
 import com.example.quizcards.dto.request.AppUserRequest;
 import com.example.quizcards.entities.AppUser;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,13 +30,9 @@ public interface IAppUserService {
 
     Page<IAppUserDTO> getAllUsers(int pages);
 
-    List<IAppUserDTO> getAllUsers();
-
     IAppUserDTO detailUser(Long userId);
 
-    IAppUserDTO createAppUser(AppUserRequest request);
+    ResponseEntity<?> updateAppUser(Long userId, AppUserRequest request);
 
-    IAppUserDTO updateAppUser(Long userId, AppUserRequest request);
-
-    void deleteAppUser(Long userId);
+    ResponseEntity<?> deleteAppUser(Long userId);
 }

@@ -1,15 +1,17 @@
 package com.example.quizcards.dto.request;
 
-
-import lombok.*;
+import com.example.quizcards.entities.AppRole;
+import com.example.quizcards.validation.ValidPassword;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class AppUserRequest {
 
     private String address;
@@ -35,10 +37,12 @@ public class AppUserRequest {
 
     private Boolean gender;
 
-    private String password;
+    @NotBlank(message = "Password is required")
+    @ValidPassword
+    private String hashPassword;
 
     @Size(max = 255, message = "Phone number must not exceed 255 characters")
-//    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
+    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
     private String phoneNumber;
 
     @NotBlank(message = "First name is required.")
