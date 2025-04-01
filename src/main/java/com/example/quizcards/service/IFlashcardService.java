@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IFlashcardService {
-    List<IFlashcardDTO> getAllBySetId(Long id);
+    List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword);
 
     List<IFlashcardDTO> getAll();
 

@@ -20,5 +20,7 @@ public interface SearchSetFlashResponse {
     String getCategoryName();
 
     Long getTotalCard();
+
+    int getHasPassword();
 }
 

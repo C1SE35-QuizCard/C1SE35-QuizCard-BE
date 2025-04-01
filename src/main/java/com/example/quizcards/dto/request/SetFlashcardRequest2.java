@@ -3,30 +3,27 @@ package com.example.quizcards.dto.request;
 import com.mongodb.lang.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SetFlashcardInitializeRequest {
+public class SetFlashcardRequest2 {
+
     @NotBlank(message = "Title of the set flashcard is empty.")
     private String title;
     private String descriptionSet;
+
+    private Boolean isApproved;
     private Boolean isAnonymous;
     private Boolean sharingMode;
 
     @Nullable
     private String hashPassword;
 
-    @NotNull(message = "Missing category.")
     private Long categoryId;
 
-    @NotNull
-    @Size(min = 2, message = "Need at least two flashcards for create set.")
-    private List<FlashcardRequest> flashcards;
+    private Long userId;
 }
