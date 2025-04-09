@@ -3,6 +3,7 @@ package com.example.quizcards.repository;
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
+import com.example.quizcards.dto.response.IProgressAnalysisDTO;
 import com.example.quizcards.dto.response.ProgressResponse;
 import com.example.quizcards.entities.UserProgress;
 import jakarta.transaction.Transactional;
@@ -68,6 +69,25 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
             """, nativeQuery = true)
     List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(@Param("setId") Long setId, @Param("userId") Long userId);
 
+
+    @Query(value = """
+            SELECT\s
+                s.set_id as setId,
+                s.title as setTitle,
+                COUNT(DISTINCT CASE WHEN up.progress_type = FALSE THEN up.progress_id END) AS totalCardRecall,
+                COUNT(DISTINCT CASE WHEN up.progress_type = TRUE THEN up.progress_id END) AS totalCardRemember,
+                (COUNT(DISTINCT f.card_id) -\s
+                 COUNT(DISTINCT CASE WHEN up.progress_type = TRUE THEN up.progress_id END) -\s
+                 COUNT(DISTINCT CASE WHEN up.progress_type = FALSE THEN up.progress_id END)) AS totalCardNotLearn
+            FROM set_flashcards s
+            LEFT JOIN flashcards f ON s.set_id = f.set_id
+            LEFT JOIN user_progress up ON f.card_id = up.card_id\s
+                AND up.user_id = :user_id
+            WHERE s.set_id = :set_id
+            GROUP BY s.set_id, s.title;
+            """, nativeQuery = true)
+    IProgressAnalysisDTO findAnalysisProgressBySetId(@Param("set_id") Long setId,
+                                    @Param("user_id") Long userId);
 
     @Modifying
     @Transactional

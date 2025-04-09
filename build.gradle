@@ -90,6 +90,7 @@ dependencies {
 
     implementation 'nl.martijndwars:web-push:5.1.1'
 
+    implementation 'com.ibm.icu:icu4j:74.1'
     // Dependency Cache
     implementation 'org.springframework.boot:spring-boot-starter-cache:3.3.2'
 

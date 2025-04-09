@@ -4,6 +4,7 @@ import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
+import com.example.quizcards.dto.response.IProgressAnalysisDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -12,6 +13,8 @@ public interface IUserProgressService {
     List<IUserProgressDTO> findUserSetProgress(Long userId);
 
     List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(Long setId, Long userId);
+
+    IProgressAnalysisDTO findAnalysisProgressBySetId(Long setId, Long userId);
 
     void addUserProgress(Boolean progressType, Boolean isAttention, Long userId, Long cardId);
 

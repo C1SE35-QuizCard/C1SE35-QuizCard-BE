@@ -89,13 +89,15 @@ public class SecurityConfig {
             "/api/v1/flashcard-settings/",
             "/api/v1/flashcard-settings/sort",
             "/api/v1/progress/user/set/",
+            "/api/v1/progress/user/analysis/set/",
             "/api/v1/progress/user/assign-progress",
             "/api/v1/progress/user/reset-progress/",
             "/api/v1/users/**",
             "/api/v1/category/create",
             "/api/v1/category/update",
             "/api/v1/category/delete",
-            "/api/v1/notification/**"
+            "/api/v1/notification/**",
+            "/api/v1/streak-learning/**"
     };
 
     // Mảng chứa các endpoint cho phép truy cập công khai

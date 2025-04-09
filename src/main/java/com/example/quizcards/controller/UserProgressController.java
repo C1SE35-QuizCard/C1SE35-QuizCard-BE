@@ -4,12 +4,17 @@ import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
+import com.example.quizcards.dto.response.IProgressAnalysisDTO;
+import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
@@ -40,18 +45,33 @@ public class UserProgressController {
         }
     }
 
-    @GetMapping("/{user_id}/set/{set_id}")
-    public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("user_id") Long userId, @PathVariable("set_id") Long setId) {
+    @GetMapping("/set/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("set_id") Long setId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
         try {
-            if (userProgressService.findFlashcardsProgressBySetId(setId, userId).isEmpty()) {
+            if (userProgressService.findFlashcardsProgressBySetId(setId, up.getId()).isEmpty()) {
                 return new ResponseEntity<>("No flashcard progress found", HttpStatus.NO_CONTENT);
             } else {
-                List<IFlashcardProgressDTO> cardProgress = userProgressService.findFlashcardsProgressBySetId(setId, userId);
+                List<IFlashcardProgressDTO> cardProgress = userProgressService.findFlashcardsProgressBySetId(setId, up.getId());
                 return ResponseEntity.ok(cardProgress);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
+    }
+
+    @GetMapping("/analysis/set/{set_id}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getAnalysisProgressBySetId(@PathVariable("set_id") Long setId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        IProgressAnalysisDTO analysisDTO = userProgressService.findAnalysisProgressBySetId(setId, up.getId());
+        if (analysisDTO == null) {
+            throw new ResourceNotFoundException("Analysis", "set id", setId);
+        }
+        return ResponseEntity.ok(analysisDTO);
     }
 
     @PostMapping("/create")
