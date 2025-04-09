@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface IFlashcardSettingService {
-    ResponseEntity<FlashcardSettingResponse> getaFlashcardSettingByUserAndSetId(Long userId, Long setId);
+    FlashcardSettingResponse getaFlashcardSettingByUserAndSetId(Long userId, Long setId);
 
-    ResponseEntity<FlashcardSettingResponse> updateOrCreateNewFlashcardSetting(
+    FlashcardSettingResponse updateOrCreateNewFlashcardSetting(
             Long userId,
             FlashcardSettingRequest request);
     ResponseEntity<?> save(Long setId);

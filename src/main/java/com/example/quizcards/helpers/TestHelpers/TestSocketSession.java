@@ -5,10 +5,11 @@ import com.example.quizcards.service.impl.WebSocketHandlerFactoryService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class TestSocketSession {
     private static final Map<Long, List<String>> testSessions = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2); // Chỉ 2 luồng cho shutdown
 
     public static void addNewTestSessions(Long testId, String sessionId) {
         testSessions.computeIfAbsent(testId, k -> new ArrayList<>()).add(sessionId);
@@ -29,9 +30,19 @@ public class TestSocketSession {
     }
 
     public static void removeSessionTest(Long testId, String sessionId) {
-        List<String> listSessions = testSessions.get(testId);
-        if (listSessions != null) {
-            listSessions.remove(sessionId);
+        List<String> sessions = testSessions.get(testId);
+        if (sessions != null) {
+            sessions.remove(sessionId);
         }
+    }
+
+    private static List<String> pollBatch(ConcurrentLinkedQueue<String> queue, int batchSize) {
+        List<String> batch = new ArrayList<>(batchSize);
+        for (int i = 0; i < batchSize; i++) {
+            String session = queue.poll();
+            if (session == null) break;
+            batch.add(session);
+        }
+        return batch;
     }
 }

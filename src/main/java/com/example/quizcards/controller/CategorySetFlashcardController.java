@@ -45,7 +45,7 @@ public class CategorySetFlashcardController {
     public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") Long categoryId) {
         try {
             if (!categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId).isEmpty()) {
-                List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId);
+                List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService. findAllSetFlashcardsByCategoryId(categoryId);
                 return ResponseEntity.ok(setFlashcards);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No set flashcards found for category ID " + categoryId);
@@ -122,6 +122,21 @@ public class CategorySetFlashcardController {
             return new ResponseEntity<>("Category Set Flashcard updated successfully", HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the Category set flashcard");
+        }
+    }
+
+    @GetMapping("/list-pagination")
+    public ResponseEntity<Object> getAllCategoryWithPagination(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                               @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            Page<ICategorySetFlashcardDTO> data = categorySetFlashcardService.getAllCategoryWithPagination(page, size);
+            return ResponseEntity.ok(data);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "message", "An unknown error occurred."
+                    ));
         }
     }
 

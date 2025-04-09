@@ -1,6 +1,6 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.request.TestSendAnswerRequest;
+import com.example.quizcards.dto.request.test.TestSendAnswerRequest;
 import com.example.quizcards.entities.TestDataPackage.TestData;
 import com.example.quizcards.entities.questionTypes.QTypes;
 import com.example.quizcards.helpers.TestHelpers.TestExecutorSession;

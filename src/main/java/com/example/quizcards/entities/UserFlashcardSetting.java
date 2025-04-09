@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -17,8 +19,7 @@ import java.time.LocalDateTime;
 @Table(name = "user_flashcard_settings", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_set_id", columnList = "set_id"),
-        @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id"),
-        @Index(name = "idx_set_id_user_id", columnList = "set_id,user_id")
+        @Index(name = "idx_user_id_set_id", columnList = "user_id,set_id", unique = true),
 })
 public class UserFlashcardSetting {
     @Id
@@ -45,7 +46,9 @@ public class UserFlashcardSetting {
     private boolean flipCardMode;
 
     @Column(name = "last_accessed")
+    @UpdateTimestamp
     private LocalDateTime lastAccessed;
+
     public UserFlashcardSetting(AppUser user, SetFlashcard setFlashcard) {
         this.user = user;
         this.setFlashcard = setFlashcard;

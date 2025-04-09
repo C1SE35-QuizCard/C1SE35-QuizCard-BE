@@ -5,6 +5,7 @@ import com.example.quizcards.dto.IProgressDTO;
 import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
 import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.dto.response.IProgressAnalysisDTO;
 import com.example.quizcards.dto.response.ProgressResponse;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Flashcard;
@@ -48,6 +49,11 @@ public class UserProgressServiceImpl implements IUserProgressService {
     @Override
     public List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(Long setId, Long userId) {
         return userProgressRepository.findFlashcardsProgressBySetId(setId, userId);
+    }
+
+    @Override
+    public IProgressAnalysisDTO findAnalysisProgressBySetId(Long setId, Long userId) {
+        return userProgressRepository.findAnalysisProgressBySetId(setId, userId);
     }
 
     @Override

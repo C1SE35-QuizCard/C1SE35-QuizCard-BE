@@ -1,4 +1,4 @@
-package com.example.quizcards.dto.request;
+package com.example.quizcards.dto.request.app_user_request;
 
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.validation.ValidPassword;
@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppUserRequest {
-
     private String address;
 
     private String avatar;
@@ -37,12 +36,10 @@ public class AppUserRequest {
 
     private Boolean gender;
 
-    @NotBlank(message = "Password is required")
-    @ValidPassword
-    private String hashPassword;
+    private String password;
 
     @Size(max = 255, message = "Phone number must not exceed 255 characters")
-    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
+//    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
     private String phoneNumber;
 
     @NotBlank(message = "First name is required.")

@@ -4,23 +4,30 @@ import com.example.quizcards.dto.request.*;
 import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseEntity;
 
 public interface IAuthService {
-    ResponseEntity<JwtAuthenticationResponse> registerUser(SignupRequest signupRequest, HttpServletResponse response);
+    JwtAuthenticationResponse registerUser(SignupRequest signupRequest, HttpServletResponse response);
 
-    ResponseEntity<JwtAuthenticationResponse> loginUser(LoginRequest loginRequest, HttpServletResponse response);
+    JwtAuthenticationResponse loginUser(LoginRequest loginRequest, HttpServletResponse response);
 
-    ResponseEntity<JwtAuthenticationResponse> googleLogin(GoogleLoginRequest googleLoginRequest, HttpServletResponse response)
+    JwtAuthenticationResponse googleLogin(GoogleLoginRequest googleLoginRequest, HttpServletResponse response)
             throws Exception;
 
-    ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response);
+    @Deprecated
+    void logoutUser_old(HttpServletRequest request, HttpServletResponse response);
 
-    ResponseEntity<?> getUserRole();
+    void logoutUser(String accessToken, HttpServletRequest request, HttpServletResponse response);
 
-    ResponseEntity<?> isFreeUser();
+    void logoutAll(HttpServletRequest request, HttpServletResponse response);
 
-    ResponseEntity<?> updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
+    String getUserRole();
 
-    ResponseEntity<JwtAuthenticationResponse> getAccessToken(RefreshTokenRequest request, HttpServletResponse response);
+    boolean isFreeUser();
+
+    @Deprecated
+    JwtAuthenticationResponse getAccessToken_old(RefreshTokenRequest request, HttpServletResponse response);
+
+    JwtAuthenticationResponse getAccessToken(HttpServletRequest request, HttpServletResponse response);
+
+    //    void updatePasswordUser(Long id, UpdatePasswordRequest updatePasswordRequest, HttpServletResponse response);
 }

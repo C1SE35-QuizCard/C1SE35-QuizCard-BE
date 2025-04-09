@@ -4,10 +4,11 @@ import com.example.quizcards.dto.FlashcardSetDTO;
 import com.example.quizcards.dto.ICategorySetFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.response.FreeUserProfileResponse;
-import com.example.quizcards.dto.response.HomeDataFreeUserResponse;
+import com.example.quizcards.dto.response.HomeDataUserResponse;
 import com.example.quizcards.dto.response.HomeDataGuessUserResponse;
 import com.example.quizcards.dto.response.ITopCreatorsResponse;
-import com.example.quizcards.security.UserPrincipal;
+import com.example.quizcards.entities.AppUser;
+import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.service.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,46 +35,53 @@ public class HomeServiceImpl implements IHomeService {
 
     private String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
-    public ResponseEntity<HomeDataFreeUserResponse> getFreeUserHomeData(UserPrincipal up) {
-        Long userId = up.getId();
+    private ResponseEntity<HomeDataUserResponse> getHomeData(Long userId) {
+        AppUser au = appUserService.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
         List<ISetFlashcardDTO> setsRecentAccessed = setService.loadTop10RecentSetFlashcards(userId);
-        String relevantCategory = null;
         List<ISetFlashcardDTO> setsRelevantCategory = new ArrayList<>();
-        List<ICategorySetFlashcardDTO> categoryMostAccessed = categorySetFlashcardService.findTop1MostAccessedCategory(userId);
-//        if (!categoryMostAccessed.isEmpty()) {
-//            relevantCategory = categoryMostAccessed.get(0).getCategoryName();
-//            setsRelevantCategory = setService.loadTop10RelevantByCategory(categoryMostAccessed.get(0).getCategoryId(),
-//                    userId);
-//        }
+        List<ICategorySetFlashcardDTO> categoryMostAccessed = categorySetFlashcardService.findTop1MostAccessedCategory();
+
+        if (!categoryMostAccessed.isEmpty()) {
+            setsRelevantCategory = setService.loadTop10RelevantByCategory(categoryMostAccessed.get(0).getCategoryId(), userId);
+        }
+
         List<FlashcardSetDTO> setsPopular = setService.loadTop10PopularFlashcardSets(userId);
         List<ITopCreatorsResponse> topCreators = setService.loadTop10PopularCreators();
-//        List<IDeadlineReminderDTO> deadlines = deadlineReminderService.getDeadlineReminderByUserId(userId);
 
+        FreeUserProfileResponse personalData = new FreeUserProfileResponse(
+                au.getUserId(),
+                au.getFirstName(),
+                au.getLastName(),
+                au.getEmail(),
+                au.getUsername(),
+                au.getAvatar()
+        );
 
-        FreeUserProfileResponse personalData = new FreeUserProfileResponse(up.getId(), up.getFirstName(),
-                up.getLastName(), up.getEmail(), up.getUsername(), up.getAvatar());
+        HomeDataUserResponse response = HomeDataUserResponse
+                .builder()
+                .setsRecentAccessed(setsRecentAccessed)
+                .setsRelevantCategory(setsRelevantCategory)
+                .setsPopular(setsPopular)
+                .topCreators(topCreators)
+                .personData(personalData)
+                .roleName(au.getRole().getRoleName())
+                .relevantCategory(categoryMostAccessed.isEmpty() ? "" : categoryMostAccessed.get(0).getCategoryName())
+                .build();
 
-        HomeDataFreeUserResponse homeDataFreeUserResponse = new HomeDataFreeUserResponse(setsRecentAccessed,
-                setsRelevantCategory, setsPopular, topCreators, personalData,
-                up.getRolesBaseAuthorities().get(0));
-        return ResponseEntity.ok(homeDataFreeUserResponse);
-    }
-
-    public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
-        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
         return ResponseEntity.ok(response);
     }
 
-    @Override
-    public ResponseEntity<?> getHomeDataFreeUser(Authentication authentication, HttpServletResponse response) {
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        return getFreeUserHomeData(up);
+    public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
+        List<ISetFlashcardDTO> dataList = setService.getAllLimit(10);
+        return ResponseEntity.ok(HomeDataGuessUserResponse.builder().listSets(dataList).build());
+//        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
+//        return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<?> getHomeDataPremiumUser(Authentication authentication, HttpServletResponse response) {
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        return getFreeUserHomeData(up);
+    public ResponseEntity<?> getHomeData(Long userId, HttpServletResponse response) {
+        return getHomeData(userId);
     }
 
     @Override

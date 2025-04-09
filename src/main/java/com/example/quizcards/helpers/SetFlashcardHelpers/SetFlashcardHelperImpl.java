@@ -10,41 +10,32 @@ import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.AuthenticationHelpers;
-import com.example.quizcards.repository.ICategorySubscriptionRepository;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
-import com.example.quizcards.service.ICustomUserDetailsService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
+    ISetFlashcardRepository setRepository;
 
-    private ISetFlashcardRepository setFlashcardRepository;
+    AuthenticationHelpers authenticationHelpers;
 
-    private AuthenticationHelpers authenticationHelpers;
-
-    private ICustomUserDetailsService customUserDetailsService;
-
-    private ICategorySubscriptionService categorySubscriptionService;
-
-    public SetFlashcardHelperImpl(ISetFlashcardRepository setFlashcardRepository,
-                                  AuthenticationHelpers authenticationHelpers,
-                                  ICategorySubscriptionRepository categorySubscriptionRepository,
-                                  ICategorySubscriptionService categorySubscriptionService) {
-        this.setFlashcardRepository = setFlashcardRepository;
-        this.authenticationHelpers = authenticationHelpers;
-        this.categorySubscriptionService = categorySubscriptionService;
-        this.customUserDetailsService = customUserDetailsService;
-    }
+    ICategorySubscriptionService categorySubscriptionService;
 
     private void checkSetFlashcardOwner(Long setId, UserPrincipal up) throws AccessDeniedException, ResourceNotFoundException {
         if (setId == null) {
             throw new BadRequestException("Set id not null");
         }
-        SetFlashcard set = setFlashcardRepository.findById(setId).
-                orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
+
+        SetFlashcard set = setRepository.findById(setId)
+                .orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
 
         if (!up.getId().equals(set.getUser().getUserId())) {
             throw new AccessDeniedException("You do not have permission to access this set flashcard");
@@ -56,11 +47,11 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
         if (userId == null) {
             throw new BadRequestException("Set id not null");
         }
-        if (setFlashcardRepository.countNumberOfSetCreated(userId) >= currentCs.getMaxSetsFlashcards()) {
+        if (setRepository.countNumberOfSetCreated(userId) >= currentCs.getMaxSetsFlashcards()) {
             throw new BadRequestException(String.format("The number of card sets is %d sets per user.",
                     currentCs.getMaxSetsFlashcards()));
         }
-        if (setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(userId) >= currentCs.getMaxSetsPerDay()) {
+        if (setRepository.countNumberOfSetCreatedInCurrentDay(userId) >= currentCs.getMaxSetsPerDay()) {
             throw new BadRequestException(String.format("Maximum of %d sets can be created in one day per user.",
                     currentCs.getMaxSetsPerDay()));
         }
@@ -90,8 +81,8 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     }
 
     private void checkUpdateForFreeUser(SetFlashcardRequest request, UserPrincipal up) {
-        SetFlashcard set = setFlashcardRepository.findById(request.getSetId()).
-                orElseThrow(() -> new ResourceNotFoundException("Set", "id", request.getSetId()));
+        SetFlashcard set = setRepository.findById(request.getSetId())
+                .orElseThrow(() -> new ResourceNotFoundException("Set", "id", request.getSetId()));
         if (request.getIsAnonymous() != null && request.getIsAnonymous()) {
             throw new BadRequestException("Self-created card set must be public creator identity, cannot be anonymous.");
         }

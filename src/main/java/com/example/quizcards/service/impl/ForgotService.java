@@ -2,12 +2,11 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.repository.IAppUserRepository;
-import com.example.quizcards.service.EmailService;
+import com.example.quizcards.service.IEmailService;
 import com.example.quizcards.service.ForgotPasswordService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -26,7 +24,7 @@ public class ForgotService implements ForgotPasswordService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private EmailService emailService;
+    private IEmailService emailService;
 
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final Map<String, LocalDateTime> codeExpiration = new HashMap<>();

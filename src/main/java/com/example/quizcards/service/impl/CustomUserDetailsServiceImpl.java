@@ -5,6 +5,9 @@ import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.repository.IAppUserRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICustomUserDetailsService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,9 +16,10 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CustomUserDetailsServiceImpl implements UserDetailsService, ICustomUserDetailsService {
-    @Autowired
-    private IAppUserRepository userRepository;
+    IAppUserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail)

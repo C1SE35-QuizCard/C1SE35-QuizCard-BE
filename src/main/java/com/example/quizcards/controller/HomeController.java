@@ -1,5 +1,6 @@
 package com.example.quizcards.controller;
 
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IHomeService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,20 +18,12 @@ public class HomeController {
     @Autowired
     private IHomeService homeService;
 
-    @GetMapping("/free")
+    @GetMapping("/data")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getHomeDataFreeUser(HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        return homeService.getHomeDataFreeUser(authentication, response);
-    }
-
-    @GetMapping("/premium")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> getHomeDataPremiumUser(HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        return homeService.getHomeDataFreeUser(authentication, response);
+    public ResponseEntity<?> getHomeData(HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        return homeService.getHomeData(up.getId(), response);
     }
 
     @GetMapping("/admin")

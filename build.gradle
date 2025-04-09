@@ -22,6 +22,7 @@ configurations {
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.spring.io/release' }
 }
 
 dependencies {
@@ -73,7 +74,11 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
 
+    implementation 'org.mapstruct:mapstruct:1.5.2.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1'
+    implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 
     // Spring Data Reactive MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
@@ -81,7 +86,22 @@ dependencies {
     // Spring WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    implementation 'nl.martijndwars:web-push:5.1.1'
+
+    implementation 'com.ibm.icu:icu4j:74.1'
+    // Dependency Cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache:3.3.2'
+
+    // Dependency Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.3.2'
+
+    // Dependency chính cho Spring Kafka (runtime)
+    implementation 'org.springframework.kafka:spring-kafka:3.2.4'
+
+    // Dependency cho testing (chỉ dùng trong kiểm thử)
+    testImplementation 'org.springframework.kafka:spring-kafka-test:3.2.4'
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -9,6 +9,7 @@ import com.example.quizcards.helpers.FlashcardHelpers.IFlashcardHelpers;
 import com.example.quizcards.repository.IFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IFlashcardService;
+import com.example.quizcards.service.ISetFlashcardService;
 import com.example.quizcards.utils.HandleString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +28,14 @@ public class FlashcardServiceImpl implements IFlashcardService {
     private IFlashcardRepository flashcardRepository;
 
     @Autowired
+    private ISetFlashcardService setFlashcardService;
+
+    @Autowired
     private IFlashcardHelpers flashcardHelpers;
 
     @Override
-    public List<IFlashcardDTO> getAllBySetId(Long id) {
+    public List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword) {
+        setFlashcardService.checkAccess(id, requestPassword);
         return flashcardRepository.findAllFlashcardsBySetId(id);
     }
 
@@ -106,5 +111,11 @@ public class FlashcardServiceImpl implements IFlashcardService {
     @Override
     public IFlashcardDTO findByCardId(Long cardId) {
         return flashcardRepository.findFlashcardByCardId(cardId);
+    }
+
+
+    @Override
+    public List<IFlashcardDTO> getRandomFlashcardsBySetId(Long setId) {
+        return flashcardRepository.findRandomFlashcardsBySetId(setId);
     }
 }

@@ -32,4 +32,6 @@ public interface ISetFlashcardDTO {
     String getCategoryName();
 
     int getTotalCard();
+
+    int getHasPassword();
 }

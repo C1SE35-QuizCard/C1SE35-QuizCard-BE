@@ -85,18 +85,4 @@ public class TestSubmitServiceImpl {
         }
         return numQuestionsTrue;
     }
-//    private void cham() {
-//        Map<BaiTest, Map<UserId, DapAn>> set = ... // cac dap an cua nguoi dung
-//        Long idDung = -1;
-//        MCQuestion mc;
-//        for (MCQuestion.Answer answer : mc.getAnswerList()) {
-//            if (answer.isTrue()) {
-//                idDung = answer.getId();
-//                break;
-//            }
-//        }
-//        set.stream().filter(daAn.getId() == idDung) // trn tất c nguười dùng trả lời câu hoỏi , chọn ra những người
-//                // luu cac tt vo db
-//
-//    }
 }

@@ -41,17 +41,19 @@ public class FlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
-        try {
-            if (!flashcardService.getAllBySetId(setId).isEmpty()) {
-                List<IFlashcardDTO> flashcards = flashcardService.getAllBySetId(setId);
-                return ResponseEntity.ok(flashcards);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
-        }
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
+                                                          @RequestParam(required = false) String requestPassword) {
+//        try {
+//            List<IFlashcardDTO> flashcards = flashcardService.getAllBySetId(setId, requestPassword);
+//            if (!flashcards.isEmpty()) {
+//                return ResponseEntity.ok(flashcards);
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+//        }
+        return ResponseEntity.ok(flashcardService.getAllBySetId(setId, requestPassword));
     }
 
     @GetMapping("/detail/{id}")
