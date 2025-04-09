@@ -47,7 +47,7 @@ public class CategorySetFlashcardController {
     public ResponseEntity<Object> findAllSetFlashcardsByCategoryId(@PathVariable("id") Long categoryId) {
         try {
             if (!categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId).isEmpty()) {
-                List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService.findAllSetFlashcardsByCategoryId(categoryId);
+                List<ISetFlashcardDTO> setFlashcards = categorySetFlashcardService. findAllSetFlashcardsByCategoryId(categoryId);
                 return ResponseEntity.ok(setFlashcards);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No set flashcards found for category ID " + categoryId);

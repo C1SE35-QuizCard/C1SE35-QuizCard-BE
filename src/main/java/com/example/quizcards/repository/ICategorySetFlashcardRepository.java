@@ -28,7 +28,11 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved,
                    s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id,
-                   a.avatar, c.category_name, COUNT(f.card_id) as TotalCard
+                   a.avatar, c.category_name, COUNT(f.card_id) as TotalCard,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             from set_flashcards s
             join app_users a on s.user_id = a.user_id
             join category_set_flashcards c on s.category_id = c.category_id
@@ -96,7 +100,11 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved,
                    s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id,
-                   a.avatar, c.category_name, COUNT(f.card_id) as TotalCard
+                   a.avatar, c.category_name, COUNT(f.card_id) as TotalCard,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                   END AS has_password
             from set_flashcards s
             join app_users a on s.user_id = a.user_id
             join category_set_flashcards c on s.category_id = c.category_id

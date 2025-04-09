@@ -5,6 +5,7 @@ import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
+import com.example.quizcards.dto.request.SetFlashcardRequest2;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
@@ -22,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 import java.util.List;
@@ -33,6 +35,8 @@ public class SetFlashcardController {
     @Autowired
     private ISetFlashcardService setFlashcardService;
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching set flashcards";
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/list")
     public ResponseEntity<Object> findAllSetFlashcard() {
@@ -44,22 +48,25 @@ public class SetFlashcardController {
                 return ResponseEntity.ok(set);
             }
         } catch (Exception e) {
+            e.printStackTrace(); // Hoặc logger.error("Error: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
-        try {
-            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
-                List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
-                return ResponseEntity.ok(flashcards);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
-        }
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
+                                                          @RequestParam(required = false) String requestPassword) {
+//        try {
+//            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
+//                List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
+//                return ResponseEntity.ok(flashcards);
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+        return ResponseEntity.ok(setFlashcardService.getAllFlashcardBySetId(setId, requestPassword));
+
     }
 
     @GetMapping("/detail/{id}")
@@ -128,18 +135,22 @@ public class SetFlashcardController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest request) {
+    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest2 request) {
         try {
+            String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                    ? null
+                    : passwordEncoder.encode(request.getHashPassword());
             setFlashcardService.addSetFlashcard(request.getTitle(),
                     request.getDescriptionSet(),
                     request.getIsApproved(),
                     request.getIsAnonymous(),
                     request.getSharingMode(),
+                    hashedPassword,
                     request.getUserId(),
                     request.getCategoryId());
             return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the set flashcard");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the set flashcard"+ e.getMessage());
         }
     }
 

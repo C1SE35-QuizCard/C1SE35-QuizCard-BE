@@ -77,7 +77,11 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             "    a.user_id, \n" +
             "    a.avatar, \n" +
             "    c.category_name, \n" +
-            "    COUNT(f.card_id) AS total_card\n" +
+            "    COUNT(f.card_id) AS total_card\n," +
+            "    CASE\n" +
+            "       WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1\n" +
+            "       ELSE 0\n" +
+            "    END AS has_password\n" +
             "FROM \n" +
             "    set_flashcards s\n" +
             "JOIN \n" +

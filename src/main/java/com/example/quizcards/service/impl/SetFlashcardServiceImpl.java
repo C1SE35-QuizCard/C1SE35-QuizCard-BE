@@ -27,10 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +52,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Autowired
     private IAppUserService appUserService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public SetFlashcard findById(Long setId) {
@@ -57,7 +62,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
+    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId, String requestPassword) {
+        checkAccess(setId, requestPassword);
         return setFlashcardRepository.findAllFlashcardsBySetId(setId);
     }
 
@@ -82,12 +88,16 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         setFlashcardHelpers.handleAddSetFlashcard(request);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                ? null
+                : passwordEncoder.encode(request.getHashPassword());
         SetFlashcard set = SetFlashcard.builder()
                 .title(request.getTitle())
                 .descriptionSet(request.getDescriptionSet())
                 .isApproved(true)
                 .isAnonymous(request.getIsAnonymous())
                 .sharingMode(request.getSharingMode())
+                .hashPassword(hashedPassword)
                 .user(AppUser.builder().userId(up.getId()).build())
                 .category(CategorySetFlashcard.builder().categoryId(request.getCategoryId()).build())
                 .build();
@@ -197,11 +207,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     @Transactional
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean
-            isAnonymous, Boolean sharingMode, Long userId, Long categoryId) {
+            isAnonymous, Boolean sharingMode, String hashPassword,Long userId, Long categoryId) {
         if (appUserService.findById(userId).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", userId);
         }
-        setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, userId, categoryId);
+        setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, hashPassword, userId, categoryId);
     }
 
     @Override
@@ -216,10 +226,14 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         if (appUserService.findById(request.getUserId()).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", request.getUserId());
         }
+        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                ? null
+                : passwordEncoder.encode(request.getHashPassword());
         setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(),
                 request.getIsApproved(),
                 request.getIsAnonymous(),
                 request.getSharingMode(),
+                hashedPassword,
                 request.getUserId(),
                 request.getCategoryId()
         );
@@ -240,10 +254,15 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
+        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                ? null
+                : passwordEncoder.encode(request.getHashPassword());
+
         setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(),
                 true,
                 request.getIsAnonymous(),
                 request.getSharingMode(),
+                hashedPassword,
                 up.getId(),
                 request.getCategoryId()
         );
@@ -308,5 +327,31 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO, Long userId) {
         return setFlashcardRepository.searchByMyCourse(queryDTO.getTitle(), userId);
+    }
+
+    @Override
+    public void checkAccess(Long setId, String requestPassword){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = null;
+
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+            userId = up.getId();
+        }
+
+        SetFlashcard set = setFlashcardRepository.findById(setId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SetFlashcard not found"));
+
+        // Nếu set thuộc về người dùng hiện tại, không cần kiểm tra mật khẩu
+        if (set.getUser().getUserId().equals(userId)) {
+            return;
+        }
+
+        // Nếu set có mật khẩu (không rỗng hoặc null), kiểm tra password nhập vào
+        if (set.getHashPassword() != null && !set.getHashPassword().isEmpty()) {
+            if (requestPassword == null || !passwordEncoder.matches(requestPassword, set.getHashPassword())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid password or unauthorized access");
+            }
+        }
     }
 }

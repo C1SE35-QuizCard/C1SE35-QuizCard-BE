@@ -1,5 +1,6 @@
 package com.example.quizcards.dto.request;
 
+import com.mongodb.lang.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,9 @@ public class SetFlashcardRequest {
     private Boolean isApproved;
     private Boolean isAnonymous;
     private Boolean sharingMode;
+
+    @Nullable
+    private String hashPassword;
 
     private Long categoryId;
 
