@@ -1,5 +1,6 @@
 package com.example.quizcards.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
@@ -75,6 +78,11 @@ public class AppUser implements Serializable {
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private AppRole role;
+
+
+    @ManyToMany(mappedBy = "members")
+    @JsonIgnore
+    private Set<MyClass> joinedClasses = new HashSet<>();
 
     public AppUser(Long userId) {
         this.userId=userId;
