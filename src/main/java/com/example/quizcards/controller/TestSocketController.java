@@ -175,13 +175,8 @@ public class TestSocketController {
         UserPrincipal up = extractPrincipal(principal);
         TestData testData = extractTestDataFromSessions(sessionAttributes, request.getTestId());
         checkTestCanEdit(testData, up);
-        try {
-            TestExecutorSession.shutdownExecutorByTestId(testData.getTestId());
-            submitService.submitTest(testData.getTestId());
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        } finally {
-            TestSocketSession.shutdownTest(testData.getTestId());
-        }
+        submitService.submitTest(testData.getTestId());
+        TestExecutorSession.shutdownExecutorByTestId(testData.getTestId());
+        TestSocketSession.shutdownTest(testData.getTestId());
     }
 }

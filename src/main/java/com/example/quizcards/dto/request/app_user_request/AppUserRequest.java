@@ -1,17 +1,18 @@
 package com.example.quizcards.dto.request.app_user_request;
 
-
-import lombok.*;
+import com.example.quizcards.entities.AppRole;
+import com.example.quizcards.validation.ValidPassword;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class AppUserRequest {
-
     private String address;
 
     private String avatar;

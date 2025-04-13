@@ -34,8 +34,6 @@ import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity
-//@RequiredArgsConstructor
-//@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

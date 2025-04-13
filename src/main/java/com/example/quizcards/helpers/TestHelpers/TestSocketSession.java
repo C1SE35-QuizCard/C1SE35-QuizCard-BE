@@ -30,10 +30,6 @@ public class TestSocketSession {
     }
 
     public static void removeSessionTest(Long testId, String sessionId) {
-//        List<String> listSessions = testSessions.get(testId);
-//        if (listSessions != null) {
-//            listSessions.remove(sessionId);
-//        }
         List<String> sessions = testSessions.get(testId);
         if (sessions != null) {
             sessions.remove(sessionId);
