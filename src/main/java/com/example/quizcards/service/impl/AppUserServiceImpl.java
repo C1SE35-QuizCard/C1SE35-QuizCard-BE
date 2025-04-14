@@ -100,7 +100,7 @@ public class AppUserServiceImpl implements IAppUserService {
     @NonFinal
     Integer changedEmailAfterHours;
 
-    @Value("${app.link-frontend-client}")
+    @Value("${app.link-frontend-client-confirm}")
     @NonFinal
     String frontEndUrl;
 
