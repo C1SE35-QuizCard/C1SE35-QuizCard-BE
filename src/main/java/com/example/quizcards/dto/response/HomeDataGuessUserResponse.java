@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +16,7 @@ import java.util.Map;
 public class HomeDataGuessUserResponse {
     private List<FlashcardSetDTO> setsPopular;
 
-//    private Map<String, List<ISetFlashcardDTO>> listSets;
+    //    private Map<String, List<ISetFlashcardDTO>> listSets;
     private List<ISetFlashcardDTO> listSets;
 
     public HomeDataGuessUserResponse(List<FlashcardSetDTO> flashcardSetDTOS) {

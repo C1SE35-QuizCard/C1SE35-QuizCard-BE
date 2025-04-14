@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,7 +19,7 @@ public interface IAppUserDTO {
     Boolean getEnabled();
     String getFirstName();
     Boolean getGender();
-//    String getHashPassword();
+    //    String getHashPassword();
     String getLastName();
     String getPhoneNumber();
     String getUsername();

@@ -28,6 +28,7 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsernameOrEmail(String username, String email);
 
+
     @Query(value = """
             select a.user_id, 
             a.address, 
@@ -97,4 +98,10 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
             where a.user_id = :user_id
             """, nativeQuery = true)
     IAppUserDTO detailUser(@Param("user_id") Long userId);
+
+    @Query("SELECT COUNT(u) > 0 FROM AppUser u WHERE u.username = :username AND u.userId != :id")
+    boolean existsByUsernameExcludingUserId(@Param("username") String username, @Param("id") Long userId);
+
+    @Query("SELECT COUNT(u) > 0 FROM AppUser u WHERE u.email = :email AND u.userId != :id")
+    boolean existsByEmailExcludingUserId(@Param("email") String email, @Param("id") Long userId);
 }

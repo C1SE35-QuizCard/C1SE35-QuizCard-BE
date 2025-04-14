@@ -18,9 +18,4 @@ public class AppRoleServiceImpl implements IAppRoleService {
     public Optional<AppRole> findByRoleName(String roleName) {
         return appRoleRepository.findByRoleName(roleName);
     }
-
-    @Override
-    public Optional<AppRole> findByRoleId(Long id) {
-        return appRoleRepository.findById(id);
-    }
 }
