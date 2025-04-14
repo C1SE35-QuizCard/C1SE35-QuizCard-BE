@@ -1,0 +1,30 @@
+package com.example.quizcards.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.Set;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SetFlashcardInitializeRequest {
+    @NotBlank(message = "Title of the set flashcard is empty.")
+    private String title;
+    private String descriptionSet;
+    private Boolean isAnonymous;
+    private Boolean sharingMode;
+
+    @NotNull(message = "Missing category.")
+    private Long categoryId;
+    private Set<String> tagNames;
+
+    @NotNull
+    @Size(min = 2, message = "Need at least two flashcards for create set.")
+    private List<FlashcardRequest> flashcards;
+}
