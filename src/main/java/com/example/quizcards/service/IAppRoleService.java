@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface IAppRoleService {
     Optional<AppRole> findByRoleName(String name);
+
+    Optional<AppRole> findByRoleId(Long id);
 }

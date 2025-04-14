@@ -12,4 +12,4 @@ public interface IMyClassShareRequestService {
     List<MyClassShareRequest> getRequestsByRequester(Long userId);
     boolean processShareRequest(Long requestId, ShareRequestStatus status, Long adminId);
     boolean hasPendingRequest(Long myClassId, Long userId);
-}
+} 

@@ -13,4 +13,4 @@ public interface IMyClassShareRequestRepository extends JpaRepository<MyClassSha
     List<MyClassShareRequest> findByMyClass_MyClassId(Long myClassId);
     List<MyClassShareRequest> findByRequester_UserId(Long userId);
     boolean existsByMyClass_MyClassIdAndRequester_UserId(Long myClassId, Long userId);
-}
+} 

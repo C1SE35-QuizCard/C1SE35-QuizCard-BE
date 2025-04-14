@@ -16,7 +16,7 @@ import java.util.List;
 public class HomeDataGuessUserResponse {
     private List<FlashcardSetDTO> setsPopular;
 
-    //    private Map<String, List<ISetFlashcardDTO>> listSets;
+//    private Map<String, List<ISetFlashcardDTO>> listSets;
     private List<ISetFlashcardDTO> listSets;
 
     public HomeDataGuessUserResponse(List<FlashcardSetDTO> flashcardSetDTOS) {

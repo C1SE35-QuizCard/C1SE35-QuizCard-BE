@@ -17,13 +17,19 @@ public class TestScheduleRegisterServiceImpl {
     private IScheduleHelpers scheduleHelper;
 
     public void setupSubmitExecutor(Long testId, LocalDateTime endAt) {
-        if (TestExecutorSession.getTestExecutorByTestId(testId) == null) {
-            TestExecutorSession.addTestExecutor(testId,
-                    scheduleHelper.addScheduleTasks(() -> {
+        if (TestExecutorSession.getTestExecutorByTestId(testId) != null) {
+            TestExecutorSession.shutdownExecutorByTestId(testId);
+        }
+        TestExecutorSession.addTestExecutor(testId,
+                scheduleHelper.addScheduleTasks(() -> {
+                    try {
                         TestExecutorSession.removeTestExecutor(testId);
                         submitService.submitTest(testId);
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    } finally {
                         TestSocketSession.shutdownTest(testId);
-                    }, endAt));
-        }
+                    }
+                }, endAt));
     }
 }

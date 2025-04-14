@@ -86,12 +86,12 @@ public class MyClassController {
 
             if (myClassOptional.isPresent()) {
                 MyClass myClass = myClassOptional.get();
-
+                
                 // Kiểm tra nếu người dùng là owner hoặc thành viên của lớp
                 boolean isOwner = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
                 boolean isMember = myClass.getMembers().stream()
                         .anyMatch(member -> member.getUserId().equals(userId));
-
+                
                 if (!isOwner && !isMember) {
                     return new ResponseEntity<>("You don't have permission to access this class's folders", HttpStatus.FORBIDDEN);
                 }
@@ -116,10 +116,10 @@ public class MyClassController {
             Optional<MyClass> myClassOptional = iMyClassService.findById(classId);
             if (myClassOptional.isPresent()) {
                 MyClass myClass = myClassOptional.get();
-
+                
                 // Kiểm tra nếu người dùng là owner của lớp
                 boolean isOwner = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
-
+                
                 if (!isOwner) {
                     return new ResponseEntity<>("Only class owner can remove folders", HttpStatus.FORBIDDEN);
                 }

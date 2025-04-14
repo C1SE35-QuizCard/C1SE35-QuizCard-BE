@@ -62,7 +62,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
-    public ResponseEntity<?> addFlashcard_2(FlashcardRequest request) {
+    public Map<String, Object> addFlashcard_2(FlashcardRequest request) {
         flashcardHelpers.handleAddFlashcard(request);
         Flashcard newCard = Flashcard.builder()
                 .question(HandleString.popExtraNewLineAndSpace(request.getQuestion()))
@@ -72,11 +72,11 @@ public class FlashcardServiceImpl implements IFlashcardService {
                 .set(SetFlashcard.builder().setId(request.getSetId()).build())
                 .build();
         newCard = flashcardRepository.save(newCard);
-        return ResponseEntity.ok().body(getResponseFromCard(newCard, request.getSetId()));
+        return getResponseFromCard(newCard, request.getSetId());
     }
 
     @Override
-    public ResponseEntity<?> updateFlashcard_2(FlashcardRequest request) {
+    public Map<String, Object> updateFlashcard_2(FlashcardRequest request) {
         flashcardHelpers.handleUpdateFlashcard(request);
         Flashcard card = flashcardRepository.findById(request.getCardId())
                 .orElseThrow(() -> new ResourceNotFoundException("Card", "id", request.getCardId()));
@@ -87,7 +87,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
         card.setImageLink(request.getImageLink());
         card.setIsApproved(true);
         flashcardRepository.save(card);
-        return ResponseEntity.ok().body(getResponseFromCard(card, request.getSetId()));
+        return getResponseFromCard(card, request.getSetId());
     }
 
     @Override

@@ -75,8 +75,6 @@ public class HomeServiceImpl implements IHomeService {
     public ResponseEntity<HomeDataGuessUserResponse> getGuestUserHomeData(Long userId) {
         List<ISetFlashcardDTO> dataList = setService.getAllLimit(10);
         return ResponseEntity.ok(HomeDataGuessUserResponse.builder().listSets(dataList).build());
-//        HomeDataGuessUserResponse response = new HomeDataGuessUserResponse(setService.loadTop10PopularFlashcardSets(userId));
-//        return ResponseEntity.ok(response);
     }
 
     @Override

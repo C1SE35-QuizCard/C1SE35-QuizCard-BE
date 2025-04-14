@@ -64,6 +64,14 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
             """, nativeQuery = true)
     List<IFolderDTO> searchFolderByTitle(@Param("title") String title,@Param("user_id")Long userId);
 
+//    @Query(value = """
+//            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name, a.avatar, a.user_name, COUNT(c.card_id) as card_count
+//            from set_flashcards s, app_users a, category_set_flashcards m, folders f, collection l, flashcards c
+//            where f.user_id = a.user_id and f.folder_id = l.folder_id and l.set_id = s.set_id and s.category_id = m.category_id and f.folder_id = :folder_id and c.set_id = s.set_id
+//            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, m.category_name
+//            """, nativeQuery = true)
+//    List<ISetFlashcardDTO> findSetByFolderId(@Param("folder_id") Long folderId);
+
     @Query(value = """
             SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at,
                 s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name,

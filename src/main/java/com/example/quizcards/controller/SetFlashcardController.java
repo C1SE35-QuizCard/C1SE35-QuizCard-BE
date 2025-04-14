@@ -53,6 +53,20 @@ public class SetFlashcardController {
         }
     }
 
+//    @GetMapping("/list/{id}")
+//    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
+//        try {
+//            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
+//                List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
+//                return ResponseEntity.ok(flashcards);
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
+//        }
+//    }
+
     @GetMapping("/list/{id}")
     public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
                                                           @RequestParam(required = false) String requestPassword) {
@@ -133,6 +147,24 @@ public class SetFlashcardController {
         return ResponseEntity.ok(setFlashcardService.getListFlashcardsByNearbySetting(up.getId(), limit));
     }
 
+//    @PostMapping("/create")
+//    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+//    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest request) {
+//        try {
+//            setFlashcardService.addSetFlashcard(request.getTitle(),
+//                    request.getDescriptionSet(),
+//                    request.getIsApproved(),
+//                    request.getIsAnonymous(),
+//                    request.getSharingMode(),
+//                    request.getUserId(),
+//                    request.getCategoryId(),
+//                    request.getTagNames());
+//            return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the set flashcard");
+//        }
+//    }
+
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest2 request) {
@@ -147,7 +179,8 @@ public class SetFlashcardController {
                     request.getSharingMode(),
                     hashedPassword,
                     request.getUserId(),
-                    request.getCategoryId());
+                    request.getCategoryId(),
+                    request.getTagNames());
             return ResponseEntity.status(HttpStatus.CREATED).body("Set Flashcard created successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the set flashcard"+ e.getMessage());
@@ -182,6 +215,15 @@ public class SetFlashcardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the set flashcard");
         }
     }
+
+//    @PostMapping("/create-new-set")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+//    public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
+//        Long setId = setFlashcardService.createNewSetFlashcards(request);
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(new ApiResponse(true, "Created set successfully",
+//                        HttpStatus.OK, setId));
+//    }
 
     @PostMapping("/create-new-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")

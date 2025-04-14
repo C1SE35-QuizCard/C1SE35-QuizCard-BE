@@ -22,7 +22,5 @@ public class GoogleInfoUser {
 
     private String userCode;
 
-    private String sub;
-
     private Boolean enabled;
 }

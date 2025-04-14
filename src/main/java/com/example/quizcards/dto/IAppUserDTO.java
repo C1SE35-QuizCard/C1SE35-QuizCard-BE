@@ -19,7 +19,7 @@ public interface IAppUserDTO {
     Boolean getEnabled();
     String getFirstName();
     Boolean getGender();
-    //    String getHashPassword();
+//    String getHashPassword();
     String getLastName();
     String getPhoneNumber();
     String getUsername();

@@ -28,7 +28,6 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByUsernameOrEmail(String username, String email);
 
-
     @Query(value = """
             select a.user_id, 
             a.address, 

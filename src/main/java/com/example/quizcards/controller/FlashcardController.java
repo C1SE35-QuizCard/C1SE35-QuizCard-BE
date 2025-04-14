@@ -137,22 +137,19 @@ public class FlashcardController {
     @PostMapping("/create-new-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
-        return flashcardService.addFlashcard_2(request);
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(new ApiResponse(true, "Flashcard created successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(flashcardService.addFlashcard_2(request));
     }
 
     @DeleteMapping("/delete-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<Object> deleteFlashcardById_2(@Valid @RequestBody FlashcardRequest request) {
         flashcardService.deleteFlashcard_2(request.getCardId(), request.getSetId());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ApiResponse(true, "Flashcard deleted successfully"));
+        return ResponseEntity.ok().body(new ApiResponse(true, "Flashcard deleted successfully"));
     }
 
     @PutMapping("/update-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> updateFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
-        return flashcardService.updateFlashcard_2(request);
+        return ResponseEntity.ok().body(flashcardService.updateFlashcard_2(request));
     }
 }

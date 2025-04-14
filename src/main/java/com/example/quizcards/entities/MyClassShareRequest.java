@@ -54,4 +54,4 @@ public class MyClassShareRequest {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-}
+} 

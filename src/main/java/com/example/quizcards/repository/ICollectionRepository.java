@@ -60,7 +60,71 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
             """, nativeQuery = true)
     List<ICollectionDTO> findCollectionByFolderId(@Param("folder_id") Long folderId);
 
-
+//    @Query(value ="SELECT \n" +
+//            "    s.set_id, \n" +
+//            "    s.title, \n" +
+//            "    s.description_set, \n" +
+//            "    s.created_at, \n" +
+//            "    s.updated_at, \n" +
+//            "    s.is_approved, \n" +
+//            "    s.is_anonymous, \n" +
+//            "    s.sharing_mode,\n" +
+//            "    a.last_name, \n" +
+//            "    a.first_name, \n" +
+//            "    a.user_name,\n" +
+//            "    a.user_id, \n" +
+//            "    a.avatar, \n" +
+//            "    c.category_name, \n" +
+//            "    COUNT(f.card_id) AS total_card\n" +
+//            "FROM \n" +
+//            "    set_flashcards s\n" +
+//            "JOIN \n" +
+//            "    app_users a ON s.user_id = a.user_id\n" +
+//            "JOIN \n" +
+//            "    category_set_flashcards c ON s.category_id = c.category_id\n" +
+//            "JOIN \n" +
+//            "    flashcards f ON f.set_id = s.set_id\n" +
+//            "LEFT JOIN \n" +
+//            "    user_flashcard_settings ufs ON s.set_id = ufs.set_id AND ufs.user_id =:user_id\n" +
+//            "WHERE \n" +
+//            "    (s.user_id =:user_id OR ufs.user_id =:user_id) \n" +
+//            "    AND s.set_id NOT IN (\n" +
+//            "        SELECT \n" +
+//            "            s_inner.set_id\n" +
+//            "        FROM \n" +
+//            "            collection c\n" +
+//            "        JOIN \n" +
+//            "            folders f ON f.folder_id = c.folder_id\n" +
+//            "        JOIN \n" +
+//            "            flashcards fl ON fl.set_id = c.set_id\n" +
+//            "        JOIN \n" +
+//            "            set_flashcards s_inner ON s_inner.set_id = c.set_id\n" +
+//            "        JOIN \n" +
+//            "            app_users au ON au.user_id = f.user_id\n" +
+//            "        WHERE \n" +
+//            "            c.folder_id =:folder_id\n" +
+//            "        GROUP BY \n" +
+//            "            s_inner.set_id\n" +
+//            "    )\n" +
+//            "GROUP BY \n" +
+//            "    s.set_id, \n" +
+//            "    s.title, \n" +
+//            "    s.description_set, \n" +
+//            "    s.created_at, \n" +
+//            "    s.updated_at, \n" +
+//            "    s.is_approved, \n" +
+//            "    s.is_anonymous, \n" +
+//            "    s.sharing_mode,\n" +
+//            "    a.last_name, \n" +
+//            "    a.first_name, \n" +
+//            "    a.user_name,\n" +
+//            "    a.user_id, \n" +
+//            "    a.avatar, \n" +
+//            "    c.category_name\n" +
+//            "ORDER BY \n" +
+//            "    s.created_at DESC;" +
+//            "", nativeQuery = true)
+//    List<ISetFlashcardDTO> findAllSetToAddFolder(@Param("user_id") Long userId, @Param("folder_id") Long folderId);
 
     @Query(value ="SELECT \n" +
             "    s.set_id, \n" +

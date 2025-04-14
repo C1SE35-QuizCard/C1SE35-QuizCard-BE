@@ -3,7 +3,10 @@ package com.example.quizcards.dto.request;
 import com.mongodb.lang.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import lombok.*;
+
+import java.util.Set;
 
 @Data
 @Getter
@@ -26,6 +29,7 @@ public class SetFlashcardRequest {
     private String hashPassword;
 
     private Long categoryId;
+    private Set<String> tagNames;
 
     private Long userId;
 }
