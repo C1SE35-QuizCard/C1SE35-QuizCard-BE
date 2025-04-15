@@ -5,13 +5,13 @@ import com.example.quizcards.dto.ISetFlashcardDTO;
 import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
-import com.example.quizcards.dto.request.SetFlashcardRequest2;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -31,6 +31,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/api/v1/set")
+@Slf4j
 public class SetFlashcardController {
     @Autowired
     private ISetFlashcardService setFlashcardService;
@@ -48,7 +49,7 @@ public class SetFlashcardController {
                 return ResponseEntity.ok(set);
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Hoặc logger.error("Error: ", e);
+            log.error("Error when find all flashcards: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
     }
@@ -167,7 +168,7 @@ public class SetFlashcardController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest2 request) {
+    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest request) {
         try {
             String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
                     ? null

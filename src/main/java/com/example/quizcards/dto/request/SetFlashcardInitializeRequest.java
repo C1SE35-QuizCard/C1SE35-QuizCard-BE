@@ -1,6 +1,6 @@
 package com.example.quizcards.dto.request;
 
-import com.mongodb.lang.Nullable;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -21,11 +21,12 @@ public class SetFlashcardInitializeRequest {
     private Boolean isAnonymous;
     private Boolean sharingMode;
 
+    @NotNull(message = "Missing category.")
+    private Long categoryId;
+
     @Nullable
     private String hashPassword;
 
-    @NotNull(message = "Missing category.")
-    private Long categoryId;
     private Set<String> tagNames;
 
     @NotNull

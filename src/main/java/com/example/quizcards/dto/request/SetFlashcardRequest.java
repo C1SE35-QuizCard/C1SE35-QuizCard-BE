@@ -1,6 +1,6 @@
 package com.example.quizcards.dto.request;
 
-import com.mongodb.lang.Nullable;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

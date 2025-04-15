@@ -364,6 +364,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                             @Param("is_approved") Boolean isApproved,
                             @Param("is_anonymous") Boolean isAnonymous,
                             @Param("sharing_mode") Boolean sharingMode,
+                            @Param("hash_password") String hashPassword,
                             @Param("user_id") Long userId,
                             @Param("category_id") Long categoryId);
 
