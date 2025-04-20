@@ -29,7 +29,7 @@ public class MatchingService implements IMatchingService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
         Long userId = user.getId();
-        iMatchingRepository.deleteByUser_UserId(userId);
+
         int size = flashcards.size();
         // Validate the number of flashcards (between 2 and 15)
         if (size < 2 || size > 15) {
@@ -41,16 +41,28 @@ public class MatchingService implements IMatchingService {
 
         List<Matching> matchings = new ArrayList<>();
 
+        // Check if user has existing matchings
+        List<Matching> existingMatchings = iMatchingRepository.findByUser_UserId(userId);
+        boolean hasExistingMatchings = !existingMatchings.isEmpty();
+
         for (int i = 0; i < size; i++) {
-            Matching matching = new Matching();
+            Matching matching;
+
+            if (hasExistingMatchings && i < existingMatchings.size()) {
+                // Reuse existing matching
+                matching = existingMatchings.get(i);
+            } else {
+                // Create new matching for new user or additional cards
+                matching = new Matching();
+                matching.setUser(new AppUser(userId));
+            }
 
             // Set the flashcard for the matching
             Flashcard flashcard = new Flashcard();
             flashcard.setCardId(flashcards.get(i).getCardId());
             matching.setFlashcard(flashcard);
             matching.setIsCorrect(false);
-//            matching.setSetCode(String.valueOf(flashcard.getSet().getSetId()));
-            matching.setUser(new AppUser(userId));
+            matching.setWrongCount(0);
 
             // Assign round number based on index
             if (i < 5) {
@@ -62,6 +74,13 @@ public class MatchingService implements IMatchingService {
             }
 
             matchings.add(matching);
+        }
+
+        // If user had existing matchings and new list is smaller, delete excess
+        if (hasExistingMatchings && existingMatchings.size() > size) {
+            for (int i = size; i < existingMatchings.size(); i++) {
+                iMatchingRepository.delete(existingMatchings.get(i));
+            }
         }
 
         return iMatchingRepository.saveAll(matchings);
@@ -100,5 +119,10 @@ public class MatchingService implements IMatchingService {
     @Override
     public void changeIsCorrect(Long matchingId) {
         iMatchingRepository.updateIsCorrectByMatchingId(matchingId);
+    }
+
+    @Override
+    public void incrementWrongCount(Long matchingId) {
+        iMatchingRepository.incrementWrongCountByMatchingId(matchingId);
     }
 }

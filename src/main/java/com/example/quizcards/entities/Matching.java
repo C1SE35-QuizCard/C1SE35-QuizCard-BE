@@ -44,4 +44,7 @@ public class Matching {
         ROUND_3,
     }
 
+    @Column(name = "wrong_count")
+    private Integer wrongCount = 0;
+
 }

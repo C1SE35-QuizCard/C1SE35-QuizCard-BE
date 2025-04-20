@@ -1,4 +1,3 @@
-
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.IFlashcardDTO;
@@ -14,4 +13,6 @@ public interface IMatchingService {
     List<Matching> getAll();
 
     void changeIsCorrect(Long matchingId);
+
+    void incrementWrongCount(Long matchingId);
 }

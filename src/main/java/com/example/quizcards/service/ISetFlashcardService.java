@@ -14,11 +14,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ISetFlashcardService {
     SetFlashcard findById(Long setId);
 
-    List<IFlashcardDTO> getAllFlashcardBySetId(Long setId, String requestPassword);
+    List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
 
     List<ISetFlashcardDTO> getAll();
 
@@ -31,9 +32,9 @@ public interface ISetFlashcardService {
                          Boolean isApproved,
                          Boolean isAnonymous,
                          Boolean sharingMode,
-                         String hashPassword,
                          Long userId,
-                         Long categoryId);
+                         Long categoryId,
+                         Set<String> tagNames);
 
     void deleteSetFlashcardAdmin(Long setId);
 
@@ -86,5 +87,5 @@ public interface ISetFlashcardService {
     long countFlashcardsBySetId(Long setId);
     List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO,Long userId);
 
-    public void checkAccess(Long setId, String requestPassword);;;
+    Page<ISetFlashcardDTO> filterByTagName(String tagName, Long userId, int page, int size);
 }
