@@ -108,7 +108,9 @@ public interface IFolderRepository extends JpaRepository<Folder, Long> {
     @Transactional
     @Query(value = """
             update folders f
-            set f.title = :title, f.updated_at = now(), f.user_id = :user_id
+            set f.title = COALESCE(:title, f.title), 
+            f.updated_at = now(), 
+            f.user_id = COALESCE(:user_id, f.user_id)
             where f.folder_id = :folder_id
             """, nativeQuery = true)
     void updateFolder(@Param("folder_id") Long folderId,
