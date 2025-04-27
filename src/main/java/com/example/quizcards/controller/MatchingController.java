@@ -54,4 +54,14 @@ public class MatchingController {
         }
     }
 
+    @PutMapping("/wrong/{matching_id}")
+    public ResponseEntity<?> incrementWrongCount(@PathVariable("matching_id") Long matchingId) {
+        try {
+            iMatchingService.incrementWrongCount(matchingId);
+            return ResponseEntity.ok("Wrong count incremented successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while incrementing wrong count");
+        }
+    }
 }
