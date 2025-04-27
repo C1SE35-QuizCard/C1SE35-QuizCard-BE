@@ -37,7 +37,7 @@ public interface KaRoomRepository extends JpaRepository<KaRoom, Long> {
     @Transactional
     @Query(value = """
         UPDATE ka_rooms
-        SET pin_code = :newPinCode
+        SET pin_code = COALESCE(:newPinCode, pin_code)
         WHERE pin_code = :oldPinCode AND author_id = :userId
         """, nativeQuery = true)
     void updateRoomPinCode(String oldPinCode, String newPinCode, Long userId);

@@ -153,7 +153,9 @@ public interface ICollectionRepository extends JpaRepository<Collection, Long> {
     @Transactional
     @Query(value = """
             update collection c
-            set c.folder_id = :folder_id, c.set_id = :set_id, c.updated_at = now()
+            set c.folder_id = COALESCE(:folder_id, c.folder_id),
+            c.set_id = COALESCE(:set_id, c.set_id), 
+            c.updated_at = now()
             where c.id = :id
             """, nativeQuery = true)
     void updateCollection(@Param("id") Long id,

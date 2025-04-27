@@ -59,7 +59,12 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     @Transactional
     @Query(value = """
             update flashcards f
-            set f.question = :question, f.answer = :answer, f.image_url = :image_url, f.is_approved = :is_approved, f.updated_at = now(), f.set_id = :set_id
+            set f.question = COALESCE(:question, f.question), 
+            f.answer = COALESCE(:answer, f.answer), 
+            f.image_url = COALESCE(:image_url, f.image_url), 
+            f.is_approved = COALESCE(:is_approved, f.is_approved), 
+            f.updated_at = now(), 
+            f.set_id = COALESCE(:set_id, f.set_id)
             where f.card_id = :card_id
             """, nativeQuery = true)
     void updateFlashcards(@Param("card_id") Long cardId,

@@ -76,7 +76,9 @@ public interface IDeadlineReminderRepository extends JpaRepository<DeadlineRemin
     @Transactional
     @Query(value = """
             update deadline_reminders d
-            set d.reminder_time = :reminder_time, d.user_id = :user_id, d.set_id = :set_id
+            set d.reminder_time = COALESCE(:reminder_time, d.reminder_time), 
+            d.user_id = COALESCE(:user_id, d.user_id), 
+            d.set_id = COALESCE(:set_id, d.set_id)
             where d.deadline_reminders_id = :deadline_reminders_id
             """, nativeQuery = true)
     void updateDeadlineReminder(@Param("deadline_reminders_id") Long deadlineRemindersId,
