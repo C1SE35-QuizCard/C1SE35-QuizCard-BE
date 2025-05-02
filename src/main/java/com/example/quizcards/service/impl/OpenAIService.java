@@ -215,10 +215,10 @@ public class OpenAIService {
             String correctAnswerLetter = matcher.group(6).trim();
 
             // Tạo câu hỏi đầy đủ với tất cả các lựa chọn
-            String fullQuestion = questionText +
-                    "A. " + optionA +
-                    "B. " + optionB +
-                    "C. " + optionC +
+            String fullQuestion = questionText + "\n" +
+                    "A. " + optionA + "\n" +
+                    "B. " + optionB + "\n" +
+                    "C. " + optionC + "\n" +
                     "D. " + optionD;
 
             // Tạo answer đầy đủ dựa trên chữ cái chính xác
