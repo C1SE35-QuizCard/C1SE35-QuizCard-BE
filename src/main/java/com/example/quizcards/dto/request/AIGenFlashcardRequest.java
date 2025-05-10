@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class AIGenFlashcardRequest {
+public class    AIGenFlashcardRequest {
     @Min(value = 2, message = "Số lượng flashcard phải từ 2 trở lên")
     @Max(value = 200, message = "Số lượng flashcard không được vượt quá 200")
     private Integer numberOfFlashcards = 10;
