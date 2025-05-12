@@ -2,6 +2,7 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.request.FlashcardRequest;
+import com.example.quizcards.dto.request.GetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IFlashcardService;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/flashcards")
+@RequestMapping("/v1/flashcards")
 public class FlashcardController {
 
     @Autowired
@@ -154,5 +155,11 @@ public class FlashcardController {
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> updateFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
         return flashcardService.updateFlashcard_2(request);
+    }
+
+    @PostMapping("/get-by-ids")
+    public ResponseEntity<?> getFlashcardByIds(@Valid @RequestBody
+                                               GetFlashcardRequest request) {
+        return ResponseEntity.ok(flashcardService.getFlashcardsByCardIdsIn(request.getCardIds()));
     }
 }

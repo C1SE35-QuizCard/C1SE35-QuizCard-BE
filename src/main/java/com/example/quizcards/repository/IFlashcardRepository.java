@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
@@ -33,6 +34,43 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
             where f.set_id = s.set_id
             """, nativeQuery = true)
     List<IFlashcardDTO> findAllFlashcards();
+
+    @Query("""
+                select f.cardId as cardId,
+                        u.userId as userId,
+                        s.setId as setId
+                from Flashcard f
+                join f.set s
+                join s.user u
+                where f.cardId in :ids
+            """)
+    List<IFlashcardDTO> findInfoCardByIdsIn(
+            @Param("ids") Set<Long> ids
+    );
+
+    @Query(value = """
+                select f.cardId as cardId,
+                        u.userId as userId,
+                        s.setId as setId
+                        from Flashcard f
+                        join f.set s
+                        join s.user u
+                        where s.setId = :setId
+                        and f.cardId in :ids
+            """)
+    List<IFlashcardDTO> findInfoCardBySetIdAndIdsIn(
+            @Param("setId") Long setId,
+            @Param("ids") Set<Long> ids);
+
+    @Query(value = """
+                select f.card_id
+                 from flashcards f
+                 where f.set_id = :setId 
+                   and f.card_id in (:cardIds)
+            """, nativeQuery = true)
+    Set<Long> getIdsCardBySetIdAndIdsIn(
+            @Param("setId") Long setId,
+            @Param("cardIds") Set<Long> cardIds);
 
     @Modifying
     @Transactional
@@ -58,16 +96,24 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     @Modifying
     @Transactional
     @Query(value = """
-            update flashcards f
-            set f.question = :question, f.answer = :answer, f.image_url = :image_url, f.is_approved = :is_approved, f.updated_at = now(), f.set_id = :set_id
-            where f.card_id = :card_id
+            UPDATE flashcards f
+            SET
+              f.question    = COALESCE(:question,    f.question),
+              f.answer      = COALESCE(:answer,      f.answer),
+              f.image_url   = COALESCE(:image_url,   f.image_url),
+              f.is_approved = COALESCE(:is_approved, f.is_approved),
+              f.updated_at  = NOW(),
+              f.set_id      = COALESCE(:set_id,      f.set_id)
+            WHERE f.card_id = :card_id
             """, nativeQuery = true)
-    void updateFlashcards(@Param("card_id") Long cardId,
-                          @Param("question") String question,
-                          @Param("answer") String answer,
-                          @Param("image_url") String imageLink,
-                          @Param("is_approved") Boolean isApproved,
-                          @Param("set_id") Long setId);
+    void updateFlashcards(
+            @Param("card_id") Long cardId,
+            @Param("question") String question,
+            @Param("answer") String answer,
+            @Param("image_url") String imageLink,
+            @Param("is_approved") Boolean isApproved,
+            @Param("set_id") Long setId
+    );
 
     @Query(value = """
             select count(f.card_id) 
@@ -84,14 +130,29 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     Integer countCardsByIdAndSetId(@Param("card_id") Long cardId, @Param("set_id") Long setId);
 
     @Query(value = """
-        SELECT f.card_id, f.question, f.answer, f.image_url, f.is_approved, 
-               f.created_at, f.updated_at, s.title
-        FROM flashcards f, set_flashcards s
-        WHERE f.set_id = s.set_id 
-          AND s.set_id = :set_id
-        ORDER BY RAND()
-        LIMIT 15
-        """, nativeQuery = true)
+            SELECT f.card_id, f.question, f.answer, f.image_url, f.is_approved, 
+                   f.created_at, f.updated_at, s.title
+            FROM flashcards f, set_flashcards s
+            WHERE f.set_id = s.set_id 
+              AND s.set_id = :set_id
+            ORDER BY RAND()
+            LIMIT 15
+            """, nativeQuery = true)
     List<IFlashcardDTO> findRandomFlashcardsBySetId(@Param("set_id") Long id);
+
+
+    @Query(value = """
+            SELECT f.card_id as cardId,
+                   f.question as question, 
+                   f.answer as answer,
+                   f.image_url as imageUrl,
+                   f.is_approved as isApproved, 
+                   f.created_at as createdAt,
+                   f.updated_at as updatedAt
+            FROM flashcards f
+            WHERE f.card_id IN (:cardIds)
+            """, nativeQuery = true)
+    List<IFlashcardDTO> findFlashcardByIdsIn(
+            @Param("cardIds") List<Long> cardIds);
 }
 

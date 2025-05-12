@@ -3,7 +3,7 @@ package com.example.quizcards.controller.speech;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/speech")
+@RequestMapping("/v1/speech")
 public class TextToSpeechController {
     @PostMapping
     public void textToSpeech(@RequestBody String text) {

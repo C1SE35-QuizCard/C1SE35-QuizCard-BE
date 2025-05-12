@@ -98,6 +98,8 @@ dependencies {
     // Dependency chính cho Spring Kafka (runtime)
     implementation 'org.springframework.kafka:spring-kafka:3.2.4'
 
+    implementation 'org.hibernate.orm:hibernate-envers'
+
     // Dependency cho testing (chỉ dùng trong kiểm thử)
     testImplementation 'org.springframework.kafka:spring-kafka-test:3.2.4'
 }

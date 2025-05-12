@@ -238,19 +238,30 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Modifying
     @Transactional
     @Query(value = """
-            update set_flashcards s
-            set s.title = :title, s.description_set = :description_set, s.updated_at = now(), s.is_approved = :is_approved, s.is_anonymous = :is_anonymous, s.sharing_mode = :sharing_mode, s.hash_password = :hash_password, s.user_id = :user_id, s.category_id = :category_id
-            where s.set_id = :set_id
-            """, nativeQuery = true)
-    void updateSetFlashcard(@Param("set_id") Long setId,
-                            @Param("title") String title,
-                            @Param("description_set") String descriptionSet,
-                            @Param("is_approved") Boolean isApproved,
-                            @Param("is_anonymous") Boolean isAnonymous,
-                            @Param("sharing_mode") Boolean sharingMode,
-                            @Param("hash_password") String hashPassword,
-                            @Param("user_id") Long userId,
-                            @Param("category_id") Long categoryId);
+        UPDATE set_flashcards s
+        SET
+          s.title           = COALESCE(:title, s.title),
+          s.description_set = COALESCE(:description_set, s.description_set),
+          s.updated_at      = NOW(),
+          s.is_approved     = COALESCE(:is_approved, s.is_approved),
+          s.is_anonymous    = COALESCE(:is_anonymous, s.is_anonymous),
+          s.sharing_mode    = COALESCE(:sharing_mode, s.sharing_mode),
+          s.hash_password   = COALESCE(:hash_password, s.hash_password),
+          s.user_id         = COALESCE(:user_id, s.user_id),
+          s.category_id     = COALESCE(:category_id, s.category_id)
+        WHERE s.set_id = :set_id
+        """, nativeQuery = true)
+    void updateSetFlashcard(
+            @Param("set_id") Long setId,
+            @Param("title") String title,
+            @Param("description_set") String descriptionSet,
+            @Param("is_approved") Boolean isApproved,
+            @Param("is_anonymous") Boolean isAnonymous,
+            @Param("sharing_mode") Boolean sharingMode,
+            @Param("hash_password") String hashPassword,
+            @Param("user_id") Long userId,
+            @Param("category_id") Long categoryId
+    );
 
     @Query(value = """
             SELECT

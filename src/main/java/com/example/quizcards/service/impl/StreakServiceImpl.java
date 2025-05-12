@@ -8,7 +8,7 @@ import com.example.quizcards.entities.StreakDetails;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.repository.IStreakAnalysisRepository;
 import com.example.quizcards.repository.IStreakDetailsRepository;
-import com.example.quizcards.utils.IbmTimezoneUtils;
+import com.example.quizcards.utils.IbmTzLocaleUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,36 +38,20 @@ public class StreakServiceImpl {
 
     IStreakAnalysisRepository analysisRepository;
 
-    IbmTimezoneUtils ibmTimezoneUtils;
+    IbmTzLocaleUtils ibmTzLocaleUtils;
+
 
     @Transactional
-    public boolean generateStreak(AppUser user, OffsetDateTime clientDateLearned) {
-        int offsetClient = clientDateLearned.getOffset().getTotalSeconds() / 3600;
-        Instant instant = Instant.now();
-        LocalDate currentDateInClient =
-                instant.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHours(offsetClient))).toLocalDate();
-
-        if (clientDateLearned.toLocalDate().isAfter(currentDateInClient)) {
-            throw new RuntimeException("Invalid date");
+    public boolean generateStreakV2(AppUser user, int offsetHours, int offsetMinutes) {
+        if (offsetHours < -12 || offsetHours > 14 || offsetMinutes < -59 || offsetMinutes > 59) {
+            throw new BadRequestException("Invalid timezone offset");
         }
+        Instant currentTime = Instant.now();
+        LocalDate dateFromClient =
+                currentTime.atZone(ZoneId.ofOffset("UTC", ZoneOffset.ofHoursMinutes(
+                        offsetHours,
+                        offsetMinutes))).toLocalDate();
 
-        Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, currentDateInClient);
-
-        if (streakData.isPresent()) {
-            return false;
-        }
-
-        StreakDetails streakDetails = StreakDetails.builder()
-                .user(user)
-                .dateLearned(currentDateInClient)
-                .build();
-
-        learningRepository.save(streakDetails);
-        handleUpdateStreakAnalysis(user, currentDateInClient);
-        return true;
-    }
-
-    private void handleUpdateStreakAnalysis(AppUser user, LocalDate currentDateInClient) {
         StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
                 .orElse(StreakAnalysis.builder()
                         .user(user)
@@ -75,60 +59,64 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
-        boolean yDayLearned = learningRepository.existsByUserAndDateLearned(user, currentDateInClient.minusDays(1));
+        LocalDate currentDate =
+                streakAnalysis.getLastUpdated() == null ? dateFromClient :
+                        Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
+                                .max(LocalDate::compareTo)
+                                .orElse(dateFromClient);
 
-        if (!yDayLearned) {
-            streakAnalysis.setCurrentStreak(1L);
-        } else {
-            streakAnalysis.setCurrentStreak(streakAnalysis.getCurrentStreak() + 1);
-            streakAnalysis.setLongestStreak(Math.max(streakAnalysis.getLongestStreak(), streakAnalysis.getCurrentStreak()));
+        Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, currentDate);
+
+        if (streakData.isPresent()) {
+            return false;
         }
 
-        streakAnalysis.setDayLearned(streakAnalysis.getDayLearned() + 1L);
+        StreakDetails streakDetails = StreakDetails.builder()
+                .user(user)
+                .dateLearned(currentDate)
+                .build();
 
-        analysisRepository.save(streakAnalysis);
+        learningRepository.save(streakDetails);
+        return handleUpdateStreakAnalysisV2(user, currentDate, streakAnalysis);
     }
 
-    public StreakAnalysisResponse getAnalysisStreak(AppUser user, int offsetHours, int offsetMinutes, String localeStr) {
-        Instant instant = Instant.now();
+    private boolean handleUpdateStreakAnalysisV2(AppUser user, LocalDate date, StreakAnalysis s) {
+        boolean yDayLearned = learningRepository
+                .existsByUserAndDateLearned(user, date.minusDays(1));
 
-        LocalDate currentDateInClient = instant.atZone(ZoneId.ofOffset("UTC",
-                        ZoneOffset.ofHoursMinutes(offsetHours, offsetMinutes)))
-                .toLocalDate();
+        if (!yDayLearned) {
+            s.setCurrentStreak(1L);
+        } else {
+            s.setCurrentStreak(s.getCurrentStreak() + 1);
+            s.setLongestStreak(Math.max(s.getLongestStreak(), s.getCurrentStreak()));
+        }
 
-        Locale locale = ibmTimezoneUtils.getLocale(localeStr);
+        s.setLastUpdated(date);
 
-        return getAnalysisLearningBaseOnLocale(user, locale, currentDateInClient);
+        s.setDayLearned(s.getDayLearned() + 1L);
+
+        analysisRepository.save(s);
+
+        return true;
     }
 
-    public StreakAnalysisResponse getAnalysisStreakV2(AppUser user, String localeStr) {
-        Instant instant = Instant.now();
+    @Transactional
+    public boolean generateStreak(AppUser user, OffsetDateTime clientDateLearned) {
+        int totalSeconds = clientDateLearned.getOffset().getTotalSeconds();
+        int offsetHours = totalSeconds / 3600;
+        // Giữ nguyên dấu của phút
+        int offsetMinutes = (totalSeconds % 3600) / 60;
 
-        int[] offsetData = ibmTimezoneUtils.getOffsetHoursBaseOnLocale(localeStr);
+        // Bây giờ offsetHours và offsetMinutes sẽ luôn cùng dấu (hoặc bằng 0)
+        ZoneOffset calculatedOffset = ZoneOffset.ofHoursMinutes(offsetHours, offsetMinutes);
 
-        Locale locale = ibmTimezoneUtils.getLocale(localeStr);
+        Instant currentTime = Instant.now();
+        LocalDate dateFromClient =
+                currentTime.atZone(ZoneId.ofOffset("UTC", calculatedOffset)).toLocalDate();
 
-        LocalDate currentDateInClient = instant.atZone(
-                ZoneId.ofOffset("UTC", ZoneOffset.ofHoursMinutes(offsetData[0], offsetData[1])))
-                .toLocalDate();
-
-        // Get rules base on Locale
-        return getAnalysisLearningBaseOnLocale(user, locale, currentDateInClient);
-    }
-
-    private StreakAnalysisResponse getAnalysisLearningBaseOnLocale(AppUser user, Locale locale, LocalDate currentDateInClient) {
-        WeekFields weekFields = WeekFields.of(locale);
-        DayOfWeek firstDayOfWeek = weekFields.getFirstDayOfWeek();
-
-        // Calculate the first day of week
-        LocalDate startOfWeek = currentDateInClient.with(TemporalAdjusters.previousOrSame(firstDayOfWeek));
-
-        // Calculate the last day of week
-        LocalDate endOfWeek = startOfWeek.plusDays(6);
-
-        boolean currentDateLearned = learningRepository.existsByUserAndDateLearned(user, currentDateInClient);
-
-        boolean yesterdayLearned = learningRepository.existsByUserAndDateLearned(user, currentDateInClient.minusDays(1));
+        if (clientDateLearned.toLocalDate().isAfter(dateFromClient)) {
+            throw new RuntimeException("Invalid date");
+        }
 
         StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
                 .orElse(StreakAnalysis.builder()
@@ -138,31 +126,112 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
-        List<StreakDetails> streaksOneWeek = learningRepository.findByUserAndDateLearnedBetween(user,
-                startOfWeek, endOfWeek);
+        LocalDate currentDate =
+                streakAnalysis.getLastUpdated() == null ? dateFromClient :
+                        Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
+                                .max(LocalDate::compareTo)
+                                .orElse(dateFromClient);
 
-        List<StreakStatus> streaksStatuses = streaksOneWeek.stream()
-                .map(streakDetails -> {
-                    String dayFull = streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.FULL, locale);
-                    String dayShort = streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.SHORT, locale);
-                    return StreakStatus.builder()
-                            .date(streakDetails.getDateLearned())
-                            .dayFull(dayFull)
-                            .dayShort(dayShort)
-                            .dayFullEn(streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
-                            .dayShortEn(streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH))
-                            .dayRank(streakDetails.getDateLearned().getDayOfWeek().getValue())
-                            .build();
-                })
-                .toList();
+//       NO CODE: Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, dateFromClient);
+        Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, currentDate);
 
-        return StreakAnalysisResponse.builder()
-                .longestStreak(streakAnalysis.getLongestStreak())
-                .currentStreak(currentDateLearned || yesterdayLearned ? streakAnalysis.getCurrentStreak() : 0)
-                .isCurrentDateLearned(currentDateLearned)
-                .dayLearned(streakAnalysis.getDayLearned())
-                .streakOneWeek(streaksStatuses)
+        if (streakData.isPresent()) {
+            return false;
+        }
+
+//      NO CODE: StreakDetails streakDetails = StreakDetails.builder()
+//                .user(user)
+//                .dateLearned(dateFromClient)
+//                .build();
+        StreakDetails streakDetails = StreakDetails.builder()
+                .user(user)
+                .dateLearned(currentDate)
                 .build();
+
+        learningRepository.save(streakDetails);
+//      NO CODE: handleUpdateStreakAnalysis(user, dateFromClient);
+        handleUpdateStreakAnalysis(user, currentDate);
+        return true;
+    }
+
+    private void handleUpdateStreakAnalysis(AppUser user, LocalDate dateFromClient) {
+        StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
+                .orElse(StreakAnalysis.builder()
+                        .user(user)
+                        .longestStreak(1L)
+                        .dayLearned(0L)
+                        .build());
+
+        boolean yDayLearned = learningRepository.existsByUserAndDateLearned(user, dateFromClient.minusDays(1));
+
+        if (!yDayLearned) {
+            streakAnalysis.setCurrentStreak(1L);
+        } else {
+            streakAnalysis.setCurrentStreak(streakAnalysis.getCurrentStreak() + 1);
+            streakAnalysis.setLongestStreak(Math.max(streakAnalysis.getLongestStreak(), streakAnalysis.getCurrentStreak()));
+        }
+
+        streakAnalysis.setDayLearned(streakAnalysis.getDayLearned() + 1L);
+        streakAnalysis.setLastUpdated(dateFromClient);
+
+        analysisRepository.save(streakAnalysis);
+    }
+
+    public StreakAnalysisResponse getAnalysisStreak(AppUser user, int offsetHours, int offsetMinutes, String localeStr) {
+        Instant currentTime = Instant.now();
+
+        LocalDate dateFromClient = currentTime.atZone(ZoneId.ofOffset("UTC",
+                        ZoneOffset.ofHoursMinutes(offsetHours, offsetMinutes)))
+                .toLocalDate();
+
+        Locale locale = ibmTzLocaleUtils.getLocale(localeStr);
+
+        return getAnalysisLearningBaseOnLocale(user, locale, dateFromClient);
+    }
+
+    private StreakAnalysisResponse getAnalysisLearningBaseOnLocale(AppUser user,
+                                                                   Locale locale,
+                                                                   LocalDate dateFromClient) {
+        StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
+                .orElse(StreakAnalysis.builder()
+                        .user(user)
+                        .longestStreak(0L)
+                        .currentStreak(0L)
+                        .dayLearned(0L)
+                        .build());
+
+        LocalDate currentDate =
+                streakAnalysis.getLastUpdated() == null ? dateFromClient :
+                        Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
+                                .max(LocalDate::compareTo)
+                                .orElse(dateFromClient);
+
+        WeekFields weekFields = WeekFields.of(locale);
+        DayOfWeek firstDayOfWeek = weekFields.getFirstDayOfWeek();
+
+        // Calculate the first day of week
+        LocalDate startOfWeek = dateFromClient.with(TemporalAdjusters.previousOrSame(firstDayOfWeek));
+
+        // Calculate the last day of week
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+//       NO CODE: boolean currentDateLearned = learningRepository.existsByUserAndDateLearned(user, dateFromClient);
+//
+//        boolean yesterdayLearned = learningRepository.existsByUserAndDateLearned(user, dateFromClient.minusDays(1));
+
+        boolean currentDateLearned = learningRepository.existsByUserAndDateLearned(user, currentDate);
+
+        boolean yesterdayLearned = learningRepository.existsByUserAndDateLearned(user, currentDate.minusDays(1));
+
+        streakAnalysis = analysisRepository.findByUser(user)
+                .orElse(StreakAnalysis.builder()
+                        .user(user)
+                        .longestStreak(0L)
+                        .currentStreak(0L)
+                        .dayLearned(0L)
+                        .build());
+
+        return getCalculateStreakAnalysisResponse(user, locale, startOfWeek, endOfWeek, streakAnalysis, currentDateLearned, yesterdayLearned);
     }
 
     public List<StreakStatus> getLearnedDetails(AppUser user, int month, int year, String localeCode) {
@@ -220,11 +289,90 @@ public class StreakServiceImpl {
         return new PageImpl<>(transformedStatuses, pageable, statuses.getTotalElements());
     }
 
+    public StreakAnalysisResponse getAnalysisStreakV2(AppUser user,
+                                                      OffsetDateTime timeFromClient,
+                                                      String localeStr) {
+        // (Tùy chọn) Validate lại offset ở tầng service
+        ZoneOffset offset = timeFromClient.getOffset();
+        int totalSeconds = offset.getTotalSeconds();
+        int offsetHours = totalSeconds / 3600;
+        if (offsetHours < -12 || offsetHours > 14) {
+            throw new IllegalArgumentException("Invalid timezone offset");
+        }
+
+        // Lấy ngày client-local
+        LocalDate dateFromClient = timeFromClient.toLocalDate();
+
+        // Xử lý locale
+        Locale locale = ibmTzLocaleUtils.getLocale(localeStr);
+
+        return getAnalysisLearningBaseOnLocaleV2(user, locale, dateFromClient);
+    }
+
+    private StreakAnalysisResponse getAnalysisLearningBaseOnLocaleV2(AppUser user, Locale locale, LocalDate dateFromClient) {
+        StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
+                .orElse(StreakAnalysis.builder()
+                        .user(user)
+                        .longestStreak(0L)
+                        .currentStreak(0L)
+                        .dayLearned(0L)
+                        .build());
+
+        LocalDate currentDate =
+                streakAnalysis.getLastUpdated() == null ? dateFromClient :
+                        Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
+                                .max(LocalDate::compareTo)
+                                .orElse(dateFromClient);
+
+        DayOfWeek firstDayOfWeek = WeekFields.of(locale).getFirstDayOfWeek();
+
+        // Calculate the first day of week
+        LocalDate startOfWeek = dateFromClient.with(TemporalAdjusters.previousOrSame(firstDayOfWeek));
+
+        // Calculate the last day of week
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+        boolean currentDateLearned = learningRepository.existsByUserAndDateLearned(user, currentDate);
+
+        boolean yesterdayLearned = learningRepository.existsByUserAndDateLearned(user, currentDate.minusDays(1));
+
+        return getCalculateStreakAnalysisResponse(user, locale, startOfWeek, endOfWeek, streakAnalysis, currentDateLearned, yesterdayLearned);
+    }
+
+    private StreakAnalysisResponse getCalculateStreakAnalysisResponse(AppUser user, Locale locale, LocalDate startOfWeek, LocalDate endOfWeek, StreakAnalysis streakAnalysis, boolean currentDateLearned, boolean yesterdayLearned) {
+        List<StreakDetails> streaksOneWeek = learningRepository.findByUserAndDateLearnedBetween(user,
+                startOfWeek, endOfWeek);
+
+        List<StreakStatus> streaksStatuses = streaksOneWeek.stream()
+                .map(streakDetails -> {
+                    String dayFull = streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.FULL, locale);
+                    String dayShort = streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.SHORT, locale);
+                    return StreakStatus.builder()
+                            .date(streakDetails.getDateLearned())
+                            .dayFull(dayFull)
+                            .dayShort(dayShort)
+                            .dayFullEn(streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH))
+                            .dayShortEn(streakDetails.getDateLearned().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH))
+                            .dayRank(streakDetails.getDateLearned().getDayOfWeek().getValue())
+                            .build();
+                })
+                .toList();
+
+        return StreakAnalysisResponse.builder()
+                .longestStreak(streakAnalysis.getLongestStreak())
+                .currentStreak(currentDateLearned || yesterdayLearned ? streakAnalysis.getCurrentStreak() : 0)
+                .isCurrentDateLearned(currentDateLearned)
+                .dayLearned(streakAnalysis.getDayLearned())
+                .streakOneWeek(streaksStatuses)
+                .build();
+    }
+
+
     private Iterator<StreakStatus> transformDateToDayOfWeek(Iterator<StreakStatus> streaksStatuses, String localeCode) {
         if (!StringUtils.hasText(localeCode)) {
             localeCode = "en-US";
         }
-        Locale locale = ibmTimezoneUtils.getLocale(localeCode);
+        Locale locale = ibmTzLocaleUtils.getLocale(localeCode);
         Stream<StreakStatus> transformedStream = StreamSupport.stream(
                         Spliterators.spliteratorUnknownSize(streaksStatuses, Spliterator.ORDERED), false)
                 .map(streakStatus -> {

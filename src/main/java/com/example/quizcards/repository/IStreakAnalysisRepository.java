@@ -12,11 +12,4 @@ import java.util.Optional;
 @Repository
 public interface IStreakAnalysisRepository extends JpaRepository<StreakAnalysis, Long> {
     Optional<StreakAnalysis> findByUser(AppUser user);
-
-    @Query(value = """
-                        select sa.dayLearned
-                        from StreakAnalysis sa
-                        where sa.user.userId = :userId
-            """)
-    Long countLearnedDayByUser(@Param("userId") Long userId);
 }

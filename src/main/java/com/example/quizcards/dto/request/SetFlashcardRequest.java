@@ -1,6 +1,6 @@
 package com.example.quizcards.dto.request;
 
-import com.mongodb.lang.Nullable;
+import com.example.quizcards.dto.OnUpdate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SetFlashcardRequest {
-    @NotNull(message = "Missing set id")
+    @NotNull(message = "Missing set id", groups = {OnUpdate.class})
     private Long setId;
 
     @NotBlank(message = "Title of the set flashcard is empty.")
@@ -22,7 +22,6 @@ public class SetFlashcardRequest {
     private Boolean isAnonymous;
     private Boolean sharingMode;
 
-    @Nullable
     private String hashPassword;
 
     private Long categoryId;

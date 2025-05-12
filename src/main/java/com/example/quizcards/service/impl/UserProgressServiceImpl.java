@@ -2,53 +2,57 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
-import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
-import com.example.quizcards.dto.response.ApiResponse;
-import com.example.quizcards.dto.response.IProgressAnalysisDTO;
-import com.example.quizcards.dto.response.ProgressResponse;
+import com.example.quizcards.dto.IProgressAnalysisDTO;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Flashcard;
-import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.entities.UserProgress;
-import com.example.quizcards.exception.BadRequestException;
-import com.example.quizcards.exception.ResourceNotFoundException;
-import com.example.quizcards.repository.IFlashcardRepository;
-import com.example.quizcards.repository.ISetFlashcardRepository;
+import com.example.quizcards.entities.SetProgressSetting;
 import com.example.quizcards.repository.IUserProgressRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserProgressServiceImpl implements IUserProgressService {
+    IUserProgressRepository userProgressRepository;
 
-    @Autowired
-    private IUserProgressRepository userProgressRepository;
+    SetProgressSettingServiceImpl setProgressService;
 
-    @Autowired
-    private ISetFlashcardRepository setRepository;
+//    @Override
+//    public List<IUserProgressDTO> findUserSetProgress(Long userId) {
+//        return userProgressRepository.findUserSetProgress(userId);
+//    }
 
-    @Autowired
-    private IFlashcardRepository cardRepository;
-
-    @Override
-    public List<IUserProgressDTO> findUserSetProgress(Long userId) {
-        return userProgressRepository.findUserSetProgress(userId);
-    }
-
+    @Deprecated
     @Override
     public List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(Long setId, Long userId) {
         return userProgressRepository.findFlashcardsProgressBySetId(setId, userId);
+    }
+
+    @Deprecated
+    @Override
+    public List<IFlashcardProgressDTO> findCardProgressesByCardIdsIn(Long userId, List<Long> cardIds, long limit) {
+        return userProgressRepository.findProgCardsByCardIdsIn(
+                userId, cardIds, limit);
+    }
+
+    @Override
+    public List<IFlashcardProgressDTO> findFlashcardsProgressBySetIdWithVersion(Long setId, Long userId) {
+        SetProgressSetting setting = setProgressService.getEffectiveSettings(setId, userId);
+        return userProgressRepository.findFlashcardsProgressBySetId(
+                setId, userId, setting.getCurrentSimpleModeVersion());
     }
 
     @Override
@@ -71,87 +75,78 @@ public class UserProgressServiceImpl implements IUserProgressService {
         userProgressRepository.updateUserProgress(request.getProgressId(), request.getProgressType(), request.getIsAttention(), request.getUserId(), request.getCardId());
     }
 
-    @Override
-    public void addUserProgress_2(UserProgressRequest request) {
-        if (request.getCardId() == null) {
-            throw new BadRequestException("Progress id is null");
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        userProgressRepository.createUserProgress(request.getProgressType(), request.getIsAttention(),
-                up.getId(), request.getCardId());
+    private UserProgress findOrCreate(Long userId, Long cardId) {
+        return userProgressRepository
+                .findByAppUser_UserIdAndFlashcard_CardId(userId, cardId)
+                .orElseGet(() -> {
+                    UserProgress newUps = new UserProgress();
+                    newUps.setAppUser(AppUser.builder().userId(userId).build());
+                    newUps.setFlashcard(Flashcard.builder().cardId(cardId).build());
+                    newUps.setIsAttention(false);
+                    return newUps;
+                });
     }
 
-    @Override
-    public void deleteUserProgressById_2(Long progressId) {
-        if (progressId == null) {
-            throw new BadRequestException("Progress id is null");
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        UserProgress ups = userProgressRepository.findById(progressId).orElseThrow(
-                () -> new ResourceNotFoundException("Progress", "id", progressId)
-        );
-        if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
-            throw new ResourceNotFoundException("Progress not owner", "id", progressId);
-        }
-        userProgressRepository.deleteUserProgressById(progressId);
+    private Map<String, Object> handleAssign(Long userId, Long cardId, UserProgressRequest request) {
+        return handleAssign(userId, cardId, request, false);
     }
 
-    @Override
-    public void updateUserProgress_2(UserProgressRequest request) {
-        if (request.getProgressId() == null) {
-            throw new BadRequestException("Progress id is null");
-        }
-        if (request.getCardId() == null) {
-            throw new BadRequestException("Progress id is null");
-        }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        UserProgress ups = userProgressRepository.findById(request.getProgressId()).orElseThrow(
-                () -> new ResourceNotFoundException("Progress", "id", request.getProgressId())
-        );
-        if (!Objects.equals(ups.getAppUser().getUserId(), up.getId())) {
-            throw new ResourceNotFoundException("Progress not owner", "id", request.getProgressId());
-        }
-        userProgressRepository.updateUserProgress(request.getProgressId(), request.getProgressType(),
-                request.getIsAttention(), up.getId(), request.getCardId());
-    }
+    private Map<String, Object> handleAssign(Long userId, Long cardId, UserProgressRequest request, boolean isAssignVersion) {
+        // 1. Tìm hoặc khởi tạo mới UserProgress
+        UserProgress ups = findOrCreate(userId, cardId);
 
-    @Override
-    public ResponseEntity<?> assignUserProgress(UserProgressRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        UserProgress ups = new UserProgress();
-        ups.setAppUser(AppUser.builder().userId(up.getId()).build());
-        ups.setFlashcard(Flashcard.builder().cardId(request.getCardId()).build());
-        Optional<UserProgress> check = userProgressRepository.
-                findAll(Example.of(ups, ExampleMatcher.matching().withIgnoreCase())).stream().findAny();
-        if (check.isEmpty()) {
+        if (request.getProgressType() != null) {
             ups.setProgressType(request.getProgressType());
-            ups.setIsAttention(request.getIsAttention() == null ? false : request.getIsAttention());
-        } else {
-            ups = check.get();
-            ups.setProgressType(request.getProgressType() == null ? ups.getProgressType() : request.getProgressType());
-            ups.setIsAttention(request.getIsAttention() == null ? ups.getIsAttention() : request.getIsAttention());
         }
+
+        if (request.getIsAttention() != null) {
+            ups.setIsAttention(request.getIsAttention());
+        }
+
+        if (isAssignVersion) {
+            Long currentSimpleModeVersion = setProgressService.findCurrentSimpleModeVersionByCardIdAndUserId(cardId, userId);
+            ups.setModeVersion(currentSimpleModeVersion);
+        }
+
+        // 4. Lưu vào DB
         ups = userProgressRepository.save(ups);
 
+        // 5. Build kết quả
         Map<String, Object> result = new HashMap<>();
         result.put("progressId", ups.getProgressId());
         result.put("statusProgress", ups.getProgressType());
         result.put("statusMark", ups.getIsAttention());
-        result.put("userId", up.getId());
-        result.put("cardId", request.getCardId());
-        return ResponseEntity.ok().body(result);
+        result.put("userId", userId);
+        result.put("cardId", cardId);
+        return result;
     }
 
+    @Deprecated
     @Override
-    public ResponseEntity<?> resetUserProgress(Long setId) {
+    public Map<String, Object> assignUserProgress(UserProgressRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return handleAssign(up.getId(), request.getCardId(), request);
+    }
+
+    @Deprecated
+    @Override
+    public void resetUserProgress(Long setId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         userProgressRepository.deleteUserProgressByUserAndSetId(up.getId(), setId);
-        return ResponseEntity.ok().build();
+    }
+
+    @Deprecated
+    @Override
+    public boolean existsByUserIdAndCardId(Long userId, Long cardId) {
+        return userProgressRepository.existsByUserIdAndCardId(userId, cardId) != 0;
+    }
+
+    @Deprecated
+    @Override
+    public boolean existsByUserIdAndCardIdAndNotId(Long userId, Long cardId, Long progressId) {
+        return userProgressRepository.existsByUserIdAndCardIdAndNotId(userId, cardId, progressId) > 0;
     }
 
     @Override
@@ -160,12 +155,9 @@ public class UserProgressServiceImpl implements IUserProgressService {
     }
 
     @Override
-    public boolean existsByUserIdAndCardId(Long userId, Long cardId) {
-        return userProgressRepository.existsByUserIdAndCardId(userId, cardId) != 0;
-    }
-
-    @Override
-    public boolean existsByUserIdAndCardIdAndNotId(Long userId, Long cardId, Long progressId) {
-        return userProgressRepository.existsByUserIdAndCardIdAndNotId(userId, cardId, progressId) > 0;
+    public Map<String, Object> assignUserProgressWithVersion(UserProgressRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        return handleAssign(up.getId(), request.getCardId(), request, true);
     }
 }

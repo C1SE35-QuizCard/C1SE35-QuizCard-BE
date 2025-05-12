@@ -20,7 +20,7 @@ import java.util.Map;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/category")
+@RequestMapping("/v1/category")
 public class CategorySetFlashcardController {
 
     @Autowired

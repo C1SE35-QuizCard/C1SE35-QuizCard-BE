@@ -2,17 +2,20 @@ package com.example.quizcards.service;
 
 import com.example.quizcards.dto.IFlashcardProgressDTO;
 import com.example.quizcards.dto.IProgressDTO;
-import com.example.quizcards.dto.IUserProgressDTO;
 import com.example.quizcards.dto.request.UserProgressRequest;
-import com.example.quizcards.dto.response.IProgressAnalysisDTO;
-import org.springframework.http.ResponseEntity;
+import com.example.quizcards.dto.IProgressAnalysisDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IUserProgressService {
-    List<IUserProgressDTO> findUserSetProgress(Long userId);
+//    List<IUserProgressDTO> findUserSetProgress(Long userId);
 
     List<IFlashcardProgressDTO> findFlashcardsProgressBySetId(Long setId, Long userId);
+
+    List<IFlashcardProgressDTO> findCardProgressesByCardIdsIn(Long userId, List<Long> cardIds, long limit);
+
+    List<IFlashcardProgressDTO> findFlashcardsProgressBySetIdWithVersion(Long setId, Long userId);
 
     IProgressAnalysisDTO findAnalysisProgressBySetId(Long setId, Long userId);
 
@@ -22,15 +25,11 @@ public interface IUserProgressService {
 
     void updateUserProgress(UserProgressRequest request);
 
-    void addUserProgress_2(UserProgressRequest request);
+    Map<String, Object> assignUserProgress(UserProgressRequest request);
 
-    void deleteUserProgressById_2(Long progressId);
+    Map<String, Object> assignUserProgressWithVersion(UserProgressRequest request);
 
-    void updateUserProgress_2(UserProgressRequest request);
-
-    ResponseEntity<?> assignUserProgress(UserProgressRequest request);
-
-    ResponseEntity<?> resetUserProgress(Long setId);
+    void resetUserProgress(Long setId);
 
     IProgressDTO findUserProgressById(Long progressId);
 

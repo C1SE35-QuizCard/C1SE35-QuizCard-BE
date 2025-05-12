@@ -24,7 +24,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/deadline")
+@RequestMapping("/v1/deadline")
 public class DeadlineReminderControllder {
 
     @Autowired

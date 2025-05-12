@@ -11,7 +11,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/testMode")
+@RequestMapping("/v1/testMode")
 public class TestModeController {
     @Autowired
     private ITestModeService testModeService;

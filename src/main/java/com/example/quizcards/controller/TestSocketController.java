@@ -175,7 +175,7 @@ public class TestSocketController {
         UserPrincipal up = extractPrincipal(principal);
         TestData testData = extractTestDataFromSessions(sessionAttributes, request.getTestId());
         checkTestCanEdit(testData, up);
-        submitService.submitTest(testData.getTestId());
+        submitService.submitTestOld(testData.getTestId());
         TestExecutorSession.shutdownExecutorByTestId(testData.getTestId());
         TestSocketSession.shutdownTest(testData.getTestId());
     }

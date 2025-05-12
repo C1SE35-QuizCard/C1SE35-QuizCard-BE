@@ -2,12 +2,8 @@ package com.example.quizcards.config;
 
 import com.example.quizcards.security.JwtAuthenticationFilter;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -17,7 +13,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,7 +30,6 @@ import java.util.Arrays;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final CustomUserDetailsServiceImpl userDetailsService;
@@ -59,50 +53,58 @@ public class SecurityConfig {
 
     // Mảng chứa các endpoint cần xác thực
     String[] authEndpoints = {
-            "/api/v1/auth/user-info",
-            "/api/v1/auth/logout",
-            "/api/v1/auth/update-password",
+            "/v1/auth/user-info",
+            "/v1/auth/logout",
+            "/v1/auth/update-password",
+            "/v1/home/data",
             "/api/v1/home/data",
-            "/api/v1/home/admin",
-            "/api/v1/set/count-set",
-            "/api/v1/set/count-set-in-current-date",
-            "/api/v1/set/create-new-set",
-            "/api/v1/set/update-set",
-            "/api/v1/set/delete-set/",
-            "/api/v1/flashcards/create-new-flashcard",
-            "/api/v1/flashcards/update-flashcard",
-            "/api/v1/flashcards/delete-flashcard",
-            "/api/v1/folder/create-new-folder",
-            "/api/v1/folder/update-folder",
-            "/api/v1/folder/delete-folder",
-            "/api/v1/folder/user",
-            "/api/v1/collection/create-new-collection",
-            "/api/v1/collection/delete-collection",
-            "/api/v1/deadline/create-deadline",
-            "/api/v1/deadline/update-deadline",
-            "/api/v1/deadline/delete-deadline/",
-            "/api/v1/category-subscription/current-benefit",
-            "/api/v1/category-subscription/current-subscription",
-            "/api/v1/flashcard-settings/update",
-            "/api/v1/flashcard-settings/",
-            "/api/v1/flashcard-settings/sort",
-            "/api/v1/progress/user/set/",
-            "/api/v1/progress/user/analysis/set/",
-            "/api/v1/progress/user/assign-progress",
-            "/api/v1/progress/user/reset-progress/",
-            "/api/v1/users/**",
-            "/api/v1/category/create",
-            "/api/v1/category/update",
-            "/api/v1/category/delete",
-            "/api/v1/notification/**",
-            "/api/v1/streak-learning/**"
+            "/v1/home/admin",
+            "/v1/set/count-set",
+            "/v1/set/count-set-in-current-date",
+            "/v1/set/create-new-set",
+            "/v1/set/update-set",
+            "/v1/set/delete-set/",
+            "/v1/flashcards/create-new-flashcard",
+            "/v1/flashcards/update-flashcard",
+            "/v1/flashcards/delete-flashcard",
+            "/v1/folder/create-new-folder",
+            "/v1/folder/update-folder",
+            "/v1/folder/delete-folder",
+            "/v1/folder/user",
+            "/v1/collection/create-new-collection",
+            "/v1/collection/delete-collection",
+            "/v1/deadline/create-deadline",
+            "/v1/deadline/update-deadline",
+            "/v1/deadline/delete-deadline/",
+            "/v1/category-subscription/current-benefit",
+            "/v1/category-subscription/current-subscription",
+            "/v1/flashcard-settings/update",
+            "/v1/flashcard-settings/",
+            "/v1/flashcard-settings/sort",
+            "/v1/progress/user/set/",
+            "/v1/progress/user/analysis/set/",
+            "/v1/progress/user/assign-progress",
+            "/v1/progress/user/reset-progress/",
+            "/v1/users/**",
+            "/v1/category/create",
+            "/v1/category/update",
+            "/v1/category/delete",
+            "/v1/notification/**",
+            "/v1/streak-learning/**",
+            "/v1/srs-progress/**",
+            "/v1/setting-progress/**"
     };
 
     // Mảng chứa các endpoint cho phép truy cập công khai
     String[] permitAllEndpoints = {
-            "/api/auth/forgot-password",
-            "/api/v1/ka",
-            "/api/v1/ka/**",
+            "/auth/forgot-password",
+            "/v1/ka",
+            "/v1/ka/**",
+//            "/ws/**"
+    };
+
+    String[] permitWsEndpoints = {
+            "/ws",
             "/ws/**"
     };
 
@@ -114,6 +116,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(authEndpoints).authenticated()
                         .requestMatchers(permitAllEndpoints).permitAll()
+                        .requestMatchers(permitWsEndpoints).permitAll()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

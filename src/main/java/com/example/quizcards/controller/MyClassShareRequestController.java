@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/share-requests")
+@RequestMapping("/v1/share-requests")
 public class MyClassShareRequestController {
 
     @Autowired

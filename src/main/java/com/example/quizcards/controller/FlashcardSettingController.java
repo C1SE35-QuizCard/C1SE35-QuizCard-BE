@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/flashcard-settings")
+@RequestMapping("/v1/flashcard-settings")
 public class FlashcardSettingController {
     @Autowired
     private IFlashcardSettingService flashcardSettingService;
