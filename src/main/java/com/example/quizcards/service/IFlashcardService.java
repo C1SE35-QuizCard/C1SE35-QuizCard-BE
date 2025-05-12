@@ -12,7 +12,7 @@ public interface IFlashcardService {
 
     List<IFlashcardDTO> getAll();
 
-    void addFlashcard(String question, String answer, String imageLink, Boolean isApproved, Long setId);
+    void addFlashcard(String question, String answer, String imageLink, String videoLink, Boolean isApproved, Long setId);
 
     void deleteFlashcard(Long cardId);
 

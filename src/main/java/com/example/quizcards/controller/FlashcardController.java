@@ -5,9 +5,11 @@ import com.example.quizcards.dto.request.FlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.service.IFlashcardService;
+import com.example.quizcards.service.impl.S3Service;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
@@ -15,6 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
@@ -25,6 +28,9 @@ public class FlashcardController {
     @Autowired
     private IFlashcardService flashcardService;
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching flashcards";
+
+    @Autowired
+    private S3Service s3Service;
 
     @GetMapping("/list")
     public ResponseEntity<Object> findAllFlashcard() {
@@ -69,7 +75,7 @@ public class FlashcardController {
         }
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('NO_ROLE')")
     public ResponseEntity<Object> createFlashcard(@RequestBody @Validated FlashcardRequest request, BindingResult bindingResult) {
         if (request == null) {
@@ -82,10 +88,22 @@ public class FlashcardController {
             }
             return ResponseEntity.badRequest().body(errorDetail);
         }
+
+        String videoUrl = null;
+        if (request.getVideoFile() != null && !request.getVideoFile().isEmpty()) {
+            try {
+                videoUrl = s3Service.uploadVideo(request.getVideoFile());
+            }
+            catch (IOException e) {
+                throw new RuntimeException("Không thể tải lên video", e);
+            }
+        }
         try {
+
             flashcardService.addFlashcard(request.getQuestion(),
                     request.getAnswer(),
                     request.getImageLink(),
+                    videoUrl,
                     request.getIsApproved(),
                     request.getSetId());
 
@@ -134,9 +152,9 @@ public class FlashcardController {
         }
     }
 
-    @PostMapping("/create-new-flashcard")
+    @PostMapping(value = "/create-new-flashcard", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> createFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
+    public ResponseEntity<?> createFlashcard_2(@Valid @ModelAttribute FlashcardRequest request) {
         return flashcardService.addFlashcard_2(request);
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(new ApiResponse(true, "Flashcard created successfully"));
@@ -144,15 +162,15 @@ public class FlashcardController {
 
     @DeleteMapping("/delete-flashcard")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<Object> deleteFlashcardById_2(@Valid @RequestBody FlashcardRequest request) {
+    public ResponseEntity<Object> deleteFlashcardById_2(@Valid @ModelAttribute FlashcardRequest request) {
         flashcardService.deleteFlashcard_2(request.getCardId(), request.getSetId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ApiResponse(true, "Flashcard deleted successfully"));
     }
 
-    @PutMapping("/update-flashcard")
+    @PutMapping(value = "/update-flashcard", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> updateFlashcard_2(@Valid @RequestBody FlashcardRequest request) {
+    public ResponseEntity<?> updateFlashcard_2(@Valid @ModelAttribute FlashcardRequest request) {
         return flashcardService.updateFlashcard_2(request);
     }
 }

@@ -14,21 +14,21 @@ import java.util.List;
 @Repository
 public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.video_url,f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f, set_flashcards s
             where f.set_id = s.set_id and s.set_id = :set_id
             """, nativeQuery = true)
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id);
 
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.video_url,f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f, set_flashcards s
             where f.set_id = s.set_id and f.card_id = :card_id
             """, nativeQuery = true)
     IFlashcardDTO findFlashcardByCardId(@Param("card_id") Long cardId);
 
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.video_url,f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f, set_flashcards s
             where f.set_id = s.set_id
             """, nativeQuery = true)
@@ -37,12 +37,13 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     @Modifying
     @Transactional
     @Query(value = """
-            insert into flashcards(question, answer, image_url, is_approved, created_at, updated_at, set_id)
-            values (:question, :answer, :image_url, :is_approved, now(), now(),:set_id )
+            insert into flashcards(question, answer, image_url, video_url, is_approved, created_at, updated_at, set_id)
+            values (:question, :answer, :image_url, :video_url, :is_approved, now(), now(),:set_id )
             """, nativeQuery = true)
     void createFlashcards(@Param("question") String question,
                           @Param("answer") String answer,
                           @Param("image_url") String imageLink,
+                          @Param("video_url") String videoLink,
                           @Param("is_approved") Boolean isApproved,
                           @Param("set_id") Long setId);
 
@@ -62,6 +63,7 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
             set f.question = COALESCE(:question, f.question), 
             f.answer = COALESCE(:answer, f.answer), 
             f.image_url = COALESCE(:image_url, f.image_url), 
+            f.video_url = COALESCE(:video_url, f.video_url),
             f.is_approved = COALESCE(:is_approved, f.is_approved), 
             f.updated_at = now(), 
             f.set_id = COALESCE(:set_id, f.set_id)
@@ -71,6 +73,7 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
                           @Param("question") String question,
                           @Param("answer") String answer,
                           @Param("image_url") String imageLink,
+                          @Param("video_url") String videoLink,
                           @Param("is_approved") Boolean isApproved,
                           @Param("set_id") Long setId);
 
@@ -89,7 +92,7 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     Integer countCardsByIdAndSetId(@Param("card_id") Long cardId, @Param("set_id") Long setId);
 
     @Query(value = """
-        SELECT f.card_id, f.question, f.answer, f.image_url, f.is_approved, 
+        SELECT f.card_id, f.question, f.answer, f.image_url, f.video_url,f.is_approved, 
                f.created_at, f.updated_at, s.title
         FROM flashcards f, set_flashcards s
         WHERE f.set_id = s.set_id 

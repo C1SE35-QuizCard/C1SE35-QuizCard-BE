@@ -35,6 +35,9 @@ public class Flashcard implements Serializable {
     @Column(name = "image_url")
     private String imageLink;
 
+    @Column(name = "video_url")
+    private String  videoLink;
+
     @Column(name = "is_approved")
     private Boolean isApproved;
 

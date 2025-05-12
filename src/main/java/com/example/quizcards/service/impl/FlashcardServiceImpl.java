@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +34,12 @@ public class FlashcardServiceImpl implements IFlashcardService {
     @Autowired
     private IFlashcardHelpers flashcardHelpers;
 
+    @Autowired
+    private S3Service s3Service;
+
     @Override
     public List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword) {
-        setFlashcardService.checkAccess(id, requestPassword);
+//        setFlashcardService.checkAccess(id, requestPassword);
         return flashcardRepository.findAllFlashcardsBySetId(id);
     }
 
@@ -45,8 +49,8 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
-    public void addFlashcard(String question, String answer, String imageLink, Boolean isApproved, Long setId) {
-        flashcardRepository.createFlashcards(question, answer, imageLink, isApproved, setId);
+    public void addFlashcard(String question, String answer, String imageLink,String videoLink, Boolean isApproved, Long setId) {
+        flashcardRepository.createFlashcards(question, answer, imageLink, videoLink ,isApproved, setId);
     }
 
     @Override
@@ -58,16 +62,37 @@ public class FlashcardServiceImpl implements IFlashcardService {
     public void updateFlashcard(FlashcardRequest request) {
         flashcardHelpers.handleUpdateFlashcard(request);
 
-        flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), request.getIsApproved(), request.getSetId());
+        if (request.getVideoFile() != null && !request.getVideoFile().isEmpty()) {
+            try {
+                String videoUrl = s3Service.uploadVideo(request.getVideoFile());
+                flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), videoUrl, request.getIsApproved(), request.getSetId());
+            } catch (IOException e) {
+                throw new RuntimeException("Không thể tải lên video", e);
+            }
+        } else if (request.getVideoFile() != null && request.getVideoFile().getSize() == 0) {
+            flashcardRepository.updateFlashcards(request.getCardId(), request.getQuestion(), request.getAnswer(), request.getImageLink(), null, request.getIsApproved(), request.getSetId());
+        }
     }
 
     @Override
     public ResponseEntity<?> addFlashcard_2(FlashcardRequest request) {
         flashcardHelpers.handleAddFlashcard(request);
+
+        String videoUrl = null;
+        if (request.getVideoFile() != null && !request.getVideoFile().isEmpty()) {
+            try {
+                videoUrl = s3Service.uploadVideo(request.getVideoFile());
+            }
+            catch (IOException e) {
+                throw new RuntimeException("Không thể tải lên video", e);
+            }
+        }
+
         Flashcard newCard = Flashcard.builder()
                 .question(HandleString.popExtraNewLineAndSpace(request.getQuestion()))
                 .answer(HandleString.popExtraNewLineAndSpace(request.getAnswer()))
                 .imageLink(request.getImageLink())
+                .videoLink(videoUrl)
                 .isApproved(true)
                 .set(SetFlashcard.builder().setId(request.getSetId()).build())
                 .build();
@@ -84,6 +109,18 @@ public class FlashcardServiceImpl implements IFlashcardService {
                 HandleString.popExtraNewLineAndSpace(request.getQuestion()));
         card.setAnswer(request.getAnswer() == null ? card.getAnswer() :
                 HandleString.popExtraNewLineAndSpace(request.getAnswer()));
+
+        if (request.getVideoFile() != null && !request.getVideoFile().isEmpty()) {
+            try {
+                String videoUrl = s3Service.uploadVideo(request.getVideoFile());
+                card.setVideoLink(videoUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Không thể tải lên video", e);
+            }
+        } else if (request.getVideoFile() != null && request.getVideoFile().getSize() == 0) {
+            card.setVideoLink(null);
+        }
+
         card.setImageLink(request.getImageLink());
         card.setIsApproved(true);
         flashcardRepository.save(card);
@@ -102,6 +139,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
         response.put("setId", setId);
         response.put("userId",
                 ((UserPrincipal) (SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getId());
+        response.put("videoUrl", card.getVideoLink());
         response.put("imageUrl", card.getImageLink());
 //        response.put("createdAt", card.getCreatedAt());
 //        response.put("updatedAt", card.getUpdatedAt());

@@ -27,4 +27,9 @@ public interface IMatchingRepository extends JpaRepository<Matching, Long> {
     @Modifying
     @Query("UPDATE Matching m SET m.isCorrect = true WHERE m.matchingId = :matchingId")
     void updateIsCorrectByMatchingId(Long matchingId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Matching m SET m.wrongCount = m.wrongCount + 1 WHERE m.matchingId = :matchingId")
+    void incrementWrongCountByMatchingId(Long matchingId);
 }

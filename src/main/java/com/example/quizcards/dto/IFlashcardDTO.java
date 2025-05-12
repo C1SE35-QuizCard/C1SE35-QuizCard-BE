@@ -11,6 +11,8 @@ public interface IFlashcardDTO {
 
     String getImageUrl();
 
+    String getVideoUrl();
+
     Boolean getIsApproved();
 
     LocalDateTime getCreatedAt();
