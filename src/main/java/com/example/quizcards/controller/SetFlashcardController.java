@@ -11,7 +11,6 @@ import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,6 @@ import java.util.List;
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/api/v1/set")
-@Slf4j
 public class SetFlashcardController {
     @Autowired
     private ISetFlashcardService setFlashcardService;
@@ -212,9 +210,6 @@ public class SetFlashcardController {
     @GetMapping("/search")
     public ResponseEntity<Object> searchByTitle(@RequestParam("query") String query) {
         List<SearchSetFlashResponse> set = setFlashcardService.searchByTitleAndCategory(query);
-        set.forEach(res -> {
-            log.info("Result: {}", res.getTitle());
-        });
         return ResponseEntity.ok(set);
     }
 

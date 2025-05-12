@@ -56,6 +56,15 @@ public class MyClass {
     )
     private Set<AppUser> members = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "myclass_sets",
+            joinColumns = @JoinColumn(name = "myclass_id"),
+            inverseJoinColumns = @JoinColumn(name = "set_id")
+    )
+    @JsonIgnore
+    private Set<SetFlashcard> sets = new HashSet<>();
+
     // Gán giá trị mặc định trước khi lưu vào database
     @PrePersist
     protected void onCreate() {

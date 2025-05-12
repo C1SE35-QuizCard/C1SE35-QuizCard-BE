@@ -3,6 +3,7 @@ package com.example.quizcards.controller;
 import com.example.quizcards.dto.request.app_user_request.*;
 import com.example.quizcards.dto.request.email.ConfirmEmailParam;
 import com.example.quizcards.dto.request.email.OtpParam;
+import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,7 +70,45 @@ public class AppUserController {
     @PostMapping("/create-user")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUser(@Valid @RequestBody AppUserRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(appUserService.createAppUser(request));
+        try {
+            // Validate request
+            if (request == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Request cannot be null"));
+            }
+
+            // Validate required fields
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Username is required"));
+            }
+
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email is required"));
+            }
+
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Password is required"));
+            }
+
+            if (request.getRoleId() == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Role ID is required"));
+            }
+
+            // Create user
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(appUserService.createAppUser(request));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PutMapping("/update-user/{id}")
