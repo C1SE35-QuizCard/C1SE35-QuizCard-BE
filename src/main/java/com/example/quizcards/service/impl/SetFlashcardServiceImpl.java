@@ -12,6 +12,7 @@ import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySetFlashcard;
 import com.example.quizcards.entities.Flashcard;
 import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.entities.Tag;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
@@ -21,6 +22,7 @@ import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
+import com.example.quizcards.service.ITagService;
 import com.example.quizcards.utils.HandleString;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +32,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class SetFlashcardServiceImpl implements ISetFlashcardService {
@@ -52,6 +55,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Autowired
     private IAppUserService appUserService;
+
+    @Autowired
+    private ITagService tagService;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -60,6 +67,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         return setFlashcardRepository.findById(setId)
                 .orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
     }
+
+//    @Override
+//    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
+//        return setFlashcardRepository.findAllFlashcardsBySetId(setId);
+//    }
 
     @Override
     public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId, String requestPassword) {
@@ -88,19 +100,24 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         setFlashcardHelpers.handleAddSetFlashcard(request);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
-        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
-                ? null
-                : passwordEncoder.encode(request.getHashPassword());
         SetFlashcard set = SetFlashcard.builder()
                 .title(request.getTitle())
                 .descriptionSet(request.getDescriptionSet())
                 .isApproved(true)
                 .isAnonymous(request.getIsAnonymous())
                 .sharingMode(request.getSharingMode())
-                .hashPassword(hashedPassword)
                 .user(AppUser.builder().userId(up.getId()).build())
                 .category(CategorySetFlashcard.builder().categoryId(request.getCategoryId()).build())
                 .build();
+
+        // Add tags if provided
+        if (request.getTagNames() != null && !request.getTagNames().isEmpty()) {
+            if (request.getTagNames().size() > 5) {
+                throw new BadRequestException("A set flashcard can have at most 5 tags");
+            }
+            Set<Tag> tags = tagService.getOrCreateTags(request.getTagNames());
+            set.setTags(tags);
+        }
 
         setFlashcardRepository.save(set);
 
@@ -207,11 +224,26 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     @Transactional
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean
-            isAnonymous, Boolean sharingMode, String hashPassword,Long userId, Long categoryId) {
+            isAnonymous, Boolean sharingMode, String hashPassword,Long userId, Long categoryId, Set<String> tagNames)  {
         if (appUserService.findById(userId).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", userId);
         }
-        setFlashcardRepository.createSetFlashcard(title, descriptionSet, isApproved, isAnonymous, sharingMode, hashPassword, userId, categoryId);
+        SetFlashcard setFlashcard = new SetFlashcard();
+        setFlashcard.setTitle(title);
+        setFlashcard.setDescriptionSet(descriptionSet);
+        setFlashcard.setIsApproved(isApproved);
+        setFlashcard.setIsAnonymous(isAnonymous);
+        setFlashcard.setSharingMode(sharingMode);
+        setFlashcard.setUser(appUserService.findById(userId).orElse(null));
+        setFlashcard.setCategory(CategorySetFlashcard.builder().categoryId(categoryId).build());
+
+        // Add tags if provided
+        if (tagNames != null && !tagNames.isEmpty()) {
+            Set<Tag> tags = tagService.getOrCreateTags(tagNames);
+            setFlashcard.setTags(tags);
+        }
+
+        setFlashcardRepository.save(setFlashcard);
     }
 
     @Override
@@ -327,6 +359,12 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO, Long userId) {
         return setFlashcardRepository.searchByMyCourse(queryDTO.getTitle(), userId);
+    }
+
+    @Override
+    public Page<ISetFlashcardDTO> filterByTagName(String tagName, Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return setFlashcardRepository.filterByTagName(tagName, userId, pageable) ;
     }
 
     @Override

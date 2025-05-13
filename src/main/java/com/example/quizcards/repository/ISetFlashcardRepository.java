@@ -1,8 +1,11 @@
 package com.example.quizcards.repository;
 
-import com.example.quizcards.dto.*;
-import com.example.quizcards.dto.response.SearchSetFlashResponse;
+import com.example.quizcards.dto.FlashcardSetDTO;
+import com.example.quizcards.dto.IFlashcardDTO;
+import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.TopCategoryDTO;
 import com.example.quizcards.dto.response.ITopCreatorsResponse;
+import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.entities.SetFlashcard;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -84,84 +87,87 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                     s.set_id, s.title, s.description_set, s.created_at, s.updated_at,
                     s.is_approved, s.is_anonymous, s.sharing_mode,
                     a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name
-             """, nativeQuery = true)
+            """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards(); // cho tất cả mọi người
 
     @Query(value = """
-        SELECT * FROM (
-        SELECT inner_query.*,
-               @rn := IF(@prev_category = inner_query.category_name, @rn + 1, 1) AS rn,
-               @prev_category := inner_query.category_name
-        FROM (
-            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at,\s
-                   s.is_approved, s.is_anonymous, s.sharing_mode,
-                   a.last_name, a.first_name, a.user_name, a.user_id, a.avatar,\s
-                   c.category_name,
-                   COUNT(DISTINCT f.card_id) AS total_card,
-                    CASE
-                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
-                        ELSE 0
-                    END AS has_password
-            FROM set_flashcards s
-            JOIN app_users a ON s.user_id = a.user_id
-            JOIN category_set_flashcards c ON s.category_id = c.category_id
-            LEFT JOIN flashcards f ON f.set_id = s.set_id
-            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at,\s
-                     s.is_approved, s.is_anonymous, s.sharing_mode,
-                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
-            ORDER BY c.category_name, s.created_at DESC
-        ) inner_query,
-        (SELECT @rn := 0, @prev_category := '') vars
-    ) ranked
-    WHERE rn <= :limit_num;
-    """, nativeQuery = true)
+                SELECT * FROM (
+                SELECT inner_query.*,
+                       @rn := IF(@prev_category = inner_query.category_name, @rn + 1, 1) AS rn,
+                       @prev_category := inner_query.category_name
+                FROM (
+                    SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at,\s
+                           s.is_approved, s.is_anonymous, s.sharing_mode,
+                           a.last_name, a.first_name, a.user_name, a.user_id, a.avatar,\s
+                           c.category_name,
+                           COUNT(DISTINCT f.card_id) AS total_card,
+                            CASE
+                                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                                ELSE 0
+                            END AS has_password
+                    FROM set_flashcards s
+                    JOIN app_users a ON s.user_id = a.user_id
+                    JOIN category_set_flashcards c ON s.category_id = c.category_id
+                    LEFT JOIN flashcards f ON f.set_id = s.set_id
+                    GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at,\s
+                             s.is_approved, s.is_anonymous, s.sharing_mode,
+                             a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+                    ORDER BY c.category_name, s.created_at DESC
+                ) inner_query,
+                (SELECT @rn := 0, @prev_category := '') vars
+            ) ranked
+            WHERE rn <= :limit_num;
+            """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcardsLimit(@Param("limit_num") int limitNum); // sử dụng cho guest user
 
     @Query(value = """
-    SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-           a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name, 
-           COUNT(DISTINCT f.card_id) AS total_card,
-           CASE
-                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
-                ELSE 0
-            END AS has_password
-            FROM set_flashcards s
-            JOIN app_users a ON s.user_id = a.user_id
-            JOIN category_set_flashcards c ON s.category_id = c.category_id
-            LEFT JOIN flashcards f ON f.set_id = s.set_id
-            WHERE (
-                SELECT COUNT(*) 
-                FROM set_flashcards s2
-                JOIN category_set_flashcards c2 ON s2.category_id = c2.category_id
-                WHERE c2.category_id = c.category_id 
-                AND s2.set_id = s.set_id
-            ) <= 10
-            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
-            ORDER BY c.category_name, s.set_id;
-    """, nativeQuery = true)
+            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+                   a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name, 
+                   COUNT(DISTINCT f.card_id) AS total_card,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                    END AS has_password
+                    FROM set_flashcards s
+                    JOIN app_users a ON s.user_id = a.user_id
+                    JOIN category_set_flashcards c ON s.category_id = c.category_id
+                    LEFT JOIN flashcards f ON f.set_id = s.set_id
+                    WHERE (
+                        SELECT COUNT(*) 
+                        FROM set_flashcards s2
+                        JOIN category_set_flashcards c2 ON s2.category_id = c2.category_id
+                        WHERE c2.category_id = c.category_id 
+                        AND s2.set_id = s.set_id
+                    ) <= 10
+                    GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+                             a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+                    ORDER BY c.category_name, s.set_id;
+            """, nativeQuery = true)
     List<ISetFlashcardDTO> findTop10SetFlashcardsPerCategory();
 
     @Query(value = """
-        SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, 
-               s.is_approved, s.is_anonymous, s.sharing_mode, 
-               a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, 
-               c.category_name, 
-               COUNT(f.card_id) AS total_card,
-               CASE
-                    WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
-                    ELSE 0
-               END AS has_password
-        FROM set_flashcards s
-        JOIN app_users a ON s.user_id = a.user_id
-        JOIN category_set_flashcards c ON s.category_id = c.category_id
-        LEFT JOIN flashcards f ON f.set_id = s.set_id
-        WHERE s.set_id = :set_id
-        GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, 
-                 s.is_approved, s.is_anonymous, s.sharing_mode, 
-                 a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, 
-                 c.category_name, s.hash_password
-        """, nativeQuery = true)
+            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, 
+                   s.is_approved, s.is_anonymous, s.sharing_mode, 
+                   a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, 
+                   c.category_name, 
+                   COUNT(f.card_id) AS total_card,               
+                    GROUP_CONCAT(DISTINCT t.name) as tags,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                   END AS has_password
+            FROM set_flashcards s
+            JOIN app_users a ON s.user_id = a.user_id
+            JOIN category_set_flashcards c ON s.category_id = c.category_id
+            Join flashcards f on f.set_id = s.set_id
+            left join set_flashcard_tag sft on s.set_id = sft.set_flashcard_id
+            left join tags t on sft.tag_id = t.tag_id
+            WHERE s.set_id = :set_id
+            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, 
+                     s.is_approved, s.is_anonymous, s.sharing_mode, 
+                     a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, 
+                     c.category_name, s.hash_password
+            """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
 
 
@@ -238,19 +244,19 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Modifying
     @Transactional
     @Query(value = """
-        UPDATE set_flashcards s
-        SET
-          s.title           = COALESCE(:title, s.title),
-          s.description_set = COALESCE(:description_set, s.description_set),
-          s.updated_at      = NOW(),
-          s.is_approved     = COALESCE(:is_approved, s.is_approved),
-          s.is_anonymous    = COALESCE(:is_anonymous, s.is_anonymous),
-          s.sharing_mode    = COALESCE(:sharing_mode, s.sharing_mode),
-          s.hash_password   = COALESCE(:hash_password, s.hash_password),
-          s.user_id         = COALESCE(:user_id, s.user_id),
-          s.category_id     = COALESCE(:category_id, s.category_id)
-        WHERE s.set_id = :set_id
-        """, nativeQuery = true)
+            UPDATE set_flashcards s
+            SET
+              s.title           = COALESCE(:title, s.title),
+              s.description_set = COALESCE(:description_set, s.description_set),
+              s.updated_at      = NOW(),
+              s.is_approved     = COALESCE(:is_approved, s.is_approved),
+              s.is_anonymous    = COALESCE(:is_anonymous, s.is_anonymous),
+              s.sharing_mode    = COALESCE(:sharing_mode, s.sharing_mode),
+              s.hash_password   = COALESCE(:hash_password, s.hash_password),
+              s.user_id         = COALESCE(:user_id, s.user_id),
+              s.category_id     = COALESCE(:category_id, s.category_id)
+            WHERE s.set_id = :set_id
+            """, nativeQuery = true)
     void updateSetFlashcard(
             @Param("set_id") Long setId,
             @Param("title") String title,
@@ -348,21 +354,21 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
     @Query(
             value = """
-                    SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                              a.first_name, a.last_name, a.user_name, a.user_id, a.avatar as avatar, c.category_name, COUNT(f.card_id) AS total_card,
-                                              CASE
-                                                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
-                                                ELSE 0
-                                              END AS has_password
-                                       FROM set_flashcards s
-                                       JOIN app_users a ON s.user_id = a.user_id
-                                       JOIN category_set_flashcards c ON s.category_id = c.category_id
-                                       JOIN flashcards f ON f.set_id = s.set_id
-                                       WHERE (:user_id is null or s.user_id = :user_id) and s.sharing_mode is true
-                                       AND ((:category_name = '') or (:category_name <> '' and c.category_name = :category_name))
-                                       GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                                a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name;
-            """,
+                            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+                                                      a.first_name, a.last_name, a.user_name, a.user_id, a.avatar as avatar, c.category_name, COUNT(f.card_id) AS total_card,
+                                                      CASE
+                                                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                                                        ELSE 0
+                                                      END AS has_password
+                                               FROM set_flashcards s
+                                               JOIN app_users a ON s.user_id = a.user_id
+                                               JOIN category_set_flashcards c ON s.category_id = c.category_id
+                                               JOIN flashcards f ON f.set_id = s.set_id
+                                               WHERE (:user_id is null or s.user_id = :user_id) and s.sharing_mode is true
+                                               AND ((:category_name = '') or (:category_name <> '' and c.category_name = :category_name))
+                                               GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+                                                        a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name;
+                    """,
             countQuery = """
                             SELECT COUNT(s.set_id)
                             FROM set_flashcards s
@@ -578,7 +584,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
 
     @Query(
-            value ="SELECT \n" +
+            value = "SELECT \n" +
                     "    ufs.set_id,\n" +
                     "    sf.title,\n" +
                     "    sf.is_anonymous,\n" +
@@ -667,11 +673,10 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             a.avatar,
             c.category_name;
             """, nativeQuery = true)
-    List<SearchSetFlashResponse> searchByMyCourse(@Param("title") String title,@Param("user_id") Long userId);
+    List<SearchSetFlashResponse> searchByMyCourse(@Param("title") String title, @Param("user_id") Long userId);
 
     @Query(value = "select count(set_id) from flashcards where set_id = :setId", nativeQuery = true)
     int countFlashcardsBySetId(@Param("setId") Long setId);
-
 
 
     // holy shiet, do not touch
@@ -683,6 +688,31 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                 LIMIT 1;
             """, nativeQuery = true)
     Long getRandomIdSetFlashcard();
-}
 
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
+                   GROUP_CONCAT(DISTINCT t.name) as tags
+            from set_flashcards s
+            join app_users a on s.user_id = a.user_id 
+            join category_set_flashcards c on s.category_id = c.category_id 
+            join flashcards f on f.set_id = s.set_id
+            join set_flashcard_tag sft on s.set_id = sft.set_flashcard_id
+            join tags t on sft.tag_id = t.tag_id
+            where t.name = :tag_name and (:user_id is null or s.user_id = :user_id or s.sharing_mode = true)
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, 
+                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            """,
+            countQuery = """
+                    select count(distinct s.set_id)
+                    from set_flashcards s
+                    join set_flashcard_tag sft on s.set_id = sft.set_flashcard_id
+                    join tags t on sft.tag_id = t.tag_id
+                    where t.name = :tag_name and (:user_id is null or s.user_id = :user_id or s.sharing_mode = true)
+                    """,
+            nativeQuery = true)
+    Page<ISetFlashcardDTO> filterByTagName(@Param("tag_name") String tagName,
+                                           @Param("user_id") Long userId,
+                                           Pageable pageable);
+}
 

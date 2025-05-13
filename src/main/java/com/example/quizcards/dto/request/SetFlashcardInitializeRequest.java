@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,6 +24,7 @@ public class SetFlashcardInitializeRequest {
 
     @NotNull(message = "Missing category.")
     private Long categoryId;
+    private Set<String> tagNames;
 
     @NotNull
     @Size(min = 2, message = "Need at least two flashcards for create set.")

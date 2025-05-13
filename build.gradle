@@ -102,6 +102,35 @@ dependencies {
 
     // Dependency cho testing (chỉ dùng trong kiểm thử)
     testImplementation 'org.springframework.kafka:spring-kafka-test:3.2.4'
+
+    // Caffeine cache
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.8.8'
+
+    // Xử lý các loại tài liệu
+    implementation 'org.apache.poi:poi:4.1.2'
+    implementation 'org.apache.poi:poi-ooxml:4.1.2'
+    implementation 'org.apache.pdfbox:pdfbox:2.0.24'
+    implementation 'org.apache.pdfbox:pdfbox-tools:2.0.24'
+
+    // Itextpdf - xử lý PDF bảo mật
+    implementation 'com.itextpdf:itextpdf:5.5.13.2'
+
+    // Apache Tika - tự động nhận diện loại tài liệu
+    implementation 'org.apache.tika:tika-core:1.24.1'
+    implementation 'org.apache.tika:tika-parsers:1.24.1'
+
+    // Thư viện để tích hợp với OpenAI API
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
+    implementation 'com.google.code.gson:gson:2.8.9'
+
+    // Tesseract OCR
+    implementation 'net.sourceforge.tess4j:tess4j:4.5.4'
+
+    // Lombok để giảm mã soạn thảo
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+
 }
 
 

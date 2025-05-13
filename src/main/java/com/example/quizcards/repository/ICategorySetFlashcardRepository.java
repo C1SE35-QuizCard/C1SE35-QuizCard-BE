@@ -91,7 +91,7 @@ public interface ICategorySetFlashcardRepository extends JpaRepository<CategoryS
     @Transactional
     @Query(value = """
             update category_set_flashcards c
-            set c.category_name = :category_name
+            set c.category_name = COALESCE(:category_name, c.category_name)
             where c.category_id = :category_id
             """, nativeQuery = true)
     void updateCategorySetFlashcard(@Param("category_id") Long categoryId,

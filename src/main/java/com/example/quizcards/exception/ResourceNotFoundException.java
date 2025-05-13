@@ -43,4 +43,8 @@ public class ResourceNotFoundException extends RuntimeException {
 
         apiResponse = new ApiResponse(Boolean.FALSE, message);
     }
+
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
 }

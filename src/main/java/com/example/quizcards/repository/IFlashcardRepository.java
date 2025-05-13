@@ -130,14 +130,14 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
     Integer countCardsByIdAndSetId(@Param("card_id") Long cardId, @Param("set_id") Long setId);
 
     @Query(value = """
-            SELECT f.card_id, f.question, f.answer, f.image_url, f.is_approved, 
-                   f.created_at, f.updated_at, s.title
-            FROM flashcards f, set_flashcards s
-            WHERE f.set_id = s.set_id 
-              AND s.set_id = :set_id
-            ORDER BY RAND()
-            LIMIT 15
-            """, nativeQuery = true)
+        SELECT f.card_id, f.question, f.answer, f.image_url, f.is_approved, 
+               f.created_at, f.updated_at, s.title
+        FROM flashcards f, set_flashcards s
+        WHERE f.set_id = s.set_id 
+          AND s.set_id = :set_id
+        ORDER BY RAND()
+        LIMIT 15
+        """, nativeQuery = true)
     List<IFlashcardDTO> findRandomFlashcardsBySetId(@Param("set_id") Long id);
 
 
