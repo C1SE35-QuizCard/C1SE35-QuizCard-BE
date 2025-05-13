@@ -33,7 +33,7 @@ public interface ISetFlashcardDTO {
 
     int getTotalCard();
 
-    int getHasPassword();
+    Integer getHasPassword();
 
     String getTags();
 }
