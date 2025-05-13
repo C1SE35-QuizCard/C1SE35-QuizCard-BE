@@ -39,7 +39,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
 
     @Override
     public List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword) {
-//        setFlashcardService.checkAccess(id, requestPassword);
+        setFlashcardService.checkAccess(id, requestPassword);
         return flashcardRepository.findAllFlashcardsBySetId(id);
     }
 

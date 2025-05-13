@@ -1,6 +1,7 @@
 package com.example.quizcards.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import com.mongodb.lang.Nullable;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,9 @@ public class SetFlashcardInitializeRequest {
     @NotNull(message = "Missing category.")
     private Long categoryId;
     private Set<String> tagNames;
+
+    @Nullable
+    private String hashPassword;
 
     @NotNull
     @Size(min = 2, message = "Need at least two flashcards for create set.")

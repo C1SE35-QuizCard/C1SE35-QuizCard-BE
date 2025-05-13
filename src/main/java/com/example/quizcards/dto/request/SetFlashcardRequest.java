@@ -2,6 +2,7 @@ package com.example.quizcards.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.mongodb.lang.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,9 @@ public class SetFlashcardRequest {
 
     private Long categoryId;
     private Set<String> tagNames;
+
+    @Nullable
+    private String hashPassword;
 
     private Long userId;
 }

@@ -59,6 +59,9 @@ public class SetFlashcard implements Serializable {
     @Column(name = "sharing_mode")
     private Boolean sharingMode;
 
+    @Column(name = "hash_password", columnDefinition = "TEXT", nullable = true)
+    private String hashPassword;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     private AppUser user;

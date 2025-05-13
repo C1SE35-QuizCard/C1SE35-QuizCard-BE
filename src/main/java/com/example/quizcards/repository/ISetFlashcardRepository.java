@@ -36,7 +36,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
      * và các card đã phê duyệt
      *  */
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.video_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title,
+                CASE
+                    WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                    ELSE 0
+            END AS has_password
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
             where s.set_id = :set_id and (s.user_id = :user_id or s.sharing_mode = true)
@@ -52,14 +56,34 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 //            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
 //            """, nativeQuery = true)
     @Query(value = """
-             SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                   a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name, COUNT(DISTINCT f.card_id) AS total_card
-            FROM set_flashcards s
-            JOIN app_users a ON s.user_id = a.user_id
-            JOIN category_set_flashcards c ON s.category_id = c.category_id
-            LEFT JOIN flashcards f ON f.set_id = s.set_id
-            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name;
+            SELECT
+                s.set_id,
+                s.title,
+                s.description_set,
+                s.created_at,
+                s.updated_at,
+                s.is_approved,
+                s.is_anonymous,
+                s.sharing_mode,
+                a.last_name,
+                a.first_name,
+                a.user_name,
+                a.user_id,
+                a.avatar,
+                c.category_name,
+                COUNT(DISTINCT f.card_id) AS total_card,
+                    CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                END AS has_password
+                FROM set_flashcards s
+                JOIN app_users a ON s.user_id = a.user_id
+                JOIN category_set_flashcards c ON s.category_id = c.category_id
+                LEFT JOIN flashcards f ON f.set_id = s.set_id
+                GROUP BY
+                s.set_id, s.title, s.description_set, s.created_at, s.updated_at,
+                s.is_approved, s.is_anonymous, s.sharing_mode,
+                a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name
              """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetFlashcards(); // cho tất cả mọi người
 
@@ -73,7 +97,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                    s.is_approved, s.is_anonymous, s.sharing_mode,
                    a.last_name, a.first_name, a.user_name, a.user_id, a.avatar,\s
                    c.category_name,
-                   COUNT(DISTINCT f.card_id) AS total_card
+                   COUNT(DISTINCT f.card_id) AS total_card,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                   END AS has_password
             FROM set_flashcards s
             JOIN app_users a ON s.user_id = a.user_id
             JOIN category_set_flashcards c ON s.category_id = c.category_id
@@ -112,8 +140,12 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, 
-                   a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
-                   GROUP_CONCAT(DISTINCT t.name) as tags
+                   a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
+                   GROUP_CONCAT(DISTINCT t.name) as tags,
+                   CASE
+                       WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                       ELSE 0
+                   END AS has_password
             from set_flashcards s
             join app_users a on s.user_id = a.user_id 
             join category_set_flashcards c on s.category_id = c.category_id 
@@ -122,13 +154,17 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             left join tags t on sft.tag_id = t.tag_id
             where s.set_id = :set_id
             group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, 
-                     a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+                     a.last_name, a.first_name, a.user_name, a.user_id, a.avatar, c.category_name
             """, nativeQuery = true)
     ISetFlashcardDTO findSetFlashcardsById(@Param("set_id") Long id);
 
     @Query(value = """
                 SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                              a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name, COUNT(f.card_id) AS total_card
+                                              a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name, COUNT(f.card_id) AS total_card,
+                CASE
+                    WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                    ELSE 0
+                END AS has_password
                                        FROM set_flashcards s
                                        JOIN app_users a ON s.user_id = a.user_id
                                        JOIN category_set_flashcards c ON s.category_id = c.category_id
@@ -137,16 +173,20 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                        WHERE s.user_id =:user_id\s
                                           OR ufs.user_id =:user_id
                                        GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                                a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name
+                                                a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name, s.hash_password
                                        ORDER BY s.created_at DESC;
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetByUserId(@Param("user_id") Long userId);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and (s.user_id = :user_id or s.sharing_mode = true) and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublicByUserId(@Param("user_id") Long userId);
 
@@ -168,14 +208,15 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Modifying
     @Transactional
     @Query(value = """
-            insert into set_flashcards(title, description_set, created_at, updated_at, is_approved, is_anonymous, sharing_mode, user_id, category_id)
-            values (:title, :description_set, now(), now(), :is_approved, :is_anonymous, :sharing_mode, :user_id, :category_id)
+            insert into set_flashcards(title, description_set, created_at, updated_at, is_approved, is_anonymous, sharing_mode, hash_password,user_id, category_id)
+            values (:title, :description_set, now(), now(), :is_approved, :is_anonymous, :sharing_mode, :hash_password, :user_id, :category_id)
             """, nativeQuery = true)
     void createSetFlashcard(@Param("title") String title,
                             @Param("description_set") String descriptionSet,
                             @Param("is_approved") Boolean isApproved,
                             @Param("is_anonymous") Boolean isAnonymous,
                             @Param("sharing_mode") Boolean sharingMode,
+                            @Param("hash_password") String hashPassword,
                             @Param("user_id") Long userId,
                             @Param("category_id") Long categoryId);
 
@@ -191,7 +232,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Transactional
     @Query(value = """
             update set_flashcards s
-            set s.title = :title, s.description_set = :description_set, s.updated_at = now(), s.is_approved = :is_approved, s.is_anonymous = :is_anonymous, s.sharing_mode = :sharing_mode, s.user_id = :user_id, s.category_id = :category_id
+            set s.title = :title, s.description_set = :description_set, s.updated_at = now(), s.is_approved = :is_approved, s.is_anonymous = :is_anonymous, s.sharing_mode = :sharing_mode, s.hash_password = :hash_password, s.user_id = :user_id, s.category_id = :category_id
             where s.set_id = :set_id
             """, nativeQuery = true)
     void updateSetFlashcard(@Param("set_id") Long setId,
@@ -200,6 +241,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                             @Param("is_approved") Boolean isApproved,
                             @Param("is_anonymous") Boolean isAnonymous,
                             @Param("sharing_mode") Boolean sharingMode,
+                            @Param("hash_password") String hashPassword,
                             @Param("user_id") Long userId,
                             @Param("category_id") Long categoryId);
 
@@ -213,7 +255,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                 a.user_id AS userId,
                 a.avatar AS avatar,
                 c.category_name AS categoryName,
-                COUNT(f.card_id) AS totalCard
+                COUNT(f.card_id) AS totalCard,
+                CASE
+                    WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                    ELSE 0
+                END AS has_password
             FROM
                 set_flashcards s
             JOIN
@@ -235,28 +281,38 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             GROUP BY
                 s.set_id,
                 s.title,
+                a.user_name,
                 s.description_set,
                 s.is_anonymous,
                 a.user_id,
                 a.avatar,
-                c.category_name
+                c.category_name,
+                s.hash_password
             """, nativeQuery = true)
     List<SearchSetFlashResponse> searchByTitleAndCategory(@Param("title") String title);
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
             order by s.updated_at DESC
             """, nativeQuery = true)
     List<ISetFlashcardDTO> sortByUpdatedDate();
 
     @Query(value = """
-            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublic();
 
@@ -277,7 +333,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     @Query(
             value = """
                     SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                              a.first_name, a.last_name, a.user_name, a.user_id, a.avatar as avatar, c.category_name, COUNT(f.card_id) AS total_card
+                                              a.first_name, a.last_name, a.user_name, a.user_id, a.avatar as avatar, c.category_name, COUNT(f.card_id) AS total_card,
+                        CASE
+                            WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                            ELSE 0
+                        END AS has_password
                                        FROM set_flashcards s
                                        JOIN app_users a ON s.user_id = a.user_id
                                        JOIN category_set_flashcards c ON s.category_id = c.category_id
@@ -285,7 +345,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                        WHERE (:user_id is null or s.user_id = :user_id) and s.sharing_mode is true
                                        AND ((:category_name = '') or (:category_name <> '' and c.category_name = :category_name))
                                        GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                                a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name;
+                                                a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name, s.hash_password;
             """,
             countQuery = """
                             SELECT COUNT(s.set_id)
@@ -319,7 +379,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                      au.avatar as avatar,
                                      c.category_name,
                                      COUNT(f.card_id) as total_card,
-                                     MAX(ufs.last_accessed) AS last_accessed
+                                     MAX(ufs.last_accessed) AS last_accessed,
+                                     CASE
+                                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                                        ELSE 0
+                                    END AS has_password
                                  FROM
                                      set_flashcards s
                                  JOIN
@@ -345,7 +409,8 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                      au.first_name,
                                      au.user_name,
                                      au.avatar,
-                                     c.category_name
+                                     c.category_name,
+                                     s.hash_password
                                  ORDER BY
                                      last_accessed DESC
                                  LIMIT 10;
@@ -367,7 +432,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                    au.user_id as userId,
                    au.avatar as avatar,
                    c.category_name,
-                   COUNT(f.card_id) as total_card
+                   COUNT(f.card_id) as total_card,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                   END AS has_password
             from set_flashcards s
             join app_users au on s.user_id = au.user_id
             join category_set_flashcards c on s.category_id = c.category_id
@@ -386,7 +455,8 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                      au.user_name,
                      au.user_id,
                      au.avatar,
-                     c.category_name
+                     c.category_name,
+                     s.hash_password
             order by (
                 select count(ufs.user_id)
                 from user_flashcard_settings ufs
@@ -412,7 +482,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                    au.user_id as userId,
                     au.avatar as avatar,
                    c.category_name,
-                   COUNT(f.card_id) as total_card
+                   COUNT(f.card_id) as total_card,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                   END AS has_password
             from set_flashcards s
             join app_users au on s.user_id = au.user_id
             join category_set_flashcards c on s.category_id = c.category_id
@@ -443,7 +517,8 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                      au.user_name,
                      au.user_id,
                      au.avatar,
-                     c.category_name
+                     c.category_name,
+                     s.hash_password
             order by (0.4 * IFNULL(ac.access_count, 0) + 0.1 * IFNULL(cc.category_count, 0)) DESC
             limit 10;
             """, nativeQuery = true)
@@ -462,14 +537,18 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
 
     @Query(value = """
-            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name, COUNT(f.card_id) AS total_card
+            SELECT s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name, COUNT(f.card_id) AS total_card,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             FROM set_flashcards s
             JOIN app_users a ON s.user_id = a.user_id
             JOIN category_set_flashcards c ON s.category_id = c.category_id
             JOIN flashcards f ON f.set_id = s.set_id
             JOIN user_flashcard_settings ufs on s.set_id = ufs.set_id
             WHERE s.user_id = :user_id
-            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name
+            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name, s.hash_password
             ORDER BY ufs.last_accessed desc
             LIMIT :limit
             """, nativeQuery = true)
@@ -538,7 +617,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             a.user_id AS userId,
             a.avatar AS avatar,
             c.category_name AS categoryName,
-            COUNT(f.card_id) AS totalCard
+            COUNT(f.card_id) AS totalCard,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password
             FROM
             set_flashcards s
             JOIN
@@ -569,7 +652,8 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             s.is_anonymous,
             a.user_id,
             a.avatar,
-            c.category_name;
+            c.category_name,
+            s.hash_password;
             """, nativeQuery = true)
     List<SearchSetFlashResponse> searchByMyCourse(@Param("title") String title,@Param("user_id") Long userId);
 
@@ -590,7 +674,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
-                   GROUP_CONCAT(DISTINCT t.name) as tags
+                   GROUP_CONCAT(DISTINCT t.name) as tags,
+            CASE
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                ELSE 0
+            END AS has_password             
             from set_flashcards s
             join app_users a on s.user_id = a.user_id 
             join category_set_flashcards c on s.category_id = c.category_id 
