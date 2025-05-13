@@ -39,11 +39,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
      * và các card đã phê duyệt
      *  */
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title,
-            CASE
-                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
-                ELSE 0
-            END AS has_password
+            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
             where s.set_id = :set_id and (s.user_id = :user_id or s.sharing_mode = true)
@@ -692,7 +688,11 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
 
     @Query(value = """
             select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, COUNT(f.card_id) as total_card,
-                   GROUP_CONCAT(DISTINCT t.name) as tags
+                   GROUP_CONCAT(DISTINCT t.name) as tags,
+                   CASE
+                        WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1
+                        ELSE 0
+                    END AS has_password
             from set_flashcards s
             join app_users a on s.user_id = a.user_id 
             join category_set_flashcards c on s.category_id = c.category_id 
