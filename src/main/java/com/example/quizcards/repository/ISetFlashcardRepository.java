@@ -173,7 +173,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                        WHERE s.user_id =:user_id\s
                                           OR ufs.user_id =:user_id
                                        GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                                a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name, s.hash_password
+                                                a.last_name, a.first_name, a.user_name,a.user_id, a.avatar, c.category_name
                                        ORDER BY s.created_at DESC;
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetByUserId(@Param("user_id") Long userId);
@@ -186,7 +186,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and (s.user_id = :user_id or s.sharing_mode = true) and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublicByUserId(@Param("user_id") Long userId);
 
@@ -286,8 +286,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                 s.is_anonymous,
                 a.user_id,
                 a.avatar,
-                c.category_name,
-                s.hash_password
+                c.category_name
             """, nativeQuery = true)
     List<SearchSetFlashResponse> searchByTitleAndCategory(@Param("title") String title);
 
@@ -299,7 +298,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             order by s.updated_at DESC
             """, nativeQuery = true)
     List<ISetFlashcardDTO> sortByUpdatedDate();
@@ -312,7 +311,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             END AS has_password
             from set_flashcards s, app_users a, category_set_flashcards c, flashcards f
             where s.user_id = a.user_id and s.category_id = c.category_id and s.sharing_mode = true and f.set_id = s.set_id
-            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name, s.hash_password
+            group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
     List<ISetFlashcardDTO> findAllSetPublic();
 
@@ -345,7 +344,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                        WHERE (:user_id is null or s.user_id = :user_id) and s.sharing_mode is true
                                        AND ((:category_name = '') or (:category_name <> '' and c.category_name = :category_name))
                                        GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
-                                                a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name, s.hash_password;
+                                                a.first_name, a.last_name, a.user_name,a.user_id, a.avatar, c.category_name
             """,
             countQuery = """
                             SELECT COUNT(s.set_id)
@@ -409,8 +408,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                                      au.first_name,
                                      au.user_name,
                                      au.avatar,
-                                     c.category_name,
-                                     s.hash_password
+                                     c.category_name
                                  ORDER BY
                                      last_accessed DESC
                                  LIMIT 10;
@@ -455,8 +453,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                      au.user_name,
                      au.user_id,
                      au.avatar,
-                     c.category_name,
-                     s.hash_password
+                     c.category_name
             order by (
                 select count(ufs.user_id)
                 from user_flashcard_settings ufs
@@ -517,8 +514,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
                      au.user_name,
                      au.user_id,
                      au.avatar,
-                     c.category_name,
-                     s.hash_password
+                     c.category_name
             order by (0.4 * IFNULL(ac.access_count, 0) + 0.1 * IFNULL(cc.category_count, 0)) DESC
             limit 10;
             """, nativeQuery = true)
@@ -548,7 +544,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             JOIN flashcards f ON f.set_id = s.set_id
             JOIN user_flashcard_settings ufs on s.set_id = ufs.set_id
             WHERE s.user_id = :user_id
-            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name, s.hash_password, ufs.last_accessed
+            GROUP BY s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.first_name, a.last_name, a.user_name, a.user_id, a.avatar, c.category_name, ufs.last_accessed
             ORDER BY ufs.last_accessed desc
             LIMIT :limit
             """, nativeQuery = true)
@@ -652,8 +648,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             s.is_anonymous,
             a.user_id,
             a.avatar,
-            c.category_name,
-            s.hash_password;
+            c.category_name
             """, nativeQuery = true)
     List<SearchSetFlashResponse> searchByMyCourse(@Param("title") String title,@Param("user_id") Long userId);
 

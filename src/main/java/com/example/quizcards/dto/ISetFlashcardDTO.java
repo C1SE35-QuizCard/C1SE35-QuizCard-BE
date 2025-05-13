@@ -35,5 +35,5 @@ public interface ISetFlashcardDTO {
 
     String getTags();
 
-    int getHasPassword();
+    Integer getHasPassword();
 }
