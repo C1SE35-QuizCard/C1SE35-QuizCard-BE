@@ -3,8 +3,10 @@ package com.example.quizcards.service.impl;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.Folder;
 import com.example.quizcards.entities.MyClass;
+import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.repository.IFolderRepository;
 import com.example.quizcards.repository.IMyClassRepository;
+import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IMyClassService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class MyClassService implements IMyClassService {
 
     @Autowired
     private IFolderRepository iFolderRepository;
+
+    @Autowired
+    private ISetFlashcardRepository iSetFlashcardRepository;
 
     @Override
     public void save(MyClass myClass) {
@@ -85,6 +90,38 @@ public class MyClassService implements IMyClassService {
     }
 
     @Override
+    public boolean addSetToClass(Long classId, Long setId) {
+        Optional<MyClass> myClassOptional = iMyClassRepository.findById(classId);
+        Optional<SetFlashcard> setOptional = iSetFlashcardRepository.findById(setId);
+
+        if (myClassOptional.isPresent() && setOptional.isPresent()) {
+            MyClass myClass = myClassOptional.get();
+            SetFlashcard set = setOptional.get();
+
+            myClass.getSets().add(set);
+            iMyClassRepository.save(myClass);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removeSetFromClass(Long classId, Long setId) {
+        Optional<MyClass> myClassOptional = iMyClassRepository.findById(classId);
+        Optional<SetFlashcard> setOptional = iSetFlashcardRepository.findById(setId);
+
+        if (myClassOptional.isPresent() && setOptional.isPresent()) {
+            MyClass myClass = myClassOptional.get();
+            SetFlashcard set = setOptional.get();
+
+            myClass.getSets().remove(set);
+            iMyClassRepository.save(myClass);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public List<MyClass> findJoinedClasses(Long userId) {
         return iMyClassRepository.findJoinedClassesByUserId(userId);
     }
@@ -109,5 +146,10 @@ public class MyClassService implements IMyClassService {
     @Override
     public List<MyClass> searchJoinedClasses(Long userId, String query) {
         return iMyClassRepository.findJoinedClassesByUserIdAndNameContainingIgnoreCaseOrClassCodeContainingIgnoreCase(userId, query, query);
+    }
+
+    @Override
+    public MyClass findClassById(Long id) {
+        return iMyClassRepository.findByMyClassId(id);
     }
 }

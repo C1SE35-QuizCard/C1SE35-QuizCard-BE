@@ -1,87 +1,158 @@
 package com.example.quizcards.service.impl;
 
-import com.example.quizcards.dto.response.BenefitPlanResponse;
+import com.example.quizcards.dto.request.CategorySubscriptionRequest;
+import com.example.quizcards.dto.response.ApiResponse;
 import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.entities.plans.PlansName;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.repository.ICategorySubscriptionRepository;
-import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class CategorySubscriptionServiceImpl implements ICategorySubscriptionService {
     @Autowired
     private ICategorySubscriptionRepository categorySubscriptionRepository;
 
+    @Override
+    public ResponseEntity<?> getBenefitByRoles() {
+        try {
+            CategorySubscription subscription = getCategorySubscriptionBaseOfRoles();
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully retrieved benefits", 
+                HttpStatus.OK, subscription));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error retrieving benefits: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getSubscriptionByRoles() {
+        try {
+            CategorySubscription subscription = getCategorySubscriptionBaseOfRoles();
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully retrieved subscription", 
+                HttpStatus.OK, subscription));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error retrieving subscription: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getAll() {
+        try {
+            List<CategorySubscription> subscriptions = categorySubscriptionRepository.findAll();
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully retrieved all subscriptions", 
+                HttpStatus.OK, subscriptions));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error retrieving subscriptions: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> createSubscription(CategorySubscriptionRequest request) {
+        try {
+            CategorySubscription subscription = new CategorySubscription();
+            subscription.setName(request.getName());
+            subscription.setPrice(request.getPrice());
+            subscription.setDescription(request.getDescription());
+            subscription.setMaxSetsPerDay(request.getMaxSetsPerDay());
+            subscription.setMaxSetsFlashcards(request.getMaxSetsFlashcards());
+            subscription.setMaxFlashcardsPerSet(request.getMaxFlashcardsPerSet());
+            subscription.setMaxRoomsCreatePerDay(request.getMaxRoomsCreatePerDay());
+            subscription.setMaxTermsPerRoom(request.getMaxTermsPerRoom());
+            subscription.setExpiredMonth(request.getExpiredMonth());
+
+            CategorySubscription savedSubscription = categorySubscriptionRepository.save(subscription);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse(true, "Successfully created subscription", 
+                        HttpStatus.CREATED, savedSubscription));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error creating subscription: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> updateSubscription(Long id, CategorySubscriptionRequest request) {
+        try {
+            CategorySubscription subscription = categorySubscriptionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Subscription", "id", id));
+
+            subscription.setName(request.getName());
+            subscription.setPrice(request.getPrice());
+            subscription.setDescription(request.getDescription());
+            subscription.setMaxSetsPerDay(request.getMaxSetsPerDay());
+            subscription.setMaxSetsFlashcards(request.getMaxSetsFlashcards());
+            subscription.setMaxFlashcardsPerSet(request.getMaxFlashcardsPerSet());
+            subscription.setMaxRoomsCreatePerDay(request.getMaxRoomsCreatePerDay());
+            subscription.setMaxTermsPerRoom(request.getMaxTermsPerRoom());
+            subscription.setExpiredMonth(request.getExpiredMonth());
+
+            CategorySubscription updatedSubscription = categorySubscriptionRepository.save(subscription);
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully updated subscription", 
+                HttpStatus.OK, updatedSubscription));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage(), HttpStatus.NOT_FOUND, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error updating subscription: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> deleteSubscription(Long id) {
+        try {
+            CategorySubscription subscription = categorySubscriptionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Subscription", "id", id));
+            
+            categorySubscriptionRepository.delete(subscription);
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully deleted subscription", 
+                HttpStatus.OK, null));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage(), HttpStatus.NOT_FOUND, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error deleting subscription: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getSubscriptionById(Long id) {
+        try {
+            CategorySubscription subscription = categorySubscriptionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Subscription", "id", id));
+            
+            return ResponseEntity.ok(new ApiResponse(true, "Successfully retrieved subscription", 
+                HttpStatus.OK, subscription));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(false, e.getMessage(), HttpStatus.NOT_FOUND, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse(false, "Error retrieving subscription: " + e.getMessage(), 
+                        HttpStatus.INTERNAL_SERVER_ERROR, null));
+        }
+    }
 
     @Override
     public CategorySubscription getCategorySubscriptionBaseOfRoles() throws ResourceNotFoundException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        return getCategorySubscriptionResponse(up);
-    }
-
-    @Override
-    public CategorySubscription getCategorySubscriptionBaseOfUserPrincipal(UserPrincipal up) throws ResourceNotFoundException {
-        return getCategorySubscriptionResponse(up);
-    }
-
-    @Override
-    public ResponseEntity<List<CategorySubscription>> getAll() {
-        List<CategorySubscription> categorySubscriptions = categorySubscriptionRepository.findAll();
-        return ResponseEntity.ok().body(categorySubscriptions);
-    }
-
-    @Override
-    public ResponseEntity<?> getSubscriptionByRoles() throws ResourceNotFoundException {
-        CategorySubscription cs = getCategorySubscriptionBaseOfRoles();
-
-        Map<String, Object> currentSubscription = new HashMap<>();
-
-        currentSubscription.put("id", cs.getId());
-        currentSubscription.put("name", cs.getName());
-        currentSubscription.put("expiredMonth", cs.getExpiredMonth());
-
-        return ResponseEntity.ok().body(currentSubscription);
-    }
-
-    @Override
-    public ResponseEntity<BenefitPlanResponse> getBenefitByRoles() throws ResourceNotFoundException {
-        CategorySubscription cs = getCategorySubscriptionBaseOfRoles();
-
-        BenefitPlanResponse response = new BenefitPlanResponse();
-        response.setMaxSetsPerDay(cs.getMaxSetsPerDay());
-        response.setMaxSetsFlashcards(cs.getMaxSetsFlashcards());
-        response.setMaxFlashcardsPerSet(cs.getMaxFlashcardsPerSet());
-        response.setMaxRoomsCreatePerDay(cs.getMaxRoomsCreatePerDay());
-        response.setMaxTermsPerRoom(cs.getMaxTermsPerRoom());
-        response.setExpiredMonth(cs.getExpiredMonth());
-
-        return ResponseEntity.ok().body(response);
-    }
-
-    private CategorySubscription getCategorySubscriptionResponse(UserPrincipal up) {
-        List<String> roles = up.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String plansName;
-        if (roles.contains(RoleName.ROLE_PREMIUM_USER.name()) || roles.contains(RoleName.ROLE_ADMIN.name())) {
-            plansName = PlansName.PREMIUM_PLAN.getMessage();
-        } else if (roles.contains(RoleName.ROLE_FREE_USER.name())) {
-            plansName = PlansName.FREE_PLAN.getMessage();
-        } else {
-            plansName = "";
-        }
-        return categorySubscriptionRepository.findByName(plansName)
-                .orElseThrow(() -> new ResourceNotFoundException("CategorySubscription", "id", plansName));
+        return categorySubscriptionRepository.findByName("Free Plan")
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription", "name", "Free Plan"));
     }
 }

@@ -38,7 +38,7 @@ public class FolderController {
             if (folderService.getFolderById(folderId) == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No folder found for folder ID " + folderId);
             } else {
-                IFolderDTO folder = folderService.getFolderById(folderId);
+                IFolderDTO folder = (IFolderDTO) folderService.getFolderById(folderId);
                 return ResponseEntity.ok(folder);
             }
         } catch (Exception e) {

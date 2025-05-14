@@ -104,4 +104,54 @@ public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
 
     @Query("SELECT COUNT(u) > 0 FROM AppUser u WHERE u.email = :email AND u.userId != :id")
     boolean existsByEmailExcludingUserId(@Param("email") String email, @Param("id") Long userId);
+
+    @Query(value = """
+            SELECT a.user_id, 
+            a.address, 
+            a.avatar, 
+            a.date_create, 
+            a.date_of_birth, 
+            a.email,
+            a.enabled as enabled,
+            a.first_name,
+            a.gender as gender,
+            a.last_name,
+            a.phone_number,
+            a.user_name as username,
+            a.role_id,
+            ar.role_name
+            FROM app_users a
+            JOIN app_roles ar ON a.role_id = ar.role_id
+            WHERE (:username IS NULL OR LOWER(a.user_name) LIKE LOWER(CONCAT('%', REPLACE(:username, ' ', '%'), '%')))
+            OR (:email IS NULL OR LOWER(a.email) LIKE LOWER(CONCAT('%', REPLACE(:email, ' ', '%'), '%')))
+            OR (:fullName IS NULL OR (
+                LOWER(CONCAT(a.first_name, ' ', a.last_name)) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+                OR LOWER(a.first_name) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+                OR LOWER(a.last_name) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+            ))
+            OR (:phoneNumber IS NULL OR LOWER(a.phone_number) LIKE LOWER(CONCAT('%', REPLACE(:phoneNumber, ' ', '%'), '%')))
+            OR (:role IS NULL OR LOWER(ar.role_name) LIKE LOWER(CONCAT('%', REPLACE(:role, ' ', '%'), '%')))
+            """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM app_users a
+            JOIN app_roles ar ON a.role_id = ar.role_id
+            WHERE (:username IS NULL OR LOWER(a.user_name) LIKE LOWER(CONCAT('%', REPLACE(:username, ' ', '%'), '%')))
+            OR (:email IS NULL OR LOWER(a.email) LIKE LOWER(CONCAT('%', REPLACE(:email, ' ', '%'), '%')))
+            OR (:fullName IS NULL OR (
+                LOWER(CONCAT(a.first_name, ' ', a.last_name)) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+                OR LOWER(a.first_name) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+                OR LOWER(a.last_name) LIKE LOWER(CONCAT('%', REPLACE(:fullName, ' ', '%'), '%'))
+            ))
+            OR (:phoneNumber IS NULL OR LOWER(a.phone_number) LIKE LOWER(CONCAT('%', REPLACE(:phoneNumber, ' ', '%'), '%')))
+            OR (:role IS NULL OR LOWER(ar.role_name) LIKE LOWER(CONCAT('%', REPLACE(:role, ' ', '%'), '%')))
+            """,
+            nativeQuery = true)
+    Page<IAppUserDTO> searchUsers(
+            @Param("username") String username,
+            @Param("email") String email,
+            @Param("fullName") String fullName,
+            @Param("phoneNumber") String phoneNumber,
+            @Param("role") String role,
+            Pageable pageable);
 }

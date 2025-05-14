@@ -2,6 +2,7 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.entities.Folder;
 import com.example.quizcards.entities.MyClass;
+import com.example.quizcards.entities.SetFlashcard;
 import com.example.quizcards.service.IMyClassService;
 import com.example.quizcards.security.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,9 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.example.quizcards.dto.response.SetFlashcardResponse;
 
 @RestController
 @RequestMapping("/api/v1/my-class")
@@ -55,9 +59,9 @@ public class MyClassController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/room")
     public ResponseEntity<?> getClassById(@PathVariable Long id) {
-        Optional<MyClass> myClass = iMyClassService.findById(id);
+        MyClass myClass = iMyClassService.findClassById(id);
         return new ResponseEntity<>(myClass, HttpStatus.OK);
     }
 
@@ -98,6 +102,39 @@ public class MyClassController {
 
                 Set<Folder> folders = myClass.getFolders();
                 return new ResponseEntity<>(folders, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Class not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{classId}/sets")
+    public ResponseEntity<?> getSetsFromClass(@PathVariable Long classId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
+            Long userId = user.getId();
+
+            Optional<MyClass> myClassOptional = iMyClassService.findById(classId);
+
+            if (myClassOptional.isPresent()) {
+                MyClass myClass = myClassOptional.get();
+
+                // Kiểm tra nếu người dùng là owner hoặc thành viên của lớp
+                boolean isOwner = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
+                boolean isMember = myClass.getMembers().stream()
+                        .anyMatch(member -> member.getUserId().equals(userId));
+
+                if (!isOwner && !isMember) {
+                    return new ResponseEntity<>("You don't have permission to access this class's sets", HttpStatus.FORBIDDEN);
+                }
+
+                Set<SetFlashcardResponse> sets = myClass.getSets().stream()
+                        .map(SetFlashcardResponse::fromEntity)
+                        .collect(Collectors.toSet());
+                return new ResponseEntity<>(sets, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Class not found", HttpStatus.NOT_FOUND);
             }
@@ -150,6 +187,98 @@ public class MyClassController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PutMapping("/{classId}/add-set/{setId}")
+    public ResponseEntity<?> addSetToClass(@PathVariable Long classId, @PathVariable Long setId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
+            Long userId = user.getId();
+
+            Optional<MyClass> myClassOptional = iMyClassService.findById(classId);
+            if (myClassOptional.isPresent()) {
+                MyClass myClass = myClassOptional.get();
+
+                // Kiểm tra nếu người dùng là owner của lớp
+                boolean isOwner = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
+
+                if (!isOwner) {
+                    return new ResponseEntity<>("Only class owner can add sets", HttpStatus.FORBIDDEN);
+                }
+
+                boolean success = iMyClassService.addSetToClass(classId, setId);
+                if (success) {
+                    return new ResponseEntity<>("Set added to class successfully", HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>("Failed to add set to class", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                return new ResponseEntity<>("Class not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{classId}/remove-set/{setId}")
+    public ResponseEntity<?> removeSetFromClass(@PathVariable Long classId, @PathVariable Long setId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
+            Long userId = user.getId();
+
+            Optional<MyClass> myClassOptional = iMyClassService.findById(classId);
+            if (myClassOptional.isPresent()) {
+                MyClass myClass = myClassOptional.get();
+
+                // Kiểm tra nếu người dùng là owner của lớp
+                boolean isOwner = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
+
+                if (!isOwner) {
+                    return new ResponseEntity<>("Only class owner can remove sets", HttpStatus.FORBIDDEN);
+                }
+
+                boolean success = iMyClassService.removeSetFromClass(classId, setId);
+                if (success) {
+                    return new ResponseEntity<>("Set removed from class successfully", HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>("Failed to remove set from class", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                return new ResponseEntity<>("Class not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{classId}/is-admin")
+    public ResponseEntity<?> isClassAdmin(@PathVariable Long classId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
+            Long userId = user.getId();
+
+            Optional<MyClass> myClassOptional = iMyClassService.findById(classId);
+            if (myClassOptional.isPresent()) {
+                MyClass myClass = myClassOptional.get();
+                boolean isAdmin = myClass.getOwners() != null && myClass.getOwners().getUserId().equals(userId);
+                return ResponseEntity.ok(new IsAdminResponse(isAdmin));
+            } else {
+                return new ResponseEntity<>("Class not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class IsAdminResponse {
+        private boolean isAdmin;
     }
 
     @Getter
