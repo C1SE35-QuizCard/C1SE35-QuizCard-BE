@@ -273,6 +273,26 @@ public class AppUserController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> searchUsers(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) String role,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            return ResponseEntity.ok(appUserService.searchUsers(username, email, fullName, phoneNumber, role, page, size));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "message", "An error occurred while searching users: " + e.getMessage()
+                    ));
+        }
+    }
+
     @GetMapping("/test")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public CompletableFuture<ResponseEntity<?>> testAsync() {

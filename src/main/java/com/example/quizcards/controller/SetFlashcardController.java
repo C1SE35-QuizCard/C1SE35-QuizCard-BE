@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
@@ -35,6 +36,7 @@ public class SetFlashcardController {
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching set flashcards";
 
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Object> findAllSetFlashcard() {
         try {
             if (setFlashcardService.getAll().isEmpty()) {
@@ -45,6 +47,22 @@ public class SetFlashcardController {
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+        }
+    }
+
+    @GetMapping("/data")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getAllSetFlashcardsWithPagination(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "search", required = false) String search) {
+        try {
+            return ResponseEntity.ok(setFlashcardService.getAllSetFlashcardsWithPagination(page, size, search));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of(
+                            "message", "An error occurred while fetching set flashcards: " + e.getMessage()
+                    ));
         }
     }
 

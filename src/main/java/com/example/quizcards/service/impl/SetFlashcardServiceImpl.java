@@ -73,6 +73,12 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    public Page<ISetFlashcardDTO> getAllSetFlashcardsWithPagination(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+        return setFlashcardRepository.findAllSetFlashcardsWithPagination(search, pageable);
+    }
+
+    @Override
     public List<ISetFlashcardDTO> getAllLimit(int limitData) {
         return setFlashcardRepository.findAllSetFlashcardsLimit(limitData);
     }
