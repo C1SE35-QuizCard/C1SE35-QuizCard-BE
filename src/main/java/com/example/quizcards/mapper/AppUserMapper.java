@@ -17,17 +17,18 @@ public interface AppUserMapper {
     @Mapping(target = "hashPassword", ignore = true)
     @Mapping(target = "userCode", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "userTz", ignore = true)
     AppUser toEntity(AppUserRequest request);
 
     // Cập nhật entity từ request
     @Mapping(target = "hashPassword", ignore = true)
     @Mapping(target = "userCode", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "userTz", ignore = true)
     void updateEntityFromRequest(AppUserRequest request, @MappingTarget AppUser user);
 
-
+    @Mapping(target = "userTz", ignore = true)
     void updateBasicAppUserFromRequest(BasicAppUserInformationRequest request, @MappingTarget AppUser user);
-
 
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "hasPassword", ignore = true)
