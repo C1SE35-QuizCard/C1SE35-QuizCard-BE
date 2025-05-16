@@ -10,14 +10,17 @@ import com.example.quizcards.repository.IStreakAnalysisRepository;
 import com.example.quizcards.repository.IStreakDetailsRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.utils.IbmTzLocaleUtils;
+import com.microservices.dto.notification.StreakNotificationData;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -40,6 +43,8 @@ public class StreakServiceImpl {
     IStreakAnalysisRepository analysisRepository;
 
     IbmTzLocaleUtils ibmTzLocaleUtils;
+    
+    KafkaTemplate<String, Object> kafkaTemplate;
 
 
     @Transactional
@@ -60,44 +65,9 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
-        LocalDate currentDate =
-                streakAnalysis.getLastUpdated() == null ? dateFromClient :
-                        Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
-                                .max(LocalDate::compareTo)
-                                .orElse(dateFromClient);
-
-        Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, currentDate);
-
-        if (streakData.isPresent()) {
-            return false;
-        }
-
-        StreakDetails streakDetails = StreakDetails.builder()
-                .user(user)
-                .dateLearned(currentDate)
-                .build();
-
-        learningRepository.save(streakDetails);
-        return handleUpdateStreakAnalysisV2(user, currentDate, streakAnalysis);
-    }
-
-    private boolean handleUpdateStreakAnalysisV2(AppUser user, LocalDate date, StreakAnalysis s) {
-        boolean yDayLearned = learningRepository
-                .existsByUserAndDateLearned(user, date.minusDays(1));
-
-        if (!yDayLearned) {
-            s.setCurrentStreak(1L);
-        } else {
-            s.setCurrentStreak(s.getCurrentStreak() + 1);
-            s.setLongestStreak(Math.max(s.getLongestStreak(), s.getCurrentStreak()));
-        }
-
-        s.setLastUpdated(date);
-
-        s.setDayLearned(s.getDayLearned() + 1L);
-
-        analysisRepository.save(s);
-
+        LocalDate currentDate = updateStreakDetails(user, streakAnalysis, dateFromClient);
+        if (currentDate == null) return false;
+        handleUpdateStreakAnalysisV2(user, currentDate, streakAnalysis);
         return true;
     }
 
@@ -127,6 +97,33 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
+        LocalDate currentDate = updateStreakDetails(user, streakAnalysis, dateFromClient);
+        if (currentDate == null) return false;
+//      NO CODE: handleUpdateStreakAnalysis(user, dateFromClient);
+        handleUpdateStreakAnalysis(user, currentDate);
+        return true;
+    }
+
+    private StreakAnalysis handleUpdateStreakAnalysisV2(AppUser user, LocalDate date, StreakAnalysis s) {
+        boolean yDayLearned = learningRepository
+                .existsByUserAndDateLearned(user, date.minusDays(1));
+
+        if (!yDayLearned) {
+            s.setCurrentStreak(1L);
+        } else {
+            s.setCurrentStreak(s.getCurrentStreak() + 1);
+            s.setLongestStreak(Math.max(s.getLongestStreak(), s.getCurrentStreak()));
+        }
+
+        s.setLastUpdated(date);
+
+        s.setDayLearned(s.getDayLearned() + 1L);
+
+        return analysisRepository.save(s);
+    }
+
+    @Nullable
+    private LocalDate updateStreakDetails(AppUser user, StreakAnalysis streakAnalysis, LocalDate dateFromClient) {
         LocalDate currentDate =
                 streakAnalysis.getLastUpdated() == null ? dateFromClient :
                         Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
@@ -137,7 +134,7 @@ public class StreakServiceImpl {
         Optional<StreakDetails> streakData = learningRepository.findByUserAndDateLearned(user, currentDate);
 
         if (streakData.isPresent()) {
-            return false;
+            return null;
         }
 
 //      NO CODE: StreakDetails streakDetails = StreakDetails.builder()
@@ -150,12 +147,10 @@ public class StreakServiceImpl {
                 .build();
 
         learningRepository.save(streakDetails);
-//      NO CODE: handleUpdateStreakAnalysis(user, dateFromClient);
-        handleUpdateStreakAnalysis(user, currentDate);
-        return true;
+        return currentDate;
     }
 
-    private void handleUpdateStreakAnalysis(AppUser user, LocalDate dateFromClient) {
+    private StreakAnalysis handleUpdateStreakAnalysis(AppUser user, LocalDate dateFromClient) {
         StreakAnalysis streakAnalysis = analysisRepository.findByUser(user)
                 .orElse(StreakAnalysis.builder()
                         .user(user)
@@ -175,7 +170,23 @@ public class StreakServiceImpl {
         streakAnalysis.setDayLearned(streakAnalysis.getDayLearned() + 1L);
         streakAnalysis.setLastUpdated(dateFromClient);
 
-        analysisRepository.save(streakAnalysis);
+        return analysisRepository.save(streakAnalysis);
+    }
+
+    private boolean handleSendMessageStreakDone(AppUser user, StreakAnalysis sa, StreakDetails sd) {
+        StreakNotificationData data = StreakNotificationData.builder()
+                .userId(user.getUserId().toString())
+                .lastDateLearned(sa.getLastUpdated())
+                .currentStreak(sa.getCurrentStreak())
+                .payload(Map.of(
+                        "userTz", user.getUserTz(),
+                        "user_tz", user.getUserTz(),
+                        "userName", user.getUsername(),
+                        "user_name", user.getUsername()
+                ))
+                .build();
+        kafkaTemplate.send("", data);
+        return true;
     }
 
     public StreakAnalysisResponse getAnalysisStreak(AppUser user, int offsetHours, int offsetMinutes, String localeStr) {
