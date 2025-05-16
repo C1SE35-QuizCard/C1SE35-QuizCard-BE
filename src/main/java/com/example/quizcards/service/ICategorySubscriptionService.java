@@ -1,22 +1,17 @@
 package com.example.quizcards.service;
 
-
-import com.example.quizcards.dto.response.BenefitPlanResponse;
+import com.example.quizcards.dto.request.CategorySubscriptionRequest;
 import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.exception.ResourceNotFoundException;
-import com.example.quizcards.security.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 
-import java.util.List;
-
 public interface ICategorySubscriptionService {
+    ResponseEntity<?> getBenefitByRoles();
+    ResponseEntity<?> getSubscriptionByRoles();
+    ResponseEntity<?> getAll();
+    ResponseEntity<?> createSubscription(CategorySubscriptionRequest request);
+    ResponseEntity<?> updateSubscription(Long id, CategorySubscriptionRequest request);
+    ResponseEntity<?> deleteSubscription(Long id);
+    ResponseEntity<?> getSubscriptionById(Long id);
     CategorySubscription getCategorySubscriptionBaseOfRoles() throws ResourceNotFoundException;
-
-    CategorySubscription getCategorySubscriptionBaseOfUserPrincipal(UserPrincipal up) throws ResourceNotFoundException;
-
-    ResponseEntity<List<CategorySubscription>> getAll();
-
-    ResponseEntity<?> getSubscriptionByRoles() throws ResourceNotFoundException;
-
-    ResponseEntity<BenefitPlanResponse> getBenefitByRoles() throws ResourceNotFoundException;
 }

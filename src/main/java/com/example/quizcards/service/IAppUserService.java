@@ -60,4 +60,6 @@ public interface IAppUserService {
     void confirmKeyToChangeEmail(String key);
 
     ConfirmEmailParam getEmailConfirmCriticalInformation();
+
+    Page<IAppUserDTO> searchUsers(String username, String email, String fullName, String phoneNumber, String role, int page, int size);
 }

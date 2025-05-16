@@ -21,6 +21,6 @@ public interface SearchSetFlashResponse {
 
     Long getTotalCard();
 
-    int getHasPassword();
+    Integer getHasPassword();
 }
 

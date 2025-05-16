@@ -714,5 +714,57 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     Page<ISetFlashcardDTO> filterByTagName(@Param("tag_name") String tagName,
                                            @Param("user_id") Long userId,
                                            Pageable pageable);
+
+    @Query(value = """
+            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+            u.first_name, u.last_name, u.user_name, u.user_id, u.avatar,
+            c.category_name,
+            (select count(*) from flashcards f where f.set_id = s.set_id) as total_card,
+            (select GROUP_CONCAT(t.name, ', ') from tags t join set_flashcard_tag st on t.tag_id = st.tag_id where st.set_flashcard_id = s.set_id) as tags,
+            CASE 
+                WHEN s.title LIKE CONCAT(:search, '%') THEN 3
+                WHEN s.title LIKE CONCAT('%', :search, '%') THEN 2
+                WHEN s.description_set LIKE CONCAT('%', :search, '%') THEN 1
+                WHEN u.user_name LIKE CONCAT('%', :search, '%') THEN 1
+                WHEN c.category_name LIKE CONCAT('%', :search, '%') THEN 1
+                ELSE 0
+            END as relevance
+            from set_flashcards s
+            join app_users u on s.user_id = u.user_id
+            join category_set_flashcards c on s.category_id = c.category_id
+            where :search is null or 
+                s.title LIKE CONCAT('%', :search, '%') or
+                s.description_set LIKE CONCAT('%', :search, '%') or
+                u.user_name LIKE CONCAT('%', :search, '%') or
+                c.category_name LIKE CONCAT('%', :search, '%')
+            order by relevance desc, s.updated_at desc
+            """,
+            countQuery = """
+            select count(*) from set_flashcards s
+            join app_users u on s.user_id = u.user_id
+            join category_set_flashcards c on s.category_id = c.category_id
+            where :search is null or 
+                s.title LIKE CONCAT('%', :search, '%') or
+                s.description_set LIKE CONCAT('%', :search, '%') or
+                u.user_name LIKE CONCAT('%', :search, '%') or
+                c.category_name LIKE CONCAT('%', :search, '%')
+            """,
+            nativeQuery = true)
+    Page<ISetFlashcardDTO> findAllSetFlashcardsWithPagination(
+            @Param("search") String search,
+            Pageable pageable);
+
+//    @Query(value = """
+//            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,
+//            u.first_name, u.last_name, u.user_name, u.user_id, u.avatar,
+//            c.category_name,
+//            (select count(*) from flashcards f where f.set_id = s.set_id) as total_card,
+//            (select string_agg(t.tag_name, ', ') from tags t join set_flashcard_tags st on t.tag_id = st.tag_id where st.set_id = s.set_id) as tags
+//            from set_flashcards s
+//            join app_users u on s.user_id = u.user_id
+//            join category_set_flashcards c on s.category_id = c.category_id
+//            limit :limit
+//            """, nativeQuery = true)
+//    List<ISetFlashcardDTO> findAllSetFlashcardsLimit(@Param("limit") int limit);
 }
 

@@ -395,12 +395,7 @@ public class AppUserServiceImpl implements IAppUserService {
 
     @Override
     public ConfirmEmailParam getEmailConfirmCriticalInformation() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
-
-        String key = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
-
-        return redisUtils.getFromRedis(key, ConfirmEmailParam.class);
+        return null;
     }
 
     @Override
@@ -603,5 +598,17 @@ public class AppUserServiceImpl implements IAppUserService {
             log.error(e.getMessage());
             throw new RuntimeException("Cannot handle change email!");
         }
+    }
+
+    @Override
+    public Page<IAppUserDTO> searchUsers(String username, String email, String fullName, String phoneNumber, String role, int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page must be greater than or equal to 0");
+        }
+        if (size < 1 || size > MAX_SIZE_PER_PAGE) {
+            throw new BadRequestException("Size must be greater than 0 and less than or equal to " + MAX_SIZE_PER_PAGE);
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.searchUsers(username, email, fullName, phoneNumber, role, pageable);
     }
 }

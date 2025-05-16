@@ -26,6 +26,8 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> getAllLimit(int limitData);
 
+    Page<ISetFlashcardDTO> getAllSetFlashcardsWithPagination(int page, int size, String search);
+
     List<ISetFlashcardDTO> getListFlashcardsByNearbySetting(Long userId, Long limit);
 
     void addSetFlashcard(String title,
