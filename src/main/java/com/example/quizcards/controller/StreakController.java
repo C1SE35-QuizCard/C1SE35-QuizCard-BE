@@ -78,6 +78,23 @@ public class StreakController {
         );
     }
 
+    @GetMapping("/get-learned-data-in-client-time-v3")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    ResponseEntity<?> getLearnedDataInClientTimeV3(
+            @RequestParam(value = "locale", required = false, defaultValue = "en-US")
+            String localeCode) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
+        AppUser user = AppUser.builder()
+                .userId(userDetails.getId())
+                .userTz(ZoneOffset.of(userDetails.getUserTz()))
+                .build();
+
+        return ResponseEntity.ok(
+                streakService.getAnalysisStreakV3(user, localeCode)
+        );
+    }
+
     @GetMapping("/get-learned-data-by-month-year")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     ResponseEntity<?> getLearnedDataByMonthYear(@RequestParam("month") int month,

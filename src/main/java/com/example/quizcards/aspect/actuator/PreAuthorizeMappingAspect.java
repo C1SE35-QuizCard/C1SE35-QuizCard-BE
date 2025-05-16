@@ -1,4 +1,4 @@
-package com.example.quizcards.helpers.AspectHelpers.authorize;
+package com.example.quizcards.aspect.actuator;
 
 import jakarta.annotation.PostConstruct;
 import lombok.*;

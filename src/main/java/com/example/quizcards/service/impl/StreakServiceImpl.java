@@ -8,6 +8,7 @@ import com.example.quizcards.entities.StreakDetails;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.repository.IStreakAnalysisRepository;
 import com.example.quizcards.repository.IStreakDetailsRepository;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.utils.IbmTzLocaleUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -304,6 +305,17 @@ public class StreakServiceImpl {
         LocalDate dateFromClient = timeFromClient.toLocalDate();
 
         // Xử lý locale
+        Locale locale = ibmTzLocaleUtils.getLocale(localeStr);
+
+        return getAnalysisLearningBaseOnLocaleV2(user, locale, dateFromClient);
+    }
+
+    public StreakAnalysisResponse getAnalysisStreakV3(AppUser user,
+                                                      String localeStr) {
+        ZoneOffset offset = user.getUserTz();
+
+        LocalDate dateFromClient = Instant.now().atZone(offset).toLocalDate();
+
         Locale locale = ibmTzLocaleUtils.getLocale(localeStr);
 
         return getAnalysisLearningBaseOnLocaleV2(user, locale, dateFromClient);
