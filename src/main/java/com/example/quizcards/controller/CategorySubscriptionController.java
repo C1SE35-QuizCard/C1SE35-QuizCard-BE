@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+//@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/category-subscription")
-@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+@RequestMapping("/v1/category-subscription")
 public class CategorySubscriptionController {
     @Autowired
     private ICategorySubscriptionService categorySubscriptionService;
@@ -44,7 +44,7 @@ public class CategorySubscriptionController {
 
     @PutMapping("/admin/update/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> updateSubscription(@PathVariable Long id, 
+    public ResponseEntity<?> updateSubscription(@PathVariable Long id,
             @Valid @RequestBody CategorySubscriptionRequest request) {
         return categorySubscriptionService.updateSubscription(id, request);
     }

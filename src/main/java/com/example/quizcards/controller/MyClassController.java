@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import com.example.quizcards.dto.response.SetFlashcardResponse;
 
 @RestController
-@RequestMapping("/api/v1/my-class")
+@RequestMapping("/v1/my-class")
 public class MyClassController {
 
     @Autowired

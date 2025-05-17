@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/generate")
+@RequestMapping("/v1/generate")
 @RequiredArgsConstructor
 @Slf4j
 public class AIGenFlashcardController {

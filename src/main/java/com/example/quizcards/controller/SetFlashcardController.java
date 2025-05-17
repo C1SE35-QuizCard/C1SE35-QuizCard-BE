@@ -1,16 +1,15 @@
 package com.example.quizcards.controller;
 
-import com.example.quizcards.dto.IFlashcardDTO;
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.OnUpdate;
 import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ApiResponse;
-import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,22 +17,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+//@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/set")
+@RequestMapping("/v1/set")
 public class SetFlashcardController {
     @Autowired
     private ISetFlashcardService setFlashcardService;
     private static final String FETCH_ERROR_MESSAGE = "An error occurred while fetching set flashcards";
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/list")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -67,17 +67,19 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId) {
-        try {
-            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
-                List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
-                return ResponseEntity.ok(flashcards);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE + e.getMessage());
-        }
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
+                                                          @RequestParam(required = false) String requestPassword) {
+//        try {
+//            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
+//                List<IFlashcardDTO> flashcards = setFlashcardService.getAllFlashcardBySetId(setId);
+//                return ResponseEntity.ok(flashcards);
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No flashcards found for set ID " + setId);
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
+        return ResponseEntity.ok(setFlashcardService.getAllFlashcardBySetId(setId, requestPassword));
+
     }
 
     @GetMapping("/detail/{id}")
@@ -146,13 +148,20 @@ public class SetFlashcardController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<Object> createSetFlashcard(@Valid @RequestBody SetFlashcardRequest request) {
+    public ResponseEntity<Object> createSetFlashcard(
+            @RequestBody
+            @Validated
+            SetFlashcardRequest request) {
         try {
+            String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                    ? null
+                    : passwordEncoder.encode(request.getHashPassword());
             setFlashcardService.addSetFlashcard(request.getTitle(),
                     request.getDescriptionSet(),
                     request.getIsApproved(),
                     request.getIsAnonymous(),
                     request.getSharingMode(),
+                    hashedPassword,
                     request.getUserId(),
                     request.getCategoryId(),
                     request.getTagNames());
@@ -179,7 +188,10 @@ public class SetFlashcardController {
 
     @PutMapping("/update")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<Object> updateSetFlashcard(@Validated @RequestBody SetFlashcardRequest request, BindingResult bindingResult) {
+    public ResponseEntity<Object> updateSetFlashcard(
+            @RequestBody
+            @Validated({OnUpdate.class, Default.class})
+            SetFlashcardRequest request, BindingResult bindingResult) {
         try {
             if (setFlashcardService.findBySetId(request.getSetId()) == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Set Flashcard not found");
@@ -192,8 +204,11 @@ public class SetFlashcardController {
     }
 
     @PostMapping("/create-new-set")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> createSetFlashcard_2(@Valid @RequestBody SetFlashcardInitializeRequest request) {
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> createSetFlashcard_2(
+            @RequestBody
+            @Validated
+            SetFlashcardInitializeRequest request) {
         Long setId = setFlashcardService.createNewSetFlashcards(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(true, "Created set successfully",
@@ -201,15 +216,18 @@ public class SetFlashcardController {
     }
 
     @PutMapping("/update-set")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
-    public ResponseEntity<?> updateSetFlashcard_2(@Valid @RequestBody SetFlashcardRequest request) {
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> updateSetFlashcard_2(
+            @RequestBody
+            @Validated({OnUpdate.class, Default.class})
+            SetFlashcardRequest request) {
         setFlashcardService.updateSetFlashcard(request);
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Set Flashcard updated successfully"));
     }
 
     @DeleteMapping("/delete-set/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteSetFlashcardById_2(@PathVariable("id") Long setId) {
         setFlashcardService.deleteSetFlashcard(setId);
         return ResponseEntity.ok()

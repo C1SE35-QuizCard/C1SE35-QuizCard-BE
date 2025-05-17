@@ -9,7 +9,7 @@ import java.util.Locale;
 
 @Component
 @Slf4j
-public class IbmTimezoneUtils {
+public class IbmTzLocaleUtils {
     public Locale getLocale(String localeCode) {
         if (!StringUtils.hasText(localeCode)) {
             return null;

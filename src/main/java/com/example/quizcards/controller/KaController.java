@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/ka")
+@RequestMapping("/v1/ka")
 public class KaController {
     @Autowired
     UserRankingService userRankingService;

@@ -31,6 +31,8 @@ public class UserPrincipal implements UserDetails {
 
     private boolean gender;
 
+    private String userTz;
+
     @JsonIgnore
     private String userCode;
 
@@ -65,6 +67,7 @@ public class UserPrincipal implements UserDetails {
                 .userName(user.getUsername())
                 .avatar(user.getAvatar())
                 .gender(user.getGender())
+                .userTz(user.getUserTz().getId())
                 .userCode(user.getUserCode())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())

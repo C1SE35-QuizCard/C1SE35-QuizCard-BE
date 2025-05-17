@@ -20,6 +20,8 @@ public class SetFlashcardInitializeRequest {
     private Boolean isAnonymous;
     private Boolean sharingMode;
 
+    private String hashPassword;
+
     @NotNull(message = "Missing category.")
     private Long categoryId;
     private Set<String> tagNames;

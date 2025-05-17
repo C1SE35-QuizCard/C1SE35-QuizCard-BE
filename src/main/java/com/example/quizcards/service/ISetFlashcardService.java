@@ -19,7 +19,8 @@ import java.util.Set;
 public interface ISetFlashcardService {
     SetFlashcard findById(Long setId);
 
-    List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
+    //    List<IFlashcardDTO> getAllFlashcardBySetId(Long setId);
+    List<IFlashcardDTO> getAllFlashcardBySetId(Long setId, String requestPassword);
 
     List<ISetFlashcardDTO> getAll();
 
@@ -34,6 +35,7 @@ public interface ISetFlashcardService {
                          Boolean isApproved,
                          Boolean isAnonymous,
                          Boolean sharingMode,
+                         String hashPassword,
                          Long userId,
                          Long categoryId,
                          Set<String> tagNames);
@@ -88,6 +90,8 @@ public interface ISetFlashcardService {
 
     long countFlashcardsBySetId(Long setId);
     List<SearchSetFlashResponse> searchByMyCourse(QueryDTO queryDTO,Long userId);
+
+    void checkAccess(Long setId, String requestPassword);
 
     Page<ISetFlashcardDTO> filterByTagName(String tagName, Long userId, int page, int size);
 }

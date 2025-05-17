@@ -1,4 +1,4 @@
-package com.example.quizcards.dto.response;
+package com.example.quizcards.dto;
 
 public interface IProgressAnalysisDTO {
     Long getSetId();

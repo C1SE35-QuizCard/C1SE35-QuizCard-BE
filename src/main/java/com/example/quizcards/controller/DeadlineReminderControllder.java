@@ -22,9 +22,9 @@ import java.sql.Timestamp;
 import java.time.*;
 import java.util.List;
 
-@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+//@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/deadline")
+@RequestMapping("/v1/deadline")
 public class DeadlineReminderControllder {
 
     @Autowired

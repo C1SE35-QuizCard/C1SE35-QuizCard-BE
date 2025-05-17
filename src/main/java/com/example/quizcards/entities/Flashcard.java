@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "flashcards", indexes = {
         @Index(name = "idx_flashcards_question", columnList = "question"),
         @Index(name = "idx_flashcards_answer", columnList = "answer"),
+        @Index(name = "idx_flashcards_set", columnList = "set_id"),
 })
 public class Flashcard implements Serializable {
     private static final long serialVersionUID = 1L;

@@ -16,10 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class FlashcardServiceImpl implements IFlashcardService {
@@ -35,13 +35,23 @@ public class FlashcardServiceImpl implements IFlashcardService {
 
     @Override
     public List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword) {
-//        setFlashcardService.checkAccess(id, requestPassword);
+        setFlashcardService.checkAccess(id, requestPassword);
         return flashcardRepository.findAllFlashcardsBySetId(id);
     }
 
     @Override
     public List<IFlashcardDTO> getAll() {
         return flashcardRepository.findAllFlashcards();
+    }
+
+    @Override
+    public List<IFlashcardDTO> getInfoFlashcardByIdsIn(Set<Long> ids) {
+        return flashcardRepository.findInfoCardByIdsIn(ids);
+    }
+
+    @Override
+    public List<IFlashcardDTO> getInfoFlashcardBySetIdAndIdsIn(Long setId, Set<Long> ids) {
+        return flashcardRepository.findInfoCardBySetIdAndIdsIn(setId, ids);
     }
 
     @Override
@@ -117,5 +127,10 @@ public class FlashcardServiceImpl implements IFlashcardService {
     @Override
     public List<IFlashcardDTO> getRandomFlashcardsBySetId(Long setId) {
         return flashcardRepository.findRandomFlashcardsBySetId(setId);
+    }
+
+    @Override
+    public List<IFlashcardDTO> getFlashcardsByCardIdsIn(List<Long> cardIds) {
+        return flashcardRepository.findFlashcardByIdsIn(cardIds);
     }
 }

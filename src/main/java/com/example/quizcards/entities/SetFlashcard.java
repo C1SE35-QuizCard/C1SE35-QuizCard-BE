@@ -23,8 +23,8 @@ import java.util.Set;
 @Table(name = "set_flashcards", indexes = {
         @Index(name = "idx_category_id", columnList = "category_id"),
         @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_title_fulltext", columnList = "title", unique = false),
-        @Index(name = "idx_sharing_mode", columnList = "sharing_mode")
+        @Index(name = "idx_title_fulltext", columnList = "title"),
+        @Index(name = "idx_sharing_mode", columnList = "sharing_mode"),
 })
 public class SetFlashcard implements Serializable {
     @Id
@@ -58,6 +58,9 @@ public class SetFlashcard implements Serializable {
 
     @Column(name = "sharing_mode")
     private Boolean sharingMode;
+
+    @Column(name = "hash_password", columnDefinition = "TEXT", nullable = true)
+    private String hashPassword;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)

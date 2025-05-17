@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -100,7 +101,7 @@ public class AppUserServiceImpl implements IAppUserService {
     @NonFinal
     Integer changedEmailAfterHours;
 
-    @Value("${app.link-frontend-client}")
+    @Value("${app.link-frontend-client-confirm}")
     @NonFinal
     String frontEndUrl;
 
@@ -360,6 +361,13 @@ public class AppUserServiceImpl implements IAppUserService {
         AppUser appUser = userRepository.findById(up.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", up.getId()));
         appUserMapper.updateBasicAppUserFromRequest(request, appUser);
+        if (request.getUserTz() != null) {
+            ZoneOffset zoneOffset = ZoneOffset.of(request.getUserTz());
+            // accept if it in range -12:00 to +14:00
+            if (!(zoneOffset.getTotalSeconds() < -43200 || zoneOffset.getTotalSeconds() > 50400)) {
+                appUser.setUserTz(zoneOffset);
+            }
+        }
         userRepository.save(appUser);
     }
 

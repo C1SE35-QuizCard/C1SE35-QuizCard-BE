@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -24,12 +25,19 @@ public class StreakAnalysis implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     AppUser user;
 
-    @Column
-    Long longestStreak;
+    @Builder.Default
+    @Column(name = "longest_streak", nullable = false)
+    Long longestStreak = 0L;
 
-    @Column
-    Long currentStreak;
+    @Builder.Default
+    @Column(name = "current_streak", nullable = false)
+    Long currentStreak = 0L;
 
-    @Column
-    Long dayLearned;
+    @Builder.Default
+    @Column(name = "day_learned", nullable = false)
+    Long dayLearned = 0L;
+
+    // Cái này theo múi giờ của client
+    @Column(name = "last_updated")
+    LocalDate lastUpdated;
 }

@@ -49,4 +49,7 @@ public class UserInfoResponse {
 
     @JsonProperty("haspassword")
     boolean hasPassword;
+
+    @JsonProperty("userTz")
+    String userTz;
 }

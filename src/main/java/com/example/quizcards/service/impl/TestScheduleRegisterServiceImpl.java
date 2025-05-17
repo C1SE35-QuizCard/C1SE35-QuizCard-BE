@@ -21,7 +21,7 @@ public class TestScheduleRegisterServiceImpl {
             TestExecutorSession.addTestExecutor(testId,
                     scheduleHelper.addScheduleTasks(() -> {
                         TestExecutorSession.removeTestExecutor(testId);
-                        submitService.submitTest(testId);
+                        submitService.submitTestOld(testId);
                         TestSocketSession.shutdownTest(testId);
                     }, endAt));
         }

@@ -1,5 +1,6 @@
 package com.example.quizcards.entities;
 
+import com.example.quizcards.utils.ZoneOffsetConverter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,6 +77,10 @@ public class AppUser implements Serializable {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
+    @Column(name = "user_tz", length = 9)
+    @Convert(converter = ZoneOffsetConverter.class)
+    private ZoneOffset userTz;
+
     @ManyToOne
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private AppRole role;
@@ -85,6 +91,6 @@ public class AppUser implements Serializable {
     private Set<MyClass> joinedClasses = new HashSet<>();
 
     public AppUser(Long userId) {
-        this.userId=userId;
+        this.userId = userId;
     }
 }
