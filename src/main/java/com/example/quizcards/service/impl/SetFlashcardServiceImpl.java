@@ -68,10 +68,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 .orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
     }
 
-//    @Override
-//    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
-//        return setFlashcardRepository.findAllFlashcardsBySetId(setId);
-//    }
+    @Override
+    public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId) {
+        return setFlashcardRepository.findAllFlashcardsBySetId(setId);
+    }
 
     @Override
     public List<IFlashcardDTO> getAllFlashcardBySetId(Long setId, String requestPassword) {

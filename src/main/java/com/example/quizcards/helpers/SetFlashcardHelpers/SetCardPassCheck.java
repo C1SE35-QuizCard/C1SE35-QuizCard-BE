@@ -2,8 +2,8 @@ package com.example.quizcards.helpers.SetFlashcardHelpers;
 
 import java.lang.annotation.*;
 
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface ISetCardPassCheckHandlerInterceptor {
+public @interface SetCardPassCheck {
 }

@@ -1,6 +1,7 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.ISetFlashcardDTO;
+import com.example.quizcards.dto.OnCreate;
 import com.example.quizcards.dto.OnUpdate;
 import com.example.quizcards.dto.request.QueryDTO;
 import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
@@ -66,8 +67,8 @@ public class SetFlashcardController {
         }
     }
 
-    @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
+    @GetMapping("/list/{set_id}")
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("set_id") Long setId,
                                                           @RequestParam(required = false) String requestPassword) {
 //        try {
 //            if (!setFlashcardService.getAllFlashcardBySetId(setId).isEmpty()) {
@@ -150,7 +151,7 @@ public class SetFlashcardController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Object> createSetFlashcard(
             @RequestBody
-            @Validated
+            @Validated({OnCreate.class, Default.class})
             SetFlashcardRequest request) {
         try {
             String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
@@ -207,7 +208,7 @@ public class SetFlashcardController {
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> createSetFlashcard_2(
             @RequestBody
-            @Validated
+            @Validated({Default.class})
             SetFlashcardInitializeRequest request) {
         Long setId = setFlashcardService.createNewSetFlashcards(request);
         return ResponseEntity.status(HttpStatus.CREATED)

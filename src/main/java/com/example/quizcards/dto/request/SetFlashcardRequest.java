@@ -1,8 +1,10 @@
 package com.example.quizcards.dto.request;
 
+import com.example.quizcards.dto.OnCreate;
 import com.example.quizcards.dto.OnUpdate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +18,10 @@ public class SetFlashcardRequest {
     @NotNull(message = "Missing set id", groups = {OnUpdate.class})
     private Long setId;
 
-    @NotBlank(message = "Title of the set flashcard is empty.")
+    @NotBlank(message = "Title of the set flashcard is empty.", groups = {OnCreate.class})
+    @Size(min = 1, max = 100, groups = {OnCreate.class, OnUpdate.class})
     private String title;
+
     private String descriptionSet;
 
     private Boolean isApproved;
