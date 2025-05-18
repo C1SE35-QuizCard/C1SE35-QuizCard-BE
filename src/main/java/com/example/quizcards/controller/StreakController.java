@@ -52,48 +52,48 @@ public class StreakController {
         );
     }
 
-    @GetMapping("/get-learned-data-in-client-time-v2")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    ResponseEntity<?> getLearnedDataInClientTimeV2(
-            @RequestParam("timeFromClient")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            OffsetDateTime timeFromClient,
-            @RequestParam(value = "locale", required = false, defaultValue = "en-US")
-            String localeCode) {
-        // Validate timezone offset
-        ZoneOffset offset = timeFromClient.getOffset();
-        int totalSeconds = offset.getTotalSeconds();
-        int offsetHours = totalSeconds / 3600;
-        if (offsetHours < -12 || offsetHours > 14) {
-            return ResponseEntity.badRequest().body(null);
-        }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
-        AppUser user = AppUser.builder()
-                .userId(userDetails.getId())
-                .build();
-
-        return ResponseEntity.ok(
-                streakService.getAnalysisStreakV2(user, timeFromClient, localeCode)
-        );
-    }
-
-    @GetMapping("/get-learned-data-in-client-time-v3")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    ResponseEntity<?> getLearnedDataInClientTimeV3(
-            @RequestParam(value = "locale", required = false, defaultValue = "en-US")
-            String localeCode) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
-        AppUser user = AppUser.builder()
-                .userId(userDetails.getId())
-                .userTz(ZoneOffset.of(userDetails.getUserTz()))
-                .build();
-
-        return ResponseEntity.ok(
-                streakService.getAnalysisStreakV3(user, localeCode)
-        );
-    }
+//    @GetMapping("/get-learned-data-in-client-time-v2")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+//    ResponseEntity<?> getLearnedDataInClientTimeV2(
+//            @RequestParam("timeFromClient")
+//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+//            OffsetDateTime timeFromClient,
+//            @RequestParam(value = "locale", required = false, defaultValue = "en-US")
+//            String localeCode) {
+//        // Validate timezone offset
+//        ZoneOffset offset = timeFromClient.getOffset();
+//        int totalSeconds = offset.getTotalSeconds();
+//        int offsetHours = totalSeconds / 3600;
+//        if (offsetHours < -12 || offsetHours > 14) {
+//            return ResponseEntity.badRequest().body(null);
+//        }
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
+//        AppUser user = AppUser.builder()
+//                .userId(userDetails.getId())
+//                .build();
+//
+//        return ResponseEntity.ok(
+//                streakService.getAnalysisStreakV2(user, timeFromClient, localeCode)
+//        );
+//    }
+//
+//    @GetMapping("/get-learned-data-in-client-time-v3")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+//    ResponseEntity<?> getLearnedDataInClientTimeV3(
+//            @RequestParam(value = "locale", required = false, defaultValue = "en-US")
+//            String localeCode) {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
+//        AppUser user = AppUser.builder()
+//                .userId(userDetails.getId())
+//                .userTz(ZoneOffset.of(userDetails.getUserTz()))
+//                .build();
+//
+//        return ResponseEntity.ok(
+//                streakService.getAnalysisStreakV3(user, localeCode)
+//        );
+//    }
 
     @GetMapping("/get-learned-data-by-month-year")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
@@ -131,6 +131,8 @@ public class StreakController {
         UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
         AppUser user = AppUser.builder()
                 .userId(userDetails.getId())
+                .userTz(ZoneOffset.of(userDetails.getUserTz()))
+                .username(userDetails.getUsername())
                 .build();
         boolean resultUpdate = streakService.generateStreak(user, request.getTimeFromClient());
         if (resultUpdate) {
@@ -139,20 +141,22 @@ public class StreakController {
         return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
     }
 
-    @PatchMapping("/update-streak-data-v2")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    ResponseEntity<?> updateStreakDataV2(@Valid @RequestBody StreakRequestV2 request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
-        AppUser user = AppUser.builder()
-                .userId(userDetails.getId())
-                .build();
-        boolean resultUpdate = streakService.generateStreakV2(user, request.getOffsetHours(), request.getOffsetMinutes());
-        if (resultUpdate) {
-            return ResponseEntity.ok("Streak updated");
-        }
-        return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
-    }
+//    @PatchMapping("/update-streak-data-v2")
+//    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+//    ResponseEntity<?> updateStreakDataV2(@Valid @RequestBody StreakRequestV2 request) {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        UserPrincipal userDetails = (UserPrincipal) auth.getPrincipal();
+//        AppUser user = AppUser.builder()
+//                .userId(userDetails.getId())
+//                .userTz(ZoneOffset.of(userDetails.getUserTz()))
+//                .username(userDetails.getUsername())
+//                .build();
+//        boolean resultUpdate = streakService.generateStreakV2(user, request.getOffsetHours(), request.getOffsetMinutes());
+//        if (resultUpdate) {
+//            return ResponseEntity.ok("Streak updated");
+//        }
+//        return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
+//    }
 
     @GetMapping("/get-learned-data-by-date-range")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
@@ -171,11 +175,5 @@ public class StreakController {
                 .userId(userDetails.getId())
                 .build();
         return ResponseEntity.ok(streakService.getLearnedByDateRange(user, startDate, endDate, locale, page, size));
-    }
-
-    @PatchMapping("/update-streak-data-v3")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    ResponseEntity<?> updateStreakDataV3() {
-        return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
     }
 }

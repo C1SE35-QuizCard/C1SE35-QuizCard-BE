@@ -24,6 +24,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.time.*;
 import java.time.format.TextStyle;
@@ -65,9 +67,12 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
-        LocalDate currentDate = updateStreakDetails(user, streakAnalysis, dateFromClient);
-        if (currentDate == null) return false;
-        handleUpdateStreakAnalysisV2(user, currentDate, streakAnalysis);
+        var data = updateStreakDetails(user, streakAnalysis, dateFromClient);
+        if (data == null) return false;
+        LocalDate currentDate = data.getT1();
+        StreakDetails streakDetails = data.getT2();
+        streakAnalysis = handleUpdateStreakAnalysisV2(user, currentDate, streakAnalysis);
+        handleSendMessageStreakDone(user, streakAnalysis, streakDetails);
         return true;
     }
 
@@ -97,10 +102,13 @@ public class StreakServiceImpl {
                         .dayLearned(0L)
                         .build());
 
-        LocalDate currentDate = updateStreakDetails(user, streakAnalysis, dateFromClient);
-        if (currentDate == null) return false;
+        var data = updateStreakDetails(user, streakAnalysis, dateFromClient);
+        if (data == null) return false;
 //      NO CODE: handleUpdateStreakAnalysis(user, dateFromClient);
-        handleUpdateStreakAnalysis(user, currentDate);
+        LocalDate currentDate = data.getT1();
+        StreakDetails streakDetails = data.getT2();
+        streakAnalysis = handleUpdateStreakAnalysis(user, currentDate);
+        handleSendMessageStreakDone(user, streakAnalysis, streakDetails);
         return true;
     }
 
@@ -123,7 +131,7 @@ public class StreakServiceImpl {
     }
 
     @Nullable
-    private LocalDate updateStreakDetails(AppUser user, StreakAnalysis streakAnalysis, LocalDate dateFromClient) {
+    private Tuple2<LocalDate, StreakDetails> updateStreakDetails(AppUser user, StreakAnalysis streakAnalysis, LocalDate dateFromClient) {
         LocalDate currentDate =
                 streakAnalysis.getLastUpdated() == null ? dateFromClient :
                         Stream.of(streakAnalysis.getLastUpdated(), dateFromClient)
@@ -147,7 +155,7 @@ public class StreakServiceImpl {
                 .build();
 
         learningRepository.save(streakDetails);
-        return currentDate;
+        return Tuples.of(currentDate, streakDetails);
     }
 
     private StreakAnalysis handleUpdateStreakAnalysis(AppUser user, LocalDate dateFromClient) {
@@ -179,13 +187,13 @@ public class StreakServiceImpl {
                 .lastDateLearned(sa.getLastUpdated())
                 .currentStreak(sa.getCurrentStreak())
                 .payload(Map.of(
-                        "userTz", user.getUserTz(),
-                        "user_tz", user.getUserTz(),
+                        "userTz", user.getUserTz().getId(),
+                        "user_tz", user.getUserTz().getId(),
                         "userName", user.getUsername(),
                         "user_name", user.getUsername()
                 ))
                 .build();
-        kafkaTemplate.send("", data);
+        kafkaTemplate.send("on-learning-done-event", data);
         return true;
     }
 

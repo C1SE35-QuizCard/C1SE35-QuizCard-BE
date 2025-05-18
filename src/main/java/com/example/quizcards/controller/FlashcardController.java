@@ -41,8 +41,8 @@ public class FlashcardController {
         }
     }
 
-    @GetMapping("/list/{id}")
-    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("id") Long setId,
+    @GetMapping("/list/{set_id}")
+    public ResponseEntity<Object> findAllFlashcardBySetId(@PathVariable("set_id") Long setId,
                                                           @RequestParam(required = false) String requestPassword) {
 //        try {
 //            List<IFlashcardDTO> flashcards = flashcardService.getAllBySetId(setId, requestPassword);

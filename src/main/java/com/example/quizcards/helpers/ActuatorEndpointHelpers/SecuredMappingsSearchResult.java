@@ -1,4 +1,4 @@
-package com.example.quizcards.aspect.actuator;
+package com.example.quizcards.helpers.ActuatorEndpointHelpers;
 
 import java.util.List;
 

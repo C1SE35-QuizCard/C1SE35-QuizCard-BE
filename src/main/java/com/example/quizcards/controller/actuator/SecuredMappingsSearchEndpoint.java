@@ -1,7 +1,7 @@
 package com.example.quizcards.controller.actuator;
 
-import com.example.quizcards.aspect.actuator.PreAuthorizeMappingAspect;
-import com.example.quizcards.aspect.actuator.SecuredMappingsSearchResult;
+import com.example.quizcards.helpers.ActuatorEndpointHelpers.PreAuthorizeMappingAspect;
+import com.example.quizcards.helpers.ActuatorEndpointHelpers.SecuredMappingsSearchResult;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;

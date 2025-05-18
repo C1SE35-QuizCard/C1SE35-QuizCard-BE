@@ -395,7 +395,12 @@ public class AppUserServiceImpl implements IAppUserService {
 
     @Override
     public ConfirmEmailParam getEmailConfirmCriticalInformation() {
-        return null;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+
+        String key = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);
+
+        return redisUtils.getFromRedis(key, ConfirmEmailParam.class);
     }
 
     @Override
