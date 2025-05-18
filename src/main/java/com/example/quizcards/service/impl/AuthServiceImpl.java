@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -113,6 +114,8 @@ public class AuthServiceImpl implements IAuthService {
         user.setRole(role);
         user.setGender(true);
         user.setEnabled(true);
+        user.setUserTz(ZoneOffset.of(signupRequest.getUserTz() == null
+                ? "+00:00" : signupRequest.getUserTz()));
 
         appUserService.save(user);
 
@@ -398,6 +401,8 @@ public class AuthServiceImpl implements IAuthService {
 
         user.setUsername(g_user.getUserName());
         user.setUserCode("USER-DATA-" + CodeRandom.generateRandomCode(20));
+
+        user.setUserTz(ZoneOffset.UTC);
 
         appUserService.save(user);
 

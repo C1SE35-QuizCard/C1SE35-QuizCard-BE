@@ -47,4 +47,6 @@ public class SignupRequest {
     @Pattern(regexp = "^\\S(.*\\S)?$", message = "Last name cannot be only whitespace")
     @Size(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
+
+    private String userTz;
 }
