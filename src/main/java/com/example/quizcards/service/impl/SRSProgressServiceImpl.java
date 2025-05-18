@@ -6,12 +6,15 @@ import com.example.quizcards.dto.response.SRSProgressResponse;
 import com.example.quizcards.entities.SetProgressSetting;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.helpers.ProgressHelpers.ProgressHelpers;
+import com.example.quizcards.security.UserPrincipal;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -48,11 +51,16 @@ public class SRSProgressServiceImpl {
                                                           int offsetMinutes) {
         SetProgressSetting settingAnalysis =
                 settingProgressService.getEffectiveSettings(setId, userId);
+        UserPrincipal up = (UserPrincipal) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        ZoneOffset z = ZoneOffset.of(up.getUserTz());
         return progressHelpers.getProgressCardBaseOnRound(
                 userId,
                 setId,
-                offsetHours,
-                offsetMinutes,
+                z.getTotalSeconds() / 3600,
+                (z.getTotalSeconds() % 3600) / 60,
                 settingAnalysis
         );
     }
