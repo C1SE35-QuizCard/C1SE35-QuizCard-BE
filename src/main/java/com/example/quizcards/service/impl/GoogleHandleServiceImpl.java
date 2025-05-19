@@ -58,8 +58,10 @@ public class GoogleHandleServiceImpl implements IGoogleHandleService {
             throw new Exception("ERROR: Cannot find Google service data.");
         }
 
-        String code = request.getCode();
-        GoogleUserInfoResponse userResponse = getInfoUserFromAccessToken(getAccessTokenFromCode(code));
+//        String code = request.getCode();
+//        GoogleUserInfoResponse userResponse = getInfoUserFromAccessToken(getAccessTokenFromCode(code));
+        String accessToken = request.getAccessToken();
+        GoogleUserInfoResponse userResponse = getInfoUserFromAccessToken(accessToken);
 
         GoogleInfoUser userInfo = GoogleInfoUser
                 .builder()

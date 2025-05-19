@@ -20,7 +20,11 @@ public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBro
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/ws")
+//                .setAllowedOrigins("*")
+                .setAllowedOrigins("http://localhost:3000", "https://localhost:5173")
+//                .setAllowedOriginPatterns("http://localhost:3000", "https://localhost:5173")
+                .withSockJS();
     }
 
     @Override

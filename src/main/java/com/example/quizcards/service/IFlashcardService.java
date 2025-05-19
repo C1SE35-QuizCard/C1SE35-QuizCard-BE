@@ -11,6 +11,8 @@ import java.util.Set;
 public interface IFlashcardService {
     List<IFlashcardDTO> getAllBySetId(Long id, String requestPassword);
 
+    List<IFlashcardDTO> getAllBySetId(Long id);
+
     List<IFlashcardDTO> getAll();
 
     List<IFlashcardDTO> getInfoFlashcardByIdsIn(Set<Long> ids);
@@ -33,5 +35,5 @@ public interface IFlashcardService {
 
     List<IFlashcardDTO> getRandomFlashcardsBySetId(Long setId);
 
-    List<IFlashcardDTO> getFlashcardsByCardIdsIn(List<Long> cardIds);
+    List<IFlashcardDTO> getFlashcardsByCardIdsIn(List<Long> cardIds, Long setId);
 }

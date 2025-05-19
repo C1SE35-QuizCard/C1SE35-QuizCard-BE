@@ -10,8 +10,6 @@ import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.dto.response.ITopCreatorsResponse;
 import com.example.quizcards.entities.SetFlashcard;
 import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Set;
@@ -49,7 +47,9 @@ public interface ISetFlashcardService {
 
     void updateSetFlashcard(SetFlashcardRequest request);
 
-    Long createNewSetFlashcards(SetFlashcardInitializeRequest request);
+    Long createNewSetFlashcard(SetFlashcardInitializeRequest request);
+
+    void updatePasswordSet(Long setId, String oldPassword, String newPassword, Boolean logoutAllSession);
 
     ISetFlashcardDTO findBySetId(Long setId);
 

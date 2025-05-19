@@ -4,6 +4,7 @@ package com.example.quizcards.controller;
 import com.example.quizcards.dto.request.SetProgressSettingRequest;
 import com.example.quizcards.dto.response.SetProgressSettingResponse;
 import com.example.quizcards.entities.SetProgressSetting;
+import com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.impl.SetProgressSettingServiceImpl;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,9 @@ import org.springframework.web.bind.annotation.*;
 public class SettingProgressSettingController {
     SetProgressSettingServiceImpl settingService;
 
+    @SetCardPassCheck
     @GetMapping("/get-setting")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getDefaultSetting(@RequestParam Long setId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
@@ -32,7 +36,9 @@ public class SettingProgressSettingController {
         return ResponseEntity.ok(SetProgressSettingResponse.from(setting));
     }
 
+    @SetCardPassCheck
     @GetMapping("/get-effective-setting")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> getEffectiveSetting(@RequestParam Long setId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
@@ -40,6 +46,7 @@ public class SettingProgressSettingController {
         return ResponseEntity.ok(SetProgressSettingResponse.from(setting));
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     @PostMapping("/save-setting")
     public ResponseEntity<?> saveSetting(@Valid @RequestBody SetProgressSettingRequest request) {
         settingService.saveOrUpdateSettings(request);

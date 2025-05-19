@@ -2,23 +2,38 @@ package com.example.quizcards.service.impl;
 
 import com.example.quizcards.dto.request.CategorySubscriptionRequest;
 import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.entities.plans.PlansName;
 import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.repository.ICategorySubscriptionRepository;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
+import com.example.quizcards.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CategorySubscriptionServiceImpl implements ICategorySubscriptionService {
     @Autowired
     private ICategorySubscriptionRepository categorySubscriptionRepository;
+
+    @Autowired
+    private RedisUtils redisUtils;
+
+    private final Map<String, String> mappingData =
+            Map.of(
+                    RoleName.ROLE_FREE_USER.name(), "Free",
+                    RoleName.ROLE_PREMIUM_USER.name(), "Premium"
+            );
 
     @Override
     public ResponseEntity<?> getBenefitByRoles() {
@@ -154,5 +169,25 @@ public class CategorySubscriptionServiceImpl implements ICategorySubscriptionSer
     public CategorySubscription getCategorySubscriptionBaseOfRoles() throws ResourceNotFoundException {
         return categorySubscriptionRepository.findByName("Free Plan")
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription", "name", "Free Plan"));
+    }
+
+    @Override
+    public CategorySubscription getBenefitByName(UserPrincipal up, Boolean searchingRegex) {
+        // cache is get user id and category subscription on redis and cache on 15 minutes
+        String benefitName = mappingData.getOrDefault(up.getRolesBaseAuthorities().getFirst(), "unknown");
+        if (!searchingRegex) {
+            benefitName = "^" + benefitName + "$";
+        }
+        String cacheKey = "user:" + up.getId() + ":category_subscription:" + benefitName;
+        Set<CategorySubscription> cachedSubscription = redisUtils.getFromSet(cacheKey, CategorySubscription.class);
+        if (!cachedSubscription.isEmpty()) {
+            return cachedSubscription.stream().toList().getFirst();
+        }
+        CategorySubscription cs = categorySubscriptionRepository.findByPatternName(benefitName);
+        if (cs != null) {
+            redisUtils.saveToSet(cacheKey, cs, 15 * 60, TimeUnit.SECONDS);
+            return cs;
+        }
+        return null;
     }
 }

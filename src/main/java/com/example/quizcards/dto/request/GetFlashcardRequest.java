@@ -1,5 +1,7 @@
 package com.example.quizcards.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -14,8 +16,9 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GetFlashcardRequest {
     @NotNull
-    @Size(min = 1, max = 500)
+    @Size(min = 1, max = 512)
     List<Long> cardIds;
 
-    Long limit;
+    @NotNull
+    Long setId;
 }

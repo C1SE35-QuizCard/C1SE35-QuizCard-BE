@@ -150,9 +150,12 @@ public interface IFlashcardRepository extends JpaRepository<Flashcard, Long> {
                    f.created_at as createdAt,
                    f.updated_at as updatedAt
             FROM flashcards f
-            WHERE f.card_id IN (:cardIds)
+            WHERE                 
+                f.card_id IN (:cardIds)
+                AND f.set_id = :setId
             """, nativeQuery = true)
     List<IFlashcardDTO> findFlashcardByIdsIn(
-            @Param("cardIds") List<Long> cardIds);
+            @Param("cardIds") List<Long> cardIds,
+            @Param("setId") Long setId);
 }
 

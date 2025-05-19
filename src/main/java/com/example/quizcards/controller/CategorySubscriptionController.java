@@ -1,14 +1,18 @@
 package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.CategorySubscriptionRequest;
-import com.example.quizcards.dto.response.ApiResponse;
+import com.example.quizcards.entities.role.RoleName;
+import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 //@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
@@ -16,6 +20,20 @@ import org.springframework.web.bind.annotation.*;
 public class CategorySubscriptionController {
     @Autowired
     private ICategorySubscriptionService categorySubscriptionService;
+
+
+
+    @GetMapping("/my-subscription")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getMySubscription() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        try {
+            return ResponseEntity.ok().body(categorySubscriptionService.getBenefitByName(up, true));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error retrieving subscription: " + e.getMessage());
+        }
+    }
 
     // Public APIs
     @GetMapping("/current-benefit")
@@ -45,7 +63,7 @@ public class CategorySubscriptionController {
     @PutMapping("/admin/update/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateSubscription(@PathVariable Long id,
-            @Valid @RequestBody CategorySubscriptionRequest request) {
+                                                @Valid @RequestBody CategorySubscriptionRequest request) {
         return categorySubscriptionService.updateSubscription(id, request);
     }
 

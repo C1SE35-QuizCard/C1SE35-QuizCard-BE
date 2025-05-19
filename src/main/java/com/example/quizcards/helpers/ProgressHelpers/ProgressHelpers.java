@@ -179,44 +179,21 @@ public class ProgressHelpers {
 
 
         // Trước khi truy vấn, sử dụng cùng một currentUtcSkip cho các hàm truy vấn liên quan luôn
-
         Instant currentUtc = Instant.now();
 
         // Cộng thêm skip time
         Instant currentUtcSkip = currentUtc.plusSeconds(setting.getIntervalSecondsCanSkip());
 
-//        // THỰC HIỆN B1:
-//       NO CODE: Long countCardsJustLearned = countCardsJustLearnedAtGivenTime(
-//                userId,
-//                setId,
-//                offsetHours,
-//                offsetMinutes,
-//                setting.getCurrentSrsVersion(),
-//                currentUtc
-//        );
-//
-//        // THỰC HIỆN B2:
-//        NO CODE: long maxCardsInSet = flashcardRepository.countNumberOfCardsInSet(setId);
-//
-//        NO CODE: long realNewCardsPerDay = Math.min(
-//                setting.getNewCardsPerDay(),
-//                maxCardsInSet
-//        );
-//
-//        NO CODE: long newCardsRemainToday = Math.max(
-//                realNewCardsPerDay - countCardsJustLearned,
-//                0L
-//        );
-//
-//        // THỰC HIỆN B3:
-//        NO CODE: Long countCardsToReview = srsProgressRepo.countCardsDueDateBeforeTime(
-//                userId,
-//                setId,
-//                setting.getCurrentSrsVersion(),
-//                currentUtcSkip
-//        );
+        // THỰC HIỆN B1:
+        Future<Long> remainNumNewCardsFut = taskExecutor.submit(() ->
+                srsProgressRepo.countNewCardsByUserIdSetId(
+                        userId,
+                        setId,
+                        setting.getCurrentSrsVersion()
+                )
+        );
 
-        Future<Long> countCardsJustLearnedFut = taskExecutor.submit(() ->
+        Future<Long> numCardsLearnedTodayFut = taskExecutor.submit(() ->
                 countCardsJustLearnedAtGivenTime(
                         userId,
                         setId,
@@ -240,12 +217,14 @@ public class ProgressHelpers {
                 )
         );
 
-        Long countCardsJustLearned = null;
+        Long remainNumNewCards = null;
+        Long numCardsLearnedToday = null;
         Long maxCardsInSet = null;
         Long countCardsToReview = null;
 
         try {
-            countCardsJustLearned = countCardsJustLearnedFut.get();
+            remainNumNewCards = remainNumNewCardsFut.get();
+            numCardsLearnedToday = numCardsLearnedTodayFut.get();
             maxCardsInSet = maxCardsInSetFut.get();
             countCardsToReview = countCardsToReviewFut.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -257,18 +236,23 @@ public class ProgressHelpers {
             );
         }
 
-        long realNewCardsPerDay = Math.min(
+        long newCardsPerDay = Math.min(
                 setting.getNewCardsPerDay(),
                 maxCardsInSet
         );
 
-        long newCardsRemainToday = Math.max(
-                realNewCardsPerDay - countCardsJustLearned,
+        long estimateCardsRemain = Math.max(
+                newCardsPerDay - numCardsLearnedToday,
                 0L
         );
 
+        long actualCardsRemain = Math.min(
+                estimateCardsRemain,
+                remainNumNewCards
+        );
+
         // Trước bước 4, nếu cả 2 là 0
-        if (newCardsRemainToday == 0 && countCardsToReview == 0) {
+        if (actualCardsRemain == 0 && countCardsToReview == 0) {
             // CŨ: return mảng rỗng
             //      return List.of();
             // MỚI: lấy thời gian đến card ôn gần nhất với instant hiện tại, và quăng lỗi ErrorDataException
@@ -301,7 +285,7 @@ public class ProgressHelpers {
         // 2. Biến đổi và tính toán dựa trên logic chọn theo phần trăm
         //     Hàm biến đổi đã được triển khai trong lớp SRSUtils, lấy ra mà dùng
         List<Long> newAndReviewCards = SRSUtils.getNumNewCardsAndNumReviewCards(
-                newCardsRemainToday,
+                estimateCardsRemain,
                 countCardsToReview,
                 setting.getCardsPerRound(),
                 newCardsRatio,
@@ -970,7 +954,7 @@ public class ProgressHelpers {
         potential = calculateAllNextIntervals(progress, settings);
 
         if (isNew) {
-            progress.setCardState(CardState.New);
+//            progress.setCardState(CardState.New);
             progress.setCreatedAt(Instant.now());
         }
 

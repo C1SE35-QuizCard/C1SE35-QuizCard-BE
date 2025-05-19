@@ -95,14 +95,14 @@ public class SetCardPassCheckAspect {
 
         // 5) Kiểm auth
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal up)
+                || !auth.isAuthenticated() || auth.getAuthorities().isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "Unauthorized"
             );
         }
 
         // Get information of authenticated user
-        UserPrincipal up = (UserPrincipal) auth.getPrincipal();
 
         // Check if the user is the owner of the set
         if (Objects.equals(up.getId(), set.getUser().getUserId())) {
@@ -111,10 +111,10 @@ public class SetCardPassCheckAspect {
 
         // Check if the user has previously confirmed the password entry
         String key = MessageFormat.format(
-                "set_{0}_user_{1}_pass_checked",
-                setId, up.getId());
+                "set:{0}:pass_checked",
+                setId);
 
-        if (redisUtils.hasKey(key)) {
+        if (redisUtils.isMember(key, up.getId().toString())) {
             return pjp.proceed();
         }
 
@@ -129,7 +129,7 @@ public class SetCardPassCheckAspect {
 
         // Parse validAt and throw error if parse failed or range is invalid
         // 9) Parse validAt
-        long validAt = 3L * 24 * 3600;
+        long validAt = 7L * 24 * 3600;
         try {
             if (rawValid != null) {
                 validAt = Long.parseLong(rawValid);
@@ -144,8 +144,8 @@ public class SetCardPassCheckAspect {
             );
         }
 
-        // Check if validAt is in range (1 second - 3 days)
-        if (validAt < 1 || validAt > 3 * 24 * 3600) {
+        // Check if validAt is in range (1 second - 7 days)
+        if (validAt < 1 || validAt > 7 * 24 * 3600) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "{\"type\":\"Valid at\",\"reason\":\"Range exception\"}"
@@ -161,7 +161,7 @@ public class SetCardPassCheckAspect {
         }
 
         // Save password check result to Redis with valid at
-        redisUtils.saveToRedis(key, true, validAt, TimeUnit.SECONDS);
+        redisUtils.saveToSet(key, up.getId().toString(), validAt, TimeUnit.SECONDS);
 
         // Bypass to next interceptor (or controller endpoint)
         return pjp.proceed();

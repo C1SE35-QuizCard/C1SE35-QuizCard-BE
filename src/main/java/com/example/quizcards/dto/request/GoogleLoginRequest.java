@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GoogleLoginRequest {
-    @NotBlank
     private String code;
+
+    @NotBlank
+    private String accessToken;
 }

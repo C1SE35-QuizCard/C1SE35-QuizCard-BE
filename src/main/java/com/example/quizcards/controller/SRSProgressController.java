@@ -4,6 +4,7 @@ import com.example.quizcards.dto.ISrsProgressAnalysisDTO;
 import com.example.quizcards.dto.request.ProgressSrsRequest;
 import com.example.quizcards.dto.response.SRSProgressResponse;
 import com.example.quizcards.exception.ErrorsDataException;
+import com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.impl.SRSProgressServiceImpl;
 import jakarta.validation.Valid;
@@ -38,6 +39,7 @@ public class SRSProgressController {
 //        return "SRS Progress Data";
 //    }
 
+    @SetCardPassCheck
     @GetMapping("/get-progress-card-base-on-round")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<SRSProgressResponse> getProgressCardBaseOnRound(@RequestParam Long setId,
@@ -65,6 +67,7 @@ public class SRSProgressController {
         }
     }
 
+    @SetCardPassCheck
     @PostMapping("submit-progress")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> submitProgress(@Valid @RequestBody ProgressSrsRequest progressSrsRequest) {

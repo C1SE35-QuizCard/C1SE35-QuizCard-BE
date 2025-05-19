@@ -1,8 +1,10 @@
 package com.example.quizcards.service;
 
 import com.example.quizcards.dto.request.CategorySubscriptionRequest;
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.CategorySubscription;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.security.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 
 public interface ICategorySubscriptionService {
@@ -14,4 +16,6 @@ public interface ICategorySubscriptionService {
     ResponseEntity<?> deleteSubscription(Long id);
     ResponseEntity<?> getSubscriptionById(Long id);
     CategorySubscription getCategorySubscriptionBaseOfRoles() throws ResourceNotFoundException;
+
+    CategorySubscription getBenefitByName(UserPrincipal up, Boolean searchingRegex);
 }

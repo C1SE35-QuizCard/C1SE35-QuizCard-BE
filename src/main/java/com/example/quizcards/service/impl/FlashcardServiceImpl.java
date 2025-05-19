@@ -40,6 +40,12 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
+    public List<IFlashcardDTO> getAllBySetId(Long id) {
+        return flashcardRepository.findAllFlashcardsBySetId(id);
+    }
+
+
+    @Override
     public List<IFlashcardDTO> getAll() {
         return flashcardRepository.findAllFlashcards();
     }
@@ -130,7 +136,7 @@ public class FlashcardServiceImpl implements IFlashcardService {
     }
 
     @Override
-    public List<IFlashcardDTO> getFlashcardsByCardIdsIn(List<Long> cardIds) {
-        return flashcardRepository.findFlashcardByIdsIn(cardIds);
+    public List<IFlashcardDTO> getFlashcardsByCardIdsIn(List<Long> cardIds, Long setId) {
+        return flashcardRepository.findFlashcardByIdsIn(cardIds, setId);
     }
 }

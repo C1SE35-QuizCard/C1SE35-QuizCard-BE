@@ -8,11 +8,7 @@ import com.example.quizcards.dto.request.SetFlashcardInitializeRequest;
 import com.example.quizcards.dto.request.SetFlashcardRequest;
 import com.example.quizcards.dto.response.ITopCreatorsResponse;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
-import com.example.quizcards.entities.AppUser;
-import com.example.quizcards.entities.CategorySetFlashcard;
-import com.example.quizcards.entities.Flashcard;
-import com.example.quizcards.entities.SetFlashcard;
-import com.example.quizcards.entities.Tag;
+import com.example.quizcards.entities.*;
 import com.example.quizcards.exception.AccessDeniedException;
 import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ResourceNotFoundException;
@@ -24,6 +20,7 @@ import com.example.quizcards.service.IAppUserService;
 import com.example.quizcards.service.ISetFlashcardService;
 import com.example.quizcards.service.ITagService;
 import com.example.quizcards.utils.HandleString;
+import com.example.quizcards.utils.RedisUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -61,6 +58,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RedisUtils redisUtils;
 
     @Override
     public SetFlashcard findById(Long setId) {
@@ -102,7 +102,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     @Transactional
-    public Long createNewSetFlashcards(SetFlashcardInitializeRequest request) {
+    public Long createNewSetFlashcard(SetFlashcardInitializeRequest request) {
         setFlashcardHelpers.handleAddSetFlashcard(request);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
@@ -230,7 +230,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     @Transactional
     public void addSetFlashcard(String title, String descriptionSet, Boolean isApproved, Boolean
-            isAnonymous, Boolean sharingMode, String hashPassword,Long userId, Long categoryId, Set<String> tagNames)  {
+            isAnonymous, Boolean sharingMode, String hashPassword, Long userId, Long categoryId, Set<String> tagNames) {
         if (appUserService.findById(userId).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", userId);
         }
@@ -307,6 +307,37 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
+    @Transactional
+    public void updatePasswordSet(Long setId, String oldPassword, String newPassword, Boolean logoutAllSession) {
+        SetFlashcard setFlashcard = setFlashcardRepository.findById(setId)
+                .orElseThrow(() -> new ResourceNotFoundException("Set", "id", setId));
+
+        UserPrincipal up = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!Objects.equals(setFlashcard.getUser().getUserId(), up.getId())) {
+            throw new AccessDeniedException("You are not the owner of this set");
+        }
+
+        if (setFlashcard.getHashPassword() == null || setFlashcard.getHashPassword().isEmpty()) {
+            if (StringUtils.hasText(oldPassword)) {
+                throw new BadRequestException("Error old password is not needed");
+            }
+        }
+        else if (!StringUtils.hasText(oldPassword) || !passwordEncoder.matches(oldPassword, setFlashcard.getHashPassword())) {
+            throw new BadRequestException("Old password is incorrect");
+        }
+
+        String hashedNewPassword = newPassword == null
+                ? null : passwordEncoder.encode(newPassword);
+        setFlashcard.setHashPassword(hashedNewPassword);
+        setFlashcardRepository.save(setFlashcard);
+        setFlashcardRepository.flush();
+        if (Boolean.TRUE.equals(logoutAllSession)) {
+            redisUtils.deleteKey(String.format("set:%d:pass_checked", setId));
+        }
+    }
+
+    @Override
     public List<ISetFlashcardDTO> sortByUpdatedDate() {
         return setFlashcardRepository.sortByUpdatedDate();
     }
@@ -370,11 +401,11 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Override
     public Page<ISetFlashcardDTO> filterByTagName(String tagName, Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return setFlashcardRepository.filterByTagName(tagName, userId, pageable) ;
+        return setFlashcardRepository.filterByTagName(tagName, userId, pageable);
     }
 
     @Override
-    public void checkAccess(Long setId, String requestPassword){
+    public void checkAccess(Long setId, String requestPassword) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Long userId = null;
 
