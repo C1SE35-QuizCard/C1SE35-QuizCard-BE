@@ -74,11 +74,11 @@ public interface ISetFlashcardService {
 
     List<ISetFlashcardDTO> sortByUpdatedDate();
 
-    List<ISetFlashcardDTO> getAllSetByUserId();
+    List<ISetFlashcardDTO> getAllSetByCurrentUser();
 
     List<ISetFlashcardDTO> getAllSetPublic();
 
-    List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId);
+    List<ISetFlashcardDTO> getAllPublicSet(Long userId);
 
     List<ISetFlashcardDTO> loadTop10RecentSetFlashcards(Long userId);
 
@@ -95,4 +95,14 @@ public interface ISetFlashcardService {
     void checkAccess(Long setId, String requestPassword);
 
     Page<ISetFlashcardDTO> filterByTagName(String tagName, Long userId, int page, int size);
+
+    List<ISetFlashcardDTO> getAllSetByUser(Long userId);
+
+    Page<ISetFlashcardDTO> getAllSetByUserWithPagination(
+            Long userId,
+            int page,
+            int size,
+            String sortedBy,
+            boolean asc
+    );
 }

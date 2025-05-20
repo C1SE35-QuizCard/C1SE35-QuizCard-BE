@@ -197,7 +197,98 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
             where s.user_id = a.user_id and s.category_id = c.category_id and (s.user_id = :user_id or s.sharing_mode = true) and f.set_id = s.set_id
             group by s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode, a.last_name, a.first_name, a.user_name, a.avatar, c.category_name
             """, nativeQuery = true)
-    List<ISetFlashcardDTO> findAllSetPublicByUserId(@Param("user_id") Long userId);
+    List<ISetFlashcardDTO> findAllSetPublic(@Param("user_id") Long userId);
+
+    @Query(value = """
+        SELECT
+            s.set_id                 AS setId,
+            s.title                  AS title,
+            s.description_set        AS descriptionSet,
+            s.created_at             AS createdAt,
+            s.updated_at             AS updatedAt,
+            s.is_approved            AS isApproved,
+            s.is_anonymous           AS isAnonymous,
+            s.sharing_mode           AS sharingMode,
+            s.user_id                AS userId,
+            a.first_name             AS firstName,
+            a.last_name              AS lastName,
+            a.user_name              AS userName,
+            a.avatar                 AS avatar,
+            c.category_name          AS categoryName,
+            COUNT(f.card_id)         AS totalCard,
+            CASE 
+                WHEN s.hash_password IS NOT NULL AND s.hash_password <> '' THEN 1 
+                ELSE 0 
+            END                       AS hasPassword,
+            GROUP_CONCAT(DISTINCT t.name SEPARATOR ',') AS tags
+        FROM set_flashcards s
+        JOIN app_users a           ON s.user_id     = a.user_id
+        JOIN category_set_flashcards c ON s.category_id = c.category_id
+        LEFT JOIN flashcards f     ON f.set_id      = s.set_id
+        LEFT JOIN set_flashcard_tag sft
+                                 ON s.set_id     = sft.set_flashcard_id
+        LEFT JOIN tags t           ON sft.tag_id    = t.tag_id
+        WHERE s.user_id = :userId
+        GROUP BY
+            s.set_id, s.title, s.description_set, s.created_at, s.updated_at,
+            s.is_approved, s.is_anonymous, s.sharing_mode, s.user_id,
+            a.first_name, a.last_name, a.user_name, a.avatar,
+            c.category_name
+        """,
+            nativeQuery = true
+    )
+    List<ISetFlashcardDTO> findSetCardByUserId(@Param("userId") Long userId);
+
+
+    @Query(
+            value = """
+            SELECT
+                s.set_id                          AS setId,
+                s.title                           AS title,
+                s.description_set                 AS descriptionSet,
+                s.created_at                      AS createdAt,
+                s.updated_at                      AS updatedAt,
+                s.is_approved                     AS isApproved,
+                s.is_anonymous                    AS isAnonymous,
+                s.sharing_mode                    AS sharingMode,
+                s.user_id                         AS userId,
+                a.first_name                      AS firstName,
+                a.last_name                       AS lastName,
+                a.user_name                       AS userName,
+                a.avatar                          AS avatar,
+                c.category_name                   AS categoryName,
+                COUNT(f.card_id)                  AS totalCard,
+                CASE
+                  WHEN s.hash_password IS NOT NULL
+                    AND s.hash_password <> '' THEN 1
+                  ELSE 0
+                END                               AS hasPassword,
+                GROUP_CONCAT(DISTINCT t.name)     AS tags
+            FROM set_flashcards s
+            JOIN app_users a      ON s.user_id     = a.user_id
+            JOIN category_set_flashcards c ON s.category_id = c.category_id
+            LEFT JOIN flashcards f ON f.set_id      = s.set_id
+            LEFT JOIN set_flashcard_tag sft
+                                 ON s.set_id     = sft.set_flashcard_id
+            LEFT JOIN tags t       ON sft.tag_id    = t.tag_id
+            WHERE s.user_id = :userId
+            GROUP BY
+                s.set_id, s.title, s.description_set, s.created_at, s.updated_at,
+                s.is_approved, s.is_anonymous, s.sharing_mode, s.user_id,
+                a.first_name, a.last_name, a.user_name, a.avatar,
+                c.category_name
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT s.set_id)
+            FROM set_flashcards s
+            WHERE s.user_id = :userId
+            """,
+            nativeQuery = true
+    )
+    Page<ISetFlashcardDTO> findSetCardByUserId(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
 
     @Query(value = """
             select count(s.set_id)

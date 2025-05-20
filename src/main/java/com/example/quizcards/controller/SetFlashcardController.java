@@ -12,7 +12,6 @@ import com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ISetFlashcardService;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.groups.Default;
@@ -315,10 +314,10 @@ public class SetFlashcardController {
     @GetMapping("/list/sets")
     public ResponseEntity<Object> getAllSetByUserId() {
         try {
-            if (setFlashcardService.getAllSetByUserId().isEmpty()) {
+            if (setFlashcardService.getAllSetByCurrentUser().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any flashcard sets");
             } else {
-                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByUserId();
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetByCurrentUser();
                 return ResponseEntity.ok(set);
             }
         } catch (Exception e) {
@@ -343,15 +342,43 @@ public class SetFlashcardController {
     @GetMapping("/public/{userId}")
     public ResponseEntity<Object> getAllSetPublicByUserId(@PathVariable("userId") Long userId) {
         try {
-            if (setFlashcardService.getAllSetPublicByUserId(userId).isEmpty()) {
+            if (setFlashcardService.getAllPublicSet(userId).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body("The user does not have any public flashcard sets");
             } else {
-                List<ISetFlashcardDTO> set = setFlashcardService.getAllSetPublicByUserId(userId);
+                List<ISetFlashcardDTO> set = setFlashcardService.getAllPublicSet(userId);
                 return ResponseEntity.ok(set);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);
         }
+    }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<Object> getAllSetByUserId(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(setFlashcardService.getAllSetByUser(userId));
+    }
+
+    @GetMapping("/user/{userId}/pagination")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<Object> getAllSetByUserIdWithPagination(@PathVariable("userId") Long userId,
+                                                                  @RequestParam(value = "page", defaultValue = "0")
+                                                                  int page,
+                                                                  @RequestParam(value = "size", defaultValue = "20")
+                                                                  int size,
+                                                                  @RequestParam(value = "sort", defaultValue = "createdAt")
+                                                                  String sort,
+                                                                  @RequestParam(value = "asc", defaultValue = "false")
+                                                                  String asc) {
+        if (page < 0 || size < 1) {
+            return ResponseEntity.badRequest().body("Page and size must be greater than 0");
+        }
+        return ResponseEntity.ok(setFlashcardService.getAllSetByUserWithPagination(userId,
+                page,
+                size,
+                sort,
+                Boolean.parseBoolean(asc))
+        );
     }
 
     @GetMapping("/filter-by-tag")

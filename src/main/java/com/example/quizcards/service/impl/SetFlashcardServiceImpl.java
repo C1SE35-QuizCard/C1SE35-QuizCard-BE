@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -343,7 +344,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> getAllSetByUserId() {
+    public List<ISetFlashcardDTO> getAllSetByCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
         return setFlashcardRepository.findAllSetByUserId(up.getId());
@@ -355,8 +356,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public List<ISetFlashcardDTO> getAllSetPublicByUserId(Long userId) {
-        return setFlashcardRepository.findAllSetPublicByUserId(userId);
+    public List<ISetFlashcardDTO> getAllPublicSet(Long userId) {
+        return setFlashcardRepository.findAllSetPublic(userId);
     }
 
     @Override
@@ -428,5 +429,23 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid password or unauthorized access");
             }
         }
+    }
+
+    @Override
+    public List<ISetFlashcardDTO> getAllSetByUser(Long userId) {
+        return setFlashcardRepository.findSetCardByUserId(userId);
+    }
+
+    @Override
+    public Page<ISetFlashcardDTO> getAllSetByUserWithPagination(
+            Long userId,
+            int page,
+            int size,
+            String sortedBy,
+            boolean asc
+    ) {
+        Sort sort = Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, sortedBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return setFlashcardRepository.findSetCardByUserId(userId, pageable);
     }
 }
