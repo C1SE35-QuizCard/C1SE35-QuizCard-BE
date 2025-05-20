@@ -237,7 +237,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
         """,
             nativeQuery = true
     )
-    List<ISetFlashcardDTO> findSetCardByUserId(@Param("userIdm ") Long userId);
+    List<ISetFlashcardDTO> findSetCardByUserId(@Param("userId") Long userId);
 
 
     @Query(

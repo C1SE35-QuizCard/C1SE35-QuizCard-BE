@@ -2,7 +2,6 @@ package com.example.quizcards.controller;
 
 import com.example.quizcards.dto.request.test.TestCreationRequest;
 import com.example.quizcards.dto.request.test.TestRequest;
-import com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ITestService;
 import jakarta.transaction.NotSupportedException;
@@ -25,7 +24,7 @@ public class TestController {
     @PostMapping("/create/{set_id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createTest(@PathVariable("set_id") Long setId,
-                                               @RequestBody @Validated TestCreationRequest request){
+                                        @RequestBody @Validated TestCreationRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
         return testService.createTest(setId, up.getId(), request);
@@ -48,7 +47,7 @@ public class TestController {
         return testService.createEssayTest(testId);
     }
 
-//    @SetCardPassCheck
+    //    @SetCardPassCheck
     @PostMapping("/create-new-test")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
     public ResponseEntity<?> createNewTestWithUserAndSetNotDone(@Validated @RequestBody TestRequest request)

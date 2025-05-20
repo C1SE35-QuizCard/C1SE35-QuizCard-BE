@@ -13,11 +13,14 @@ import com.example.quizcards.helpers.AuthenticationHelpers;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.ICategorySubscriptionService;
+import com.example.quizcards.utils.RedisUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
@@ -93,7 +96,7 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     public void handleAddSetFlashcard(SetFlashcardInitializeRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        CategorySubscription currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
+        CategorySubscription currentCs = this.categorySubscriptionService.getBenefitByName(up, false);
         if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
             checkAddForFreeUser(request, up.getId(), currentCs);
         } else if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER.name())) {

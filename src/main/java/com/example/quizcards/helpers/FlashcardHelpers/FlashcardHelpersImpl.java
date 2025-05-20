@@ -114,7 +114,7 @@ public class FlashcardHelpersImpl implements IFlashcardHelpers {
     public void handleAddFlashcard(FlashcardRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        CategorySubscription currentCs = this.categorySubscriptionService.getCategorySubscriptionBaseOfRoles();
+        CategorySubscription currentCs = this.categorySubscriptionService.getBenefitByName(up, false);
         if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
             checkSetFlashcardOwner(request.getSetId(), up);
             checkAddForFreeUser(request, up, currentCs);
