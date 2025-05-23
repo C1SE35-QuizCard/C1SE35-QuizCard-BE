@@ -96,7 +96,7 @@ public class SetFlashcardHelperImpl implements ISetFlashcardHelpers {
     public void handleAddSetFlashcard(SetFlashcardInitializeRequest request) {
         Authentication authentication = authenticationHelpers.getAuthenticationAuthenticated();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
-        CategorySubscription currentCs = this.categorySubscriptionService.getBenefitByName(up, false);
+        CategorySubscription currentCs = this.categorySubscriptionService.getBenefitByName(up, true);
         if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_FREE_USER.name())) {
             checkAddForFreeUser(request, up.getId(), currentCs);
         } else if (up.getRolesBaseAuthorities().contains(RoleName.ROLE_PREMIUM_USER.name())) {

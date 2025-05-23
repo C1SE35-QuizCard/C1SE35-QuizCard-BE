@@ -5,6 +5,7 @@ import com.example.quizcards.exception.TokenRefreshException;
 import com.example.quizcards.service.ICustomUserDetailsService;
 import com.example.quizcards.utils.RedisUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +31,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -50,13 +54,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @NonFinal
     String tokenIatPrefix;
 
+    CacheManager cacheManager;
+
 //    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-//            System.out.println(Thread.currentThread().threadId());
+            long startTime = System.currentTimeMillis();
             SecurityContextHolder.clearContext();
             String jwt = getJwtFromRequest(request);
             if (StringUtils.hasText(jwt)) {
@@ -65,6 +71,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (!tokenProvider.validateToken(jwt)) {
                         throw new TokenRefreshException(jwt, "Invalid refresh token!");
                     }
+
+                    long endTimeValidate = System.currentTimeMillis();
+                    System.out.println("Token validation time: " + (endTimeValidate - startTime) + "ms");
 
                     Map<String, Object> getPropertiesFromClaims = tokenProvider.getPropertiesFromClaims(jwt);
                     String type = getPropertiesFromClaims.get("type").toString();
@@ -76,24 +85,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     long userId = Long.parseLong(getPropertiesFromClaims.get("uid").toString());
                     String jti = getPropertiesFromClaims.get("jti").toString();
 
-                    String key = MessageFormat.format("{0}_{1}_{2}",
-                            tokenBlacklistPrefix, userId, jti);
+                    String blkKey = tokenBlacklistPrefix + "_" + userId + "_" + jti;
+                    String iatKey = tokenIatPrefix       + "_" + userId;
 
-                    if (redisUtils.hasKey(key)) {
+                    @SuppressWarnings("unchecked")
+                    Cache<Object, Object> tokenMetaCache =
+                            (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
+
+                    // L1 cache
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> meta = (Map<String, Object>) tokenMetaCache.getIfPresent(jwt);
+                    if (meta == null) {
+                        // L1 miss → pipeline Redis
+                        List<Object> vals = redisUtils.multiGet(List.of(blkKey, iatKey));
+                        boolean isBlk = !vals.isEmpty() && vals.get(0) != null;
+                        Long    iat   = null;
+                        if (vals.size() > 1 && vals.get(1) != null) {
+                            // nếu bạn lưu epoch millis (Long) hoặc String
+                            iat = ((Instant) vals.get(1)).toEpochMilli();
+                        }
+                        meta = new HashMap<>();
+                        meta.put("isBlk", isBlk);
+                        meta.put("iat", iat);
+                        tokenMetaCache.put(jwt, meta);
+                    }
+
+                    boolean isBlk = (boolean) meta.get("isBlk");
+                    if (isBlk) {
                         throw new TokenRefreshException(jwt, "Token is blacklisted!");
                     }
-
-                    long created_at = Long.parseLong(getPropertiesFromClaims.get("created_at").toString());
-
-                    // Kiểm tra thời gian logout all lần cuối
-                    String keyIat = MessageFormat.format("{0}_{1}", tokenIatPrefix, userId);
-
-                    Instant iat = redisUtils.getFromRedis(keyIat, Instant.class);
-
-                    // lấy thời gian đó và so sánh với thời gian tạo token
-                    if (iat != null && created_at < iat.toEpochMilli()) {
+                    Long iat = (Long) meta.get("iat");
+                    if (iat != null && Long.parseLong(getPropertiesFromClaims.get("created_at").toString()) < iat) {
                         throw new TokenRefreshException(jwt, "Token is expired!");
                     }
+
+                    long endTimeGetProperties = System.currentTimeMillis();
+                    System.out.println("Get properties from claims and validate time: "
+                            + (endTimeGetProperties - endTimeValidate) + "ms");
 
                     String userName = tokenProvider.getUsernameFromJWT(jwt);
 
@@ -103,6 +131,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         setResponseApiReturn(response, "Username is banned", HttpStatus.FORBIDDEN);
                         return;
                     }
+
+                    long endTimeLoadUser = System.currentTimeMillis();
+                    System.out.println("Load user by username time: " + (endTimeLoadUser - endTimeGetProperties) + "ms");
 
 //                if (SecurityContextHolder.getContext().getAuthentication() == null) {
 //                    setAuthentication(request, userDetails);
@@ -122,6 +153,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.error("Could not set user authentication in security context", ex);
                 }
             }
+            long endTime = System.currentTimeMillis();
+            System.out.println("Authentication filter bypassed: " + (endTime - startTime) + "ms");
             filterChain.doFilter(request, response);
         } finally {
             // dùng cho async lẫn sync luôn, xóa để khỏi lẫn lộn với thread khác

@@ -2,7 +2,8 @@ package com.example.quizcards.entities.plans;
 
 public enum PlansName {
     FREE_PLAN("Free Plan"),
-    PREMIUM_PLAN("Premium Plan");
+    PREMIUM_PLAN("Premium Plan"),
+    ADMIN("Admin");
 
     private final String message;
 

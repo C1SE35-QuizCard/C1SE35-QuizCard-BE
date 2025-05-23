@@ -32,7 +32,8 @@ public class CategorySubscriptionServiceImpl implements ICategorySubscriptionSer
     private final Map<String, String> mappingData =
             Map.of(
                     RoleName.ROLE_FREE_USER.name(), "Free",
-                    RoleName.ROLE_PREMIUM_USER.name(), "Premium"
+                    RoleName.ROLE_PREMIUM_USER.name(), "Premium",
+                    RoleName.ROLE_ADMIN.name(), "Admin"
             );
 
     @Override

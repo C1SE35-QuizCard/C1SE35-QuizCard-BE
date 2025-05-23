@@ -6,6 +6,7 @@ import com.example.quizcards.dto.request.UserProgressRequest;
 import com.example.quizcards.dto.response.ErrorDetail;
 import com.example.quizcards.dto.IProgressAnalysisDTO;
 import com.example.quizcards.exception.ResourceNotFoundException;
+import com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.service.IUserProgressService;
 import jakarta.validation.Valid;
@@ -45,17 +46,18 @@ public class UserProgressController {
 //        }
 //    }
 
+    @SetCardPassCheck
     @GetMapping("/set/{set_id}")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> findFlashcardsProgressBySetId(@PathVariable("set_id") Long setId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        List<IFlashcardProgressDTO> flashcardProgress = userProgressService.findFlashcardsProgressBySetId(setId, up.getId());
         try {
-            if (userProgressService.findFlashcardsProgressBySetId(setId, up.getId()).isEmpty()) {
+            if (flashcardProgress.isEmpty()) {
                 return new ResponseEntity<>("No flashcard progress found", HttpStatus.NO_CONTENT);
             } else {
-                List<IFlashcardProgressDTO> cardProgress = userProgressService.findFlashcardsProgressBySetId(setId, up.getId());
-                return ResponseEntity.ok(cardProgress);
+                return ResponseEntity.ok(flashcardProgress);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(FETCH_ERROR_MESSAGE);

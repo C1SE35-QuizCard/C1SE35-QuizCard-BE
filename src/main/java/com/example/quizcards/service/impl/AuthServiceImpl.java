@@ -9,6 +9,7 @@ import com.example.quizcards.dto.response.JwtAuthenticationResponse;
 import com.example.quizcards.entities.AppRole;
 import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.role.RoleName;
+import com.example.quizcards.exception.BadRequestException;
 import com.example.quizcards.exception.ErrorsDataException;
 import com.example.quizcards.exception.ResourceNotFoundException;
 import com.example.quizcards.exception.TokenRefreshException;
@@ -49,6 +50,7 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -88,6 +90,9 @@ public class AuthServiceImpl implements IAuthService {
     @Value("${jwt.refreshTokenExpirationInSec}")
     @NonFinal
     Long refreshTokenDurationSec;
+
+    Pattern USERNAME_PATTERN =
+            Pattern.compile("^(?!.*--)[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$");
 
     @Override
     @Transactional
@@ -135,11 +140,30 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     @Transactional
     public JwtAuthenticationResponse loginUser(LoginRequest loginRequest, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsernameOrEmail(), loginRequest.getPassword())
-        );
+        AppUser user;
+        if (USERNAME_PATTERN.matcher(loginRequest.getUsernameOrEmail()).matches()) {
+            user = appUserService.findByUsername(loginRequest.getUsernameOrEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User",
+                            "username or email", loginRequest.getUsernameOrEmail()));
+        } else {
+            user = appUserService.findByEmail(loginRequest.getUsernameOrEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User",
+                            "username or email", loginRequest.getUsernameOrEmail()));
+        }
 
-        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        if (!user.getEnabled()) {
+            throw new DisabledException("User is disabled");
+        }
+
+        if (user.getHashPassword() == null || user.getHashPassword().isEmpty()) {
+            throw new DisabledException("User is not registered");
+        }
+
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getHashPassword())) {
+            throw new BadRequestException("Wrong password");
+        }
+
+        UserPrincipal up = UserPrincipal.create(user);
 
         String accessToken = jwtTokenProvider.generateAccessToken(up);
 

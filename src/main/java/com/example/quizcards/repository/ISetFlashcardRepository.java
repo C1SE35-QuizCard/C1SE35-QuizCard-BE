@@ -8,6 +8,7 @@ import com.example.quizcards.dto.response.ITopCreatorsResponse;
 import com.example.quizcards.dto.response.SearchSetFlashResponse;
 import com.example.quizcards.entities.SetFlashcard;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Long> {
@@ -426,17 +428,30 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     List<ISetFlashcardDTO> findAllSetPublic();
 
     @Query(value = """
-            select count(*)
+            select count(s.set_id)
             from set_flashcards s
             where user_id = :user_id
             """, nativeQuery = true)
     Integer countNumberOfSetCreated(@Param("user_id") Long user_id);
 
+//    @Query(value = """
+//            select count(*)
+//            from set_flashcards s
+//            where user_id = :user_id and DATE(created_at) = CURDATE()
+//            """, nativeQuery = true)
+//    Integer countNumberOfSetCreatedInCurrentDay(@Param("user_id") Long user_id);
+
     @Query(value = """
-            select count(*)
-            from set_flashcards s
-            where user_id = :user_id and DATE(created_at) = CURDATE()
-            """, nativeQuery = true)
+            SELECT COUNT(s.set_id)
+            FROM set_flashcards s
+            JOIN app_users   u ON u.user_id = s.user_id
+            WHERE s.user_id = :user_id
+              AND DATE(
+                  CONVERT_TZ(s.created_at, @@session.time_zone, u.user_tz)
+              ) = DATE(
+                  CONVERT_TZ(NOW(),       @@session.time_zone, u.user_tz)
+              )
+    """, nativeQuery = true)
     Integer countNumberOfSetCreatedInCurrentDay(@Param("user_id") Long user_id);
 
     @Query(
@@ -844,6 +859,17 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
     Page<ISetFlashcardDTO> findAllSetFlashcardsWithPagination(
             @Param("search") String search,
             Pageable pageable);
+
+
+    @Cacheable(cacheNames = "setPassInfo", key = "#setId")
+    @Query("""
+            SELECT s.setId as setId,
+                    s.hashPassword as hashPassword,
+                    s.user.userId as userId
+                FROM SetFlashcard s
+               WHERE s.setId = :setId
+    """)
+    Optional<Object[]> findHashAndOwnerById(@Param("setId") Long setId);
 
 //    @Query(value = """
 //            select s.set_id, s.title, s.description_set, s.created_at, s.updated_at, s.is_approved, s.is_anonymous, s.sharing_mode,

@@ -1,11 +1,13 @@
 package com.example.quizcards.helpers.SetFlashcardHelpers;
 
+import com.example.quizcards.entities.AppUser;
 import com.example.quizcards.entities.SetFlashcard;
+import com.example.quizcards.entities.role.RoleName;
 import com.example.quizcards.repository.ISetFlashcardRepository;
 import com.example.quizcards.security.UserPrincipal;
 import com.example.quizcards.utils.RedisUtils;
+import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,11 +18,11 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.cache.CacheManager;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,13 +43,11 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SetCardPassCheckAspect {
+
     ISetFlashcardRepository setRepo;
-
     RedisUtils redisUtils;
-
-    HttpServletRequest request;
-
-    PasswordEncoder pwdEncoder = new BCryptPasswordEncoder();
+    PasswordEncoder passwordEncoder;
+    CacheManager cacheManager;
 
     @Pointcut("@annotation(com.example.quizcards.helpers.SetFlashcardHelpers.SetCardPassCheck)")
     public void passwordCheckMethods() {
@@ -58,181 +58,223 @@ public class SetCardPassCheckAspect {
         HttpServletRequest request = ((ServletRequestAttributes)
                 RequestContextHolder.currentRequestAttributes())
                 .getRequest();
-        String method = request.getMethod();
-        if (!List.of("GET", "POST", "PUT", "DELETE", "PATCH").contains(method)) {
+
+        if (!isHttpRequest(request.getMethod())) {
             return pjp.proceed();
         }
-        Object rawSetId = extractSetId(pjp);
-        if (rawSetId == null) {
+
+        Long setId = parseSetId(pjp, request);
+        long startTime = System.currentTimeMillis();
+        SetFlashcard set = findSetOrThrow(setId);
+
+        long endTimeFindSet = System.currentTimeMillis();
+        System.out.println("Time taken to find set: " + (endTimeFindSet - startTime) + "ms");
+
+        if (isUnprotected(set) || isOwner(set)) {
+            return pjp.proceed();
+        }
+
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> tokenMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();
+
+        String keyValid = formatKey(setId);
+
+        Object checkL1SetValid = tokenMetaCache.getIfPresent(keyValid + "_" + currentUserId());
+
+        if (checkL1SetValid != null) {
+            return pjp.proceed();
+        }
+
+        if (isAlreadyValidated(setId)) {
+            tokenMetaCache.put(keyValid + "_" + currentUserId(), true);
+            return pjp.proceed();
+        }
+
+        long endTimeCheckValidSet = System.currentTimeMillis();
+        System.out.println("Time taken to check valid set: " + (endTimeCheckValidSet - endTimeFindSet) + "ms");
+
+        String rawPwd = requireHeader(request, "X-Set-Password", "Password");
+        long validAt = parseValidAt(request.getHeader("X-Set-Password-Valid-At"));
+
+        if (!passwordEncoder.matches(rawPwd, set.getHashPassword())) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Missing setId in path or query"
+                    HttpStatus.FORBIDDEN, "{\"type\":\"Password\"}"
             );
         }
 
-        // Cast tại đây nếu repo cần Long
-        Long setId;
-        try {
-            setId = rawSetId instanceof Number
-                    ? ((Number) rawSetId).longValue()
-                    : Long.parseLong(rawSetId.toString());
-        } catch (Exception ex) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Invalid setId format"
-            );
+        long endTimeCheckPassword = System.currentTimeMillis();
+        System.out.println("Time taken to check password: " + (endTimeCheckPassword - endTimeCheckValidSet) + "ms");
+
+        String userId = currentUserId();
+        redisUtils.saveToSet(formatKey(setId), userId, validAt, TimeUnit.SECONDS);
+
+        long endTimeSaveToRedis = System.currentTimeMillis();
+        System.out.println("Time taken to save to Redis: " + (endTimeSaveToRedis - endTimeCheckPassword) + "ms");
+
+        long endTimeTotal = System.currentTimeMillis();
+        System.out.println("Total time taken: " + (endTimeTotal - startTime) + "ms");
+
+        tokenMetaCache.put(keyValid + "_" + currentUserId(), true);
+        return pjp.proceed();
+    }
+
+    // --- Helpers ---
+
+    private boolean isHttpRequest(String method) {
+        return (List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .contains(method));
+    }
+
+    private SetFlashcard findSetOrThrow(Long setId) {
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> tokenMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+
+        Object checkL1Set = tokenMetaCache.getIfPresent("set_" + setId);
+
+        if (checkL1Set != null) {
+            return (SetFlashcard) checkL1Set;
         }
 
-        // 3) Load SetFlashcard
-        SetFlashcard set = setRepo.findById(setId)
+//        return setRepo.findById(setId)
+//                .orElseThrow(() -> new ResponseStatusException(
+//                        HttpStatus.NOT_FOUND, "Set not found"
+//                ));
+        Object[] rawSetOptional = setRepo.findHashAndOwnerById(setId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Set not found"
                 ));
 
+        Object[] setOptional = (Object[]) rawSetOptional[0];
 
-        // 4) Nếu không có password → proceed
-        if (set.getHashPassword() == null || set.getHashPassword().isBlank()) {
-            return pjp.proceed();
-        }
+        SetFlashcard set = new SetFlashcard();
+        set.setSetId(
+                setOptional[0] == null ? null : Long.parseLong(setOptional[0].toString()));
+        set.setHashPassword(setOptional[1] == null ? null : setOptional[1].toString());
+        set.setUser(AppUser.builder().userId(
+                        setOptional[2] == null ? null : Long.parseLong(setOptional[2].toString()))
+                .build());
 
-        // 5) Kiểm auth
+        tokenMetaCache.put("set_" + setId, set);
+
+        return set;
+    }
+
+    private boolean isUnprotected(SetFlashcard set) {
+        String hash = set.getHashPassword();
+        return (hash == null || hash.isBlank());
+    }
+
+    private boolean isOwner(SetFlashcard set) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof UserPrincipal up)
-                || !auth.isAuthenticated() || auth.getAuthorities().isEmpty()) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UserPrincipal up)) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "Unauthorized"
             );
         }
-
-        // Get information of authenticated user
-
-        // Check if the user is the owner of the set
-        if (Objects.equals(up.getId(), set.getUser().getUserId())) {
-            return pjp.proceed();
+        if (up.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(RoleName.ROLE_ADMIN.name()))) {
+            return true;
         }
+        return Objects.equals(up.getId(), set.getUser().getUserId());
+    }
 
-        // Check if the user has previously confirmed the password entry
-        String key = MessageFormat.format(
-                "set:{0}:pass_checked",
-                setId);
+    private boolean isAlreadyValidated(Long setId) {
+        String userId = currentUserId();
+        return redisUtils.isMember(formatKey(setId), userId);
+    }
 
-        if (redisUtils.isMember(key, up.getId().toString())) {
-            return pjp.proceed();
+    private String currentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ((UserPrincipal) auth.getPrincipal()).getId().toString();
+    }
+
+    private String requireHeader(HttpServletRequest req, String name, String type) {
+        String val = req.getHeader(name);
+        if (val == null || val.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "{\"type\":\"" + type + "\"}"
+            );
         }
+        return val;
+    }
 
-        // Extract "set password" and "do not authenticate set next time" from headers
-        String rawPwd = request.getHeader("X-Set-Password");
-        String rawValid = request.getHeader("X-Set-Password-Valid-At");
-
-        // Throw if password is not provided
-        if (rawPwd == null) {
-            throwForbidden();
+    private long parseValidAt(String rawValid) {
+        long max = 7 * 24 * 3600;
+        if (rawValid == null) {
+            return max;
         }
-
-        // Parse validAt and throw error if parse failed or range is invalid
-        // 9) Parse validAt
-        long validAt = 7L * 24 * 3600;
         try {
-            if (rawValid != null) {
-                validAt = Long.parseLong(rawValid);
+            long v = Long.parseLong(rawValid);
+            if (v < 0 || v > max) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "{\"type\":\"Valid at\",\"reason\":\"Range exception\"}"
+                );
             }
-        } catch (Exception ex) {
-            String reason = ex instanceof NumberFormatException
-                    ? "Number format exception"
-                    : "Range/Null exception";
+            return v;
+        } catch (NumberFormatException ex) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    String.format("{\"type\":\"Valid at\",\"reason\":\"%s\"}", reason)
+                    "{\"type\":\"Valid at\",\"reason\":\"Number format exception\"}"
             );
         }
+    }
 
-        // Check if validAt is in range (1 second - 7 days)
-        if (validAt < 1 || validAt > 7 * 24 * 3600) {
+    private Long parseSetId(ProceedingJoinPoint pjp, HttpServletRequest req) {
+        Object raw = extractSetId(pjp, req);
+        if (raw == null) {
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "{\"type\":\"Valid at\",\"reason\":\"Range exception\"}"
+                    HttpStatus.BAD_REQUEST, "Missing setId in path or query"
             );
         }
-
-        // 10) Check password
-        if (!pwdEncoder.matches(rawPwd, set.getHashPassword())) {
+        try {
+            return raw instanceof Number
+                    ? ((Number) raw).longValue()
+                    : Long.parseLong(raw.toString());
+        } catch (Exception e) {
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "{\"type\":\"Password\"}"
+                    HttpStatus.BAD_REQUEST, "Invalid setId format"
             );
         }
-
-        // Save password check result to Redis with valid at
-        redisUtils.saveToSet(key, up.getId().toString(), validAt, TimeUnit.SECONDS);
-
-        // Bypass to next interceptor (or controller endpoint)
-        return pjp.proceed();
     }
 
-    private void throwForbidden() {
-        throw new ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "{\"type\":\"Password\"}"
-        );
-    }
-
-    private void forbidden(HttpServletResponse res) throws Exception {
-        res.setStatus(HttpStatus.FORBIDDEN.value());
-        res.getWriter().write("{\"type\":\"Password\"}");
-    }
-
-    private void invalidValidAt(HttpServletResponse res, Exception e) throws Exception {
-        boolean isNumberFormatException = e instanceof NumberFormatException;
-        boolean isNullPointerException = e instanceof NullPointerException;
-        boolean isRangeException = e instanceof IllegalArgumentException;
-        res.setStatus(HttpStatus.FORBIDDEN.value());
-        res.getWriter().write("{\"type\":\"Valid at\", \"reason\":\"" +
-                (isNumberFormatException ? "Number format exception" :
-                        (isNullPointerException ? "Null pointer exception" :
-                                (isRangeException ? "Range exception" : "Unknown"))) + "\"}");
-    }
-
-    private Object extractSetId(ProceedingJoinPoint pjp) {
+    private Object extractSetId(ProceedingJoinPoint pjp, HttpServletRequest req) {
         MethodSignature sig = (MethodSignature) pjp.getSignature();
-        String[] paramNames = sig.getParameterNames();
-        Annotation[][] annArr = sig.getMethod().getParameterAnnotations();
+        String[] names = sig.getParameterNames();
+        Annotation[][] anns = sig.getMethod().getParameterAnnotations();
         Object[] args = pjp.getArgs();
 
-        // 1) Duyệt từng tham số có @PathVariable
+        // 1) @PathVariable
         for (int i = 0; i < args.length; i++) {
-            for (Annotation ann : annArr[i]) {
+            for (Annotation ann : anns[i]) {
                 if (ann instanceof PathVariable pv) {
-                    // Xác định tên biến trên URL:
-                    // ưu tiên pv.name()/pv.value(), nếu trống thì dùng tên param
-                    String varName = !pv.name().isEmpty() ? pv.name()
-                            : !pv.value().isEmpty() ? pv.value()
-                            : paramNames[i];
-
-                    // Chỉ match chính xác "setId" hoặc "set_id"
-                    if ("setId".equals(varName) || "set_id".equals(varName)) {
-                        return args[i];  // giữ nguyên type gốc
+                    String var = !pv.name().isEmpty() ? pv.name() :
+                            !pv.value().isEmpty() ? pv.value() :
+                                    names[i];
+                    if ("setId".equals(var) || "set_id".equals(var)) {
+                        return args[i];
                     }
                 }
             }
         }
-
-        String rp = request.getParameter("setId");
-        if (rp == null) {
-            rp = request.getParameter("set_id");
-        }
-        if (rp != null) {
-            return rp;  // vẫn là String, xử lý cast bên ngoài
-        }
-
-
-        // 2) Nếu không tìm thấy path-variable, fallback: bất kỳ DTO nào có property "setId"
+        // 2) request param
+        String rp = req.getParameter("setId");
+        if (rp == null) rp = req.getParameter("set_id");
+        if (rp != null) return rp;
+        // 3) DTO property
         for (Object arg : args) {
             if (arg == null) continue;
-            BeanWrapper wrapper = new BeanWrapperImpl(arg);
-            if (wrapper.isReadableProperty("setId")) {
-                return wrapper.getPropertyValue("setId");
+            BeanWrapper bw = new BeanWrapperImpl(arg);
+            if (bw.isReadableProperty("setId")) {
+                return bw.getPropertyValue("setId");
             }
         }
-
-        // 3) Không tìm thấy
         return null;
+    }
+
+    private String formatKey(Long setId) {
+        return MessageFormat.format("set:{0}:pass_checked", setId);
     }
 }

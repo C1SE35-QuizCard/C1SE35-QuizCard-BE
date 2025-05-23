@@ -186,7 +186,13 @@ public class AppUserServiceImpl implements IAppUserService {
                 AppRole appRole = appRoleOpt.get();
                 appUser.setRole(appRole);
 
-                return userRepository.save(appUser);
+                AppUser result = userRepository.save(appUser);
+                redisUtils.saveToRedis(
+                        "appuser:username:" + appUser.getUsername(),
+                        result,
+                        30,
+                        TimeUnit.MINUTES);
+                return result;
             } else {
                 throw new RuntimeException("Role not found with id: " + roleId);
             }
@@ -200,8 +206,8 @@ public class AppUserServiceImpl implements IAppUserService {
         if (pages < 0) {
             throw new BadRequestException("Page must be greater than or equal to 0");
         }
-        if (size < 1 || size > 100) {
-            throw new BadRequestException("Size must be greater than 0 and less than or equal to 100");
+        if (size < 1 || size > 1000) {
+            throw new BadRequestException("Size must be greater than 0 and less than or equal to 1000");
         }
         Pageable pageable = PageRequest.of(pages, size);
         return userRepository.getAll(pageable);
@@ -302,7 +308,13 @@ public class AppUserServiceImpl implements IAppUserService {
         user.setHashPassword(passwordEncoder.encode(request.getPassword()));
         user.setUserCode(CodeRandom.generateRandomCode(28));
 
-        return IAppUserDTO.AppUserDTO.from(userRepository.save(user));
+        AppUser result = userRepository.save(user);
+        redisUtils.saveToRedis(
+                "appuser:username:" + result.getUsername(),
+                result,
+                30,
+                TimeUnit.MINUTES);
+        return IAppUserDTO.AppUserDTO.from(result);
     }
 
     @Override
@@ -338,7 +350,13 @@ public class AppUserServiceImpl implements IAppUserService {
         if (request.getRoleId() != null) {
             appUser.setRole(role);
         }
-        return IAppUserDTO.AppUserDTO.from(userRepository.save(appUser));
+        AppUser result = userRepository.save(appUser);
+        redisUtils.saveToRedis(
+                "appuser:username:" + result.getUsername(),
+                result,
+                30,
+                TimeUnit.MINUTES);
+        return IAppUserDTO.AppUserDTO.from(result);
     }
 
     @Override
@@ -350,6 +368,7 @@ public class AppUserServiceImpl implements IAppUserService {
             throw new BadRequestException("Cannot delete admin");
         }
         userRepository.delete(appUser);
+        redisUtils.deleteKey("appuser:username:" + appUser.getUsername());
     }
 
 

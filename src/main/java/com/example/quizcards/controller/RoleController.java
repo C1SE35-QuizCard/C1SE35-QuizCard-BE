@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/roles")
-@CrossOrigin(origins = "*")
+//@RequestMapping("/api/roles")
+@RequestMapping("/v1/roles")
 public class RoleController {
 
     private final RoleService roleService;

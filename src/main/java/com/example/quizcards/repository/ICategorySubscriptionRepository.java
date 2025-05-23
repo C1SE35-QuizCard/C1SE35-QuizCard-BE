@@ -15,7 +15,7 @@ public interface ICategorySubscriptionRepository extends JpaRepository<CategoryS
     @Query(value = """
         select *
         from category_subscriptions cs
-        where subscriptions_description REGEXP :subscriptionName COLLATE utf8mb4_unicode_ci
+        where cs.subscriptions_description REGEXP :subscriptionName COLLATE utf8mb4_unicode_ci
         """, nativeQuery = true)
     CategorySubscription findByPatternName(
             @Param("subscriptionName") String name);

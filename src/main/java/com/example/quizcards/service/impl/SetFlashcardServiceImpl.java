@@ -21,8 +21,12 @@ import com.example.quizcards.service.ISetFlashcardService;
 import com.example.quizcards.service.ITagService;
 import com.example.quizcards.utils.HandleString;
 import com.example.quizcards.utils.RedisUtils;
+import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.CacheManager;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,9 +39,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 @Service
 public class SetFlashcardServiceImpl implements ISetFlashcardService {
@@ -62,6 +69,13 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    @Qualifier("securityContextExecutor")
+    private AsyncTaskExecutor taskExecutor;
 
     @Override
     public SetFlashcard findById(Long setId) {
@@ -103,7 +117,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
 
     @Override
     @Transactional
-    public Long createNewSetFlashcard(SetFlashcardInitializeRequest request) {
+    public Long initSetFlashcard(SetFlashcardInitializeRequest request) {
         setFlashcardHelpers.handleAddSetFlashcard(request);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) auth.getPrincipal();
@@ -117,6 +131,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 .category(CategorySetFlashcard.builder().categoryId(request.getCategoryId()).build())
                 .build();
 
+        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+                ? null
+                : passwordEncoder.encode(request.getHashPassword());
+
         // Add tags if provided
         if (request.getTagNames() != null && !request.getTagNames().isEmpty()) {
             if (request.getTagNames().size() > 5) {
@@ -126,7 +144,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
             set.setTags(tags);
         }
 
-        setFlashcardRepository.save(set);
+        set.setHashPassword(hashedPassword);
+
+        setFlashcardRepository.saveAndFlush(set);
 
         List<Flashcard> flashcards = request.getFlashcards()
                 .stream().map(dto -> Flashcard.builder()
@@ -137,7 +157,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                         .set(SetFlashcard.builder().setId(set.getSetId()).build())
                         .build()).toList();
 
-        flashcardRepository.saveAll(flashcards);
+        flashcardRepository.saveAllAndFlush(flashcards);
 
         return set.getSetId();
     }
@@ -149,11 +169,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     }
 
     @Override
-    public ISetFlashcardDTO findBySetId_2(Long setId) {
+    public ISetFlashcardDTO findBySetIdPublish(Long setId) {
         Long userId = Long.MIN_VALUE;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal) {
-            UserPrincipal up = (UserPrincipal) auth.getPrincipal();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserPrincipal up) {
             userId = up.getId();
         }
         ISetFlashcardDTO result = setFlashcardRepository.findSetFlashcardsById(setId);
@@ -194,6 +213,33 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
         return setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(up.getId());
+    }
+
+    @Override
+    public Map<String, Object> analysisUser(Long userId) {
+        long startTime = System.currentTimeMillis();
+        System.out.println("Start analysis user data, current millis: " + startTime);
+        Future<Integer> setCardCreatedFut = taskExecutor.submit(() ->
+                setFlashcardRepository.countNumberOfSetCreated(userId));
+        Future<Integer> setCardCreatedPerDayFut = taskExecutor.submit(() ->
+                setFlashcardRepository.countNumberOfSetCreatedInCurrentDay(userId));
+
+        try {
+            Integer setCardCreated = setCardCreatedFut.get();
+            Integer setCardCreatedPerDay = setCardCreatedPerDayFut.get();
+            long endTime = System.currentTimeMillis();
+            System.out.println("End analysis user data, time range: " + (endTime - startTime) + " millis");
+            return Map.of(
+                    "setCardCreated", setCardCreated,
+                    "setCardCreatedPerDay", setCardCreatedPerDay
+            );
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error while analyzing user data",
+                    null
+            );
+        }
     }
 
     @Override
@@ -257,6 +303,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     @Transactional
     public void deleteSetFlashcardAdmin(Long setId) {
         setFlashcardRepository.deleteSetFlashcardById(setId);
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> tokenMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+        tokenMetaCache.invalidate("set_" + setId);
     }
 
     @Override
@@ -283,6 +333,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public void deleteSetFlashcard(Long setId) {
         setFlashcardHelpers.handleDeleteSetFlashcard(setId);
         setFlashcardRepository.deleteSetFlashcardById(setId);
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> tokenMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+        tokenMetaCache.invalidate("set_" + setId);
     }
 
     @Override
@@ -293,15 +347,15 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
 
-        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
-                ? null
-                : passwordEncoder.encode(request.getHashPassword());
+//        String hashedPassword = (request.getHashPassword() == null || request.getHashPassword().trim().isEmpty())
+//                ? null
+//                : passwordEncoder.encode(request.getHashPassword());
 
         setFlashcardRepository.updateSetFlashcard(request.getSetId(), request.getTitle(), request.getDescriptionSet(),
                 true,
                 request.getIsAnonymous(),
                 request.getSharingMode(),
-                hashedPassword,
+                null, // hashedPassword = null
                 up.getId(),
                 request.getCategoryId()
         );
@@ -334,8 +388,16 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         setFlashcardRepository.save(setFlashcard);
         setFlashcardRepository.flush();
         if (Boolean.TRUE.equals(logoutAllSession)) {
-            redisUtils.deleteKey(String.format("set:%d:pass_checked", setId));
+            redisUtils.deleteKey(MessageFormat.format("set:{0}:pass_checked", setId));
+            @SuppressWarnings("unchecked")
+            Cache<Object, Object> tokenMetaCache =
+                    (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();
+            tokenMetaCache.invalidate(MessageFormat.format("set:{0}:pass_checked_{1}", setId, up.getId()));
         }
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> passCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+        passCache.put("set_" + setId, setFlashcard);
     }
 
     @Override

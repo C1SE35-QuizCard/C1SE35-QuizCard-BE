@@ -151,7 +151,7 @@ public interface IUserSRSProgressRepository extends JpaRepository<UserSRSProgres
                     p.lapses                           AS lapses,
                     p.learning_step                    AS learningStep,
                     CONVERT_TZ(p.last_review_time, '+00:00', :jvmZoneIdParam) AS lastReviewTime,
-                                                        CONVERT_TZ(p.due_date, '+00:00', :jvmZoneIdParam) AS dueDate,
+                    CONVERT_TZ(p.due_date, '+00:00', :jvmZoneIdParam) AS dueDate,
                     p.consecutive_correct              AS consecutiveCorrect,
                     p.consecutive_incorrect            AS consecutiveIncorrect,
                     p.old_next_interval_again          AS oldNextIntervalAgain,
@@ -160,7 +160,7 @@ public interface IUserSRSProgressRepository extends JpaRepository<UserSRSProgres
                     p.old_next_interval_easy           AS oldNextIntervalEasy,
                     p.srs_version                      AS srsVersion,
                     CONVERT_TZ(p.created_at, '+00:00', :jvmZoneIdParam) AS createdAt,
-                                                        CONVERT_TZ(p.updated_at, '+00:00', :jvmZoneIdParam) AS updatedAt                   
+                    CONVERT_TZ(p.updated_at, '+00:00', :jvmZoneIdParam) AS updatedAt                   
                 FROM progress_with_srs p
                 JOIN flashcards f ON p.card_id = f.card_id
                 WHERE p.user_id     = :userId

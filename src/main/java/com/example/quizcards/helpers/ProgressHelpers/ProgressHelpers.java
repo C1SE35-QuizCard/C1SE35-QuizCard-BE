@@ -285,7 +285,7 @@ public class ProgressHelpers {
         // 2. Biến đổi và tính toán dựa trên logic chọn theo phần trăm
         //     Hàm biến đổi đã được triển khai trong lớp SRSUtils, lấy ra mà dùng
         List<Long> newAndReviewCards = SRSUtils.getNumNewCardsAndNumReviewCards(
-                estimateCardsRemain,
+                actualCardsRemain,
                 countCardsToReview,
                 setting.getCardsPerRound(),
                 newCardsRatio,
@@ -296,6 +296,9 @@ public class ProgressHelpers {
         // 3. Lấy ra số lượng card new và card due date thực tế
         Long numNewCards = newAndReviewCards.getFirst();
         Long numReviewCards = newAndReviewCards.getLast();
+
+        System.out.println("numNewCards: " + numNewCards);
+        System.out.println("numReviewCards: " + numReviewCards);
 
         // THỰC HIỆN B5:
 //        // 1. Lấy ra danh sách card new
@@ -347,7 +350,6 @@ public class ProgressHelpers {
                 )
         );
 
-
         List<IUserSRSProgressDTO> newCardsList = null;
         CardsToReviewDTO cardsToReview = null;
 
@@ -364,6 +366,9 @@ public class ProgressHelpers {
         }
 
         newCardsList = handleAssignBonusFieldOnNewCards(newCardsList, setting);
+
+        System.out.println("New cards list size: " + newCardsList.size());
+        System.out.println("Cards to review size: " + cardsToReview.size());
 
         List<IUserSRSProgressDTO> cardsToReviewMixing = cardsToReview.mixing();
 
@@ -746,6 +751,8 @@ public class ProgressHelpers {
 
         progressRepo.saveAll(mapProgresses.values());
         em.flush();
+
+        em.clear();
 
         return Map.of(
                 "idCardsKnown", idCardsKnown,

@@ -26,7 +26,7 @@ import java.util.Optional;
 @Configuration
 @Slf4j
 public class DatabaseInitializer {
-    
+
     @Bean
     CommandLineRunner initRoles(IAppRoleRepository repo) {
         return new CommandLineRunner() {
@@ -98,26 +98,16 @@ public class DatabaseInitializer {
         return new CommandLineRunner() {
             @Override
             public void run(String... args) throws Exception {
-//                new CategorySubscription(null,
-//                        PlansName.FREE_PLAN.getMessage(),
-//                        BigDecimal.ZERO,
-//                        "Free plans",
-//                        50,
-//                        500,
-//                        5,
-//                        2,
-//                        20,
-//                        0,
-//                        null,
-//                        null),
+//
+                // foreach category subscription
                 List<CategorySubscription> subscriptions = List.of(
                         new CategorySubscription(null,
                                 PlansName.FREE_PLAN.getMessage(),
                                 BigDecimal.ZERO,
                                 "Free plans",
-                                1,
-                                10,
-                                1,
+                                50,
+                                500,
+                                5,
                                 2,
                                 20,
                                 0,
@@ -125,7 +115,7 @@ public class DatabaseInitializer {
                                 null),
                         new CategorySubscription(null,
                                 PlansName.PREMIUM_PLAN.getMessage(),
-                                new BigDecimal("50000"),
+                                new BigDecimal("4"),
                                 "Premium plans",
                                 Integer.MAX_VALUE,
                                 2000,
@@ -133,6 +123,18 @@ public class DatabaseInitializer {
                                 Integer.MAX_VALUE,
                                 50,
                                 1,
+                                null,
+                                null),
+                        new CategorySubscription(null,
+                                PlansName.ADMIN.getMessage(),
+                                new BigDecimal("99999999"),
+                                "Admin",
+                                Integer.MAX_VALUE,
+                                Integer.MAX_VALUE,
+                                Integer.MAX_VALUE,
+                                Integer.MAX_VALUE,
+                                Integer.MAX_VALUE,
+                                Integer.MAX_VALUE,
                                 null,
                                 null)
                 );

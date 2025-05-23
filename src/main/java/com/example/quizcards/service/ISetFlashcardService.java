@@ -12,6 +12,7 @@ import com.example.quizcards.entities.SetFlashcard;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface ISetFlashcardService {
@@ -47,13 +48,13 @@ public interface ISetFlashcardService {
 
     void updateSetFlashcard(SetFlashcardRequest request);
 
-    Long createNewSetFlashcard(SetFlashcardInitializeRequest request);
+    Long initSetFlashcard(SetFlashcardInitializeRequest request);
 
     void updatePasswordSet(Long setId, String oldPassword, String newPassword, Boolean logoutAllSession);
 
     ISetFlashcardDTO findBySetId(Long setId);
 
-    ISetFlashcardDTO findBySetId_2(Long setId);
+    ISetFlashcardDTO findBySetIdPublish(Long setId);
 
     Integer countSetFlashcardCreatedPublic(Long userId);
 
@@ -62,6 +63,8 @@ public interface ISetFlashcardService {
     Integer countSetFlashcardCreatedInCurrentUser();
 
     Integer countSetFlashcardCreatedPerDayInCurrentUser();
+
+    Map<String, Object> analysisUser(Long userId);
 
     Integer countNumberOfSetCreated(Long userId);
 

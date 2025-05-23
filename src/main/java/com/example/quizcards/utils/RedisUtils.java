@@ -93,4 +93,8 @@ public class RedisUtils {
     public void deleteKeysWithPattern(String pattern) {
         redisTemplate.delete(Objects.requireNonNull(redisTemplate.keys(pattern)));
     }
+
+    public List<Object> multiGet(List<String> keys) {
+        return redisTemplate.opsForValue().multiGet(keys);
+    }
 }

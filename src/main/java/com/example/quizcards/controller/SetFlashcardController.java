@@ -107,8 +107,8 @@ public class SetFlashcardController {
     }
 
     @GetMapping("/set-detail/{id}")
-    public ResponseEntity<?> detailSetFlashcardById_2(@PathVariable("id") Long setId) {
-        ISetFlashcardDTO result = setFlashcardService.findBySetId_2(setId);
+    public ResponseEntity<?> detailSetFlashcardByIdPublish(@PathVariable("id") Long setId) {
+        ISetFlashcardDTO result = setFlashcardService.findBySetIdPublish(setId);
         if (result == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ApiResponse(false, "This set does not exist or this set does not contain any cards.",
@@ -144,6 +144,19 @@ public class SetFlashcardController {
                 setFlashcardService.countSetFlashcardCreatedPerDayInCurrentUser());
 
         return ResponseEntity.status(200).body(apiResponse);
+    }
+
+    @GetMapping("/analysis/current-user")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
+    public ResponseEntity<?> analysisCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        Map<String, Object> analysis = setFlashcardService.analysisUser(up.getId());
+
+        if (analysis == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No analysis data found for the current user");
+        }
+        return ResponseEntity.ok(analysis);
     }
 
     @GetMapping("/get-current-sets-by-settings")
@@ -216,11 +229,11 @@ public class SetFlashcardController {
 
     @PostMapping("/create-new-set")
     @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> createSetFlashcard(
+    public ResponseEntity<?> initSetFlashcard(
             @RequestBody
             @Validated({Default.class})
             SetFlashcardInitializeRequest request) {
-        Long setId = setFlashcardService.createNewSetFlashcard(request);
+        Long setId = setFlashcardService.initSetFlashcard(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(true, "Created set successfully",
                         HttpStatus.OK, setId));
