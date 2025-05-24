@@ -242,7 +242,8 @@ public class AuthServiceImpl implements IAuthService {
         Cache<Object, Object> tokenMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
 
-
+        tokenMetaCache.put(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId),
+                Instant.now());
 
         redisUtils.saveToRedis(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId), Instant.now(),
                 30, TimeUnit.DAYS); // Tạm lưu 30 ngày
@@ -270,6 +271,10 @@ public class AuthServiceImpl implements IAuthService {
             String jti = claims.get("jti").toString();
             if (StringUtils.hasText(jti)) {
                 String key = MessageFormat.format("{0}_{1}_{2}", tokenBlacklistPrefix, userId, jti);
+                @SuppressWarnings("unchecked")
+                Cache<Object, Object> tokenMetaCache =
+                        (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
+                tokenMetaCache.invalidate(key);
                 redisUtils.saveToRedis(key, Instant.now(), duration, TimeUnit.SECONDS);
             }
         }
