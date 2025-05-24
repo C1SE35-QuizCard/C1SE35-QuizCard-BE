@@ -23,6 +23,7 @@ import com.example.quizcards.service.IRefreshTokenService;
 import com.example.quizcards.utils.CodeRandom;
 import com.example.quizcards.utils.CookieUtils;
 import com.example.quizcards.utils.RedisUtils;
+import com.github.benmanes.caffeine.cache.Cache;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
@@ -90,6 +92,8 @@ public class AuthServiceImpl implements IAuthService {
     @Value("${jwt.refreshTokenExpirationInSec}")
     @NonFinal
     Long refreshTokenDurationSec;
+
+    CacheManager cacheManager;
 
     Pattern USERNAME_PATTERN =
             Pattern.compile("^(?!.*--)[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$");
@@ -233,6 +237,12 @@ public class AuthServiceImpl implements IAuthService {
                           HttpServletResponse response) {
         UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long currentUserId = user.getId();
+
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> tokenMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
+
+
 
         redisUtils.saveToRedis(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId), Instant.now(),
                 30, TimeUnit.DAYS); // Tạm lưu 30 ngày

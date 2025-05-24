@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -190,7 +191,7 @@ public class AppUserServiceImpl implements IAppUserService {
                 redisUtils.saveToRedis(
                         "appuser:username:" + appUser.getUsername(),
                         result,
-                        30,
+                        10,
                         TimeUnit.MINUTES);
                 return result;
             } else {
@@ -312,7 +313,7 @@ public class AppUserServiceImpl implements IAppUserService {
         redisUtils.saveToRedis(
                 "appuser:username:" + result.getUsername(),
                 result,
-                30,
+                10,
                 TimeUnit.MINUTES);
         return IAppUserDTO.AppUserDTO.from(result);
     }
@@ -354,7 +355,7 @@ public class AppUserServiceImpl implements IAppUserService {
         redisUtils.saveToRedis(
                 "appuser:username:" + result.getUsername(),
                 result,
-                30,
+                10,
                 TimeUnit.MINUTES);
         return IAppUserDTO.AppUserDTO.from(result);
     }

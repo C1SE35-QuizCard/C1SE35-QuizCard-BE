@@ -25,7 +25,7 @@ import java.util.List;
 
 //@CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/api/v1/folder")
+@RequestMapping("/v1/folder")
 public class FolderController {
 
     @Autowired

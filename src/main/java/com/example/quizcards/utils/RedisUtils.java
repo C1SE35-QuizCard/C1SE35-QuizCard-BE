@@ -1,8 +1,14 @@
 package com.example.quizcards.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -10,16 +16,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Component
 public class RedisUtils {
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final RedisMessageListenerContainer listenerContainer;
+
     private final ObjectMapper objectMapper;
 
-    public RedisUtils(RedisTemplate<String, Object> redisTemplate) {
+    public RedisUtils(RedisTemplate<String, Object> redisTemplate,
+                      RedisMessageListenerContainer listenerContainer) {
         this.redisTemplate = redisTemplate;
+        this.listenerContainer = listenerContainer;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule()); // Hỗ trợ LocalDateTime
     }
@@ -96,5 +107,30 @@ public class RedisUtils {
 
     public List<Object> multiGet(List<String> keys) {
         return redisTemplate.opsForValue().multiGet(keys);
+    }
+
+    public void publish(String channel, Object message) {
+        redisTemplate.convertAndSend(channel, message);
+    }
+
+    public void subscribe(String channel, Consumer<String> handler) {
+        MessageListener listener = (message, pattern) -> {
+            Object raw = redisTemplate.getValueSerializer().deserialize(message.getBody());
+            String body;
+            try {
+                if (raw instanceof String) {
+                    body = (String) raw;
+                } else {
+                    body = objectMapper.writeValueAsString(raw);
+                }
+            } catch (JsonProcessingException e) {
+                body = "ERROR_PARSING:" + e.getMessage();
+            }
+            handler.accept(body);
+        };
+        listenerContainer.addMessageListener(
+                listener,
+                new PatternTopic(channel)
+        );
     }
 }

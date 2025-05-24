@@ -29,9 +29,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -86,36 +84,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String jti = getPropertiesFromClaims.get("jti").toString();
 
                     String blkKey = tokenBlacklistPrefix + "_" + userId + "_" + jti;
-                    String iatKey = tokenIatPrefix       + "_" + userId;
+                    String iatKey = tokenIatPrefix + "_" + userId;
 
                     @SuppressWarnings("unchecked")
                     Cache<Object, Object> tokenMetaCache =
                             (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
 
-                    // L1 cache
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> meta = (Map<String, Object>) tokenMetaCache.getIfPresent(jwt);
-                    if (meta == null) {
-                        // L1 miss → pipeline Redis
-                        List<Object> vals = redisUtils.multiGet(List.of(blkKey, iatKey));
-                        boolean isBlk = !vals.isEmpty() && vals.get(0) != null;
-                        Long    iat   = null;
-                        if (vals.size() > 1 && vals.get(1) != null) {
-                            // nếu bạn lưu epoch millis (Long) hoặc String
-                            iat = ((Instant) vals.get(1)).toEpochMilli();
+                    Object blkObj = tokenMetaCache.getIfPresent(blkKey);
+                    Object iatObj = tokenMetaCache.getIfPresent(iatKey);
+
+                    // 2. Nếu thiếu thì MGET và cache luôn cả hai
+                    if (blkObj == null || iatObj == null) {
+                        List<Object> values = redisUtils.multiGet(List.of(blkKey, iatKey));
+                        // values.get(0) tương ứng blkKey, values.get(1) tương ứng iatKey
+                        boolean isBlk = values.get(0) != null;
+                        long iatMillis;
+                        Object rawIat = values.get(1);
+
+                        if (rawIat == null) {
+                            iatMillis = Long.MIN_VALUE + 1;
+                        } else if (rawIat instanceof Instant) {
+                            iatMillis = ((Instant) rawIat).toEpochMilli();
+                        } else {
+                            iatMillis = Long.parseLong(rawIat.toString());
                         }
-                        meta = new HashMap<>();
-                        meta.put("isBlk", isBlk);
-                        meta.put("iat", iat);
-                        tokenMetaCache.put(jwt, meta);
+
+                        tokenMetaCache.put(blkKey, isBlk);
+                        tokenMetaCache.put(iatKey, iatMillis);
+
+                        blkObj = isBlk;
+                        iatObj = iatMillis;
                     }
 
-                    boolean isBlk = (boolean) meta.get("isBlk");
-                    if (isBlk) {
+                    // 3. Đánh giá kết quả
+                    boolean blkL1Cache = (Boolean) blkObj;
+                    long iatL1Cache = (Long) iatObj;
+
+                    // 4. Ném exception nếu cần
+                    if (blkL1Cache) {
                         throw new TokenRefreshException(jwt, "Token is blacklisted!");
                     }
-                    Long iat = (Long) meta.get("iat");
-                    if (iat != null && Long.parseLong(getPropertiesFromClaims.get("created_at").toString()) < iat) {
+
+                    long createdAt = Long.parseLong(getPropertiesFromClaims.get("created_at").toString());
+                    if (createdAt < iatL1Cache) {
                         throw new TokenRefreshException(jwt, "Token is expired!");
                     }
 

@@ -75,19 +75,19 @@ public class SetCardPassCheckAspect {
         }
 
         @SuppressWarnings("unchecked")
-        Cache<Object, Object> tokenMetaCache =
+        Cache<Object, Object> validateMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();
 
         String keyValid = formatKey(setId);
 
-        Object checkL1SetValid = tokenMetaCache.getIfPresent(keyValid + "_" + currentUserId());
+        Object checkL1SetValid = validateMetaCache.getIfPresent(keyValid + "_" + currentUserId());
 
         if (checkL1SetValid != null) {
             return pjp.proceed();
         }
 
         if (isAlreadyValidated(setId)) {
-            tokenMetaCache.put(keyValid + "_" + currentUserId(), true);
+            validateMetaCache.put(keyValid + "_" + currentUserId(), true);
             return pjp.proceed();
         }
 
@@ -115,7 +115,7 @@ public class SetCardPassCheckAspect {
         long endTimeTotal = System.currentTimeMillis();
         System.out.println("Total time taken: " + (endTimeTotal - startTime) + "ms");
 
-        tokenMetaCache.put(keyValid + "_" + currentUserId(), true);
+        validateMetaCache.put(keyValid + "_" + currentUserId(), true);
         return pjp.proceed();
     }
 
@@ -128,10 +128,10 @@ public class SetCardPassCheckAspect {
 
     private SetFlashcard findSetOrThrow(Long setId) {
         @SuppressWarnings("unchecked")
-        Cache<Object, Object> tokenMetaCache =
+        Cache<Object, Object> setMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
 
-        Object checkL1Set = tokenMetaCache.getIfPresent("set_" + setId);
+        Object checkL1Set = setMetaCache.getIfPresent("set_" + setId);
 
         if (checkL1Set != null) {
             return (SetFlashcard) checkL1Set;
@@ -156,7 +156,7 @@ public class SetCardPassCheckAspect {
                         setOptional[2] == null ? null : Long.parseLong(setOptional[2].toString()))
                 .build());
 
-        tokenMetaCache.put("set_" + setId, set);
+        setMetaCache.put("set_" + setId, set);
 
         return set;
     }

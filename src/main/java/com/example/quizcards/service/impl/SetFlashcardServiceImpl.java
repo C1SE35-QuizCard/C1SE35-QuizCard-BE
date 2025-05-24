@@ -304,9 +304,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
     public void deleteSetFlashcardAdmin(Long setId) {
         setFlashcardRepository.deleteSetFlashcardById(setId);
         @SuppressWarnings("unchecked")
-        Cache<Object, Object> tokenMetaCache =
+        Cache<Object, Object> setMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
-        tokenMetaCache.invalidate("set_" + setId);
+        setMetaCache.invalidate("set_" + setId);
     }
 
     @Override
@@ -334,9 +334,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         setFlashcardHelpers.handleDeleteSetFlashcard(setId);
         setFlashcardRepository.deleteSetFlashcardById(setId);
         @SuppressWarnings("unchecked")
-        Cache<Object, Object> tokenMetaCache =
+        Cache<Object, Object> setMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
-        tokenMetaCache.invalidate("set_" + setId);
+        setMetaCache.invalidate("set_" + setId);
     }
 
     @Override
@@ -390,9 +390,9 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         if (Boolean.TRUE.equals(logoutAllSession)) {
             redisUtils.deleteKey(MessageFormat.format("set:{0}:pass_checked", setId));
             @SuppressWarnings("unchecked")
-            Cache<Object, Object> tokenMetaCache =
+            Cache<Object, Object> validateMetaCache =
                     (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();
-            tokenMetaCache.invalidate(MessageFormat.format("set:{0}:pass_checked_{1}", setId, up.getId()));
+            validateMetaCache.invalidate(MessageFormat.format("set:{0}:pass_checked_{1}", setId, up.getId()));
         }
         @SuppressWarnings("unchecked")
         Cache<Object, Object> passCache =

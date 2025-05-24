@@ -8,6 +8,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -30,5 +31,12 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
         return template;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory cf) {
+        RedisMessageListenerContainer c = new RedisMessageListenerContainer();
+        c.setConnectionFactory(cf);
+        return c;
     }
 }
