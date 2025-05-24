@@ -97,9 +97,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (blkObj == null || iatObj == null) {
                         List<Object> values = redisUtils.multiGet(List.of(blkKey, iatKey));
                         // values.get(0) tương ứng blkKey, values.get(1) tương ứng iatKey
-                        boolean isBlk = values.get(0) != null;
+                        boolean isBlk = values != null && values.get(0) != null;
                         long iatMillis;
-                        Object rawIat = values.get(1);
+                        Object rawIat = values != null ? values.get(1) : null;
 
                         if (rawIat == null) {
                             iatMillis = Long.MIN_VALUE + 1;

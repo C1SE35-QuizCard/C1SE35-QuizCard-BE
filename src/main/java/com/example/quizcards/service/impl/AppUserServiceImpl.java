@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -118,6 +117,8 @@ public class AppUserServiceImpl implements IAppUserService {
     @NonFinal
     Integer resendEmailAfterSecs;
 
+    private static final String CACHE_KEY_PREFIX = "appuser:username:";
+
     IAppUserRepository userRepository;
 
     PasswordEncoder passwordEncoder;
@@ -189,7 +190,7 @@ public class AppUserServiceImpl implements IAppUserService {
 
                 AppUser result = userRepository.save(appUser);
                 redisUtils.saveToRedis(
-                        "appuser:username:" + appUser.getUsername(),
+                        CACHE_KEY_PREFIX + appUser.getUsername(),
                         result,
                         10,
                         TimeUnit.MINUTES);
@@ -311,7 +312,7 @@ public class AppUserServiceImpl implements IAppUserService {
 
         AppUser result = userRepository.save(user);
         redisUtils.saveToRedis(
-                "appuser:username:" + result.getUsername(),
+                CACHE_KEY_PREFIX + result.getUsername(),
                 result,
                 10,
                 TimeUnit.MINUTES);
@@ -353,7 +354,7 @@ public class AppUserServiceImpl implements IAppUserService {
         }
         AppUser result = userRepository.save(appUser);
         redisUtils.saveToRedis(
-                "appuser:username:" + result.getUsername(),
+                CACHE_KEY_PREFIX + result.getUsername(),
                 result,
                 10,
                 TimeUnit.MINUTES);
@@ -369,7 +370,7 @@ public class AppUserServiceImpl implements IAppUserService {
             throw new BadRequestException("Cannot delete admin");
         }
         userRepository.delete(appUser);
-        redisUtils.deleteKey("appuser:username:" + appUser.getUsername());
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + appUser.getUsername());
     }
 
 

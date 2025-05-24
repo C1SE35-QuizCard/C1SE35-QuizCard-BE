@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class CustomUserDetailsServiceImpl implements UserDetailsService, ICustomUserDetailsService {
     IAppUserRepository userRepository;
     RedisUtils redisUtils;
-    String CACHE_KEY_PREFIX = "appuser:username:";
+    private static final String CACHE_KEY_PREFIX = "appuser:username:";
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail)

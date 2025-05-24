@@ -32,8 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.annotation.Annotation;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
@@ -63,6 +62,7 @@ public class SetCardPassCheckAspect {
             return pjp.proceed();
         }
 
+        String userId = currentUserId();
         Long setId = parseSetId(pjp, request);
         long startTime = System.currentTimeMillis();
         SetFlashcard set = findSetOrThrow(setId);
@@ -80,14 +80,20 @@ public class SetCardPassCheckAspect {
 
         String keyValid = formatKey(setId);
 
-        Object checkL1SetValid = validateMetaCache.getIfPresent(keyValid + "_" + currentUserId());
+        @SuppressWarnings("unchecked")
+        Set<Object> checkL1SetValid = (Set<Object>) validateMetaCache.getIfPresent(keyValid);
 
-        if (checkL1SetValid != null) {
+        if (checkL1SetValid == null) {
+            checkL1SetValid = new HashSet<>();
+        }
+
+        if (checkL1SetValid.contains(userId)) {
             return pjp.proceed();
         }
 
         if (isAlreadyValidated(setId)) {
-            validateMetaCache.put(keyValid + "_" + currentUserId(), true);
+            checkL1SetValid.add(userId);
+            validateMetaCache.put(keyValid, checkL1SetValid);
             return pjp.proceed();
         }
 
@@ -106,8 +112,7 @@ public class SetCardPassCheckAspect {
         long endTimeCheckPassword = System.currentTimeMillis();
         System.out.println("Time taken to check password: " + (endTimeCheckPassword - endTimeCheckValidSet) + "ms");
 
-        String userId = currentUserId();
-        redisUtils.saveToSet(formatKey(setId), userId, validAt, TimeUnit.SECONDS);
+        redisUtils.saveToSet(keyValid, userId, validAt, TimeUnit.SECONDS);
 
         long endTimeSaveToRedis = System.currentTimeMillis();
         System.out.println("Time taken to save to Redis: " + (endTimeSaveToRedis - endTimeCheckPassword) + "ms");
@@ -115,7 +120,8 @@ public class SetCardPassCheckAspect {
         long endTimeTotal = System.currentTimeMillis();
         System.out.println("Total time taken: " + (endTimeTotal - startTime) + "ms");
 
-        validateMetaCache.put(keyValid + "_" + currentUserId(), true);
+        checkL1SetValid.add(userId);
+        validateMetaCache.put(keyValid, checkL1SetValid);
         return pjp.proceed();
     }
 
@@ -131,7 +137,7 @@ public class SetCardPassCheckAspect {
         Cache<Object, Object> setMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
 
-        Object checkL1Set = setMetaCache.getIfPresent("set_" + setId);
+        Object checkL1Set = setMetaCache.getIfPresent(setId);
 
         if (checkL1Set != null) {
             return (SetFlashcard) checkL1Set;
@@ -156,7 +162,7 @@ public class SetCardPassCheckAspect {
                         setOptional[2] == null ? null : Long.parseLong(setOptional[2].toString()))
                 .build());
 
-        setMetaCache.put("set_" + setId, set);
+        setMetaCache.put(setId, set);
 
         return set;
     }

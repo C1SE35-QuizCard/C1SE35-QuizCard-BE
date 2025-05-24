@@ -2,8 +2,13 @@ package com.example.quizcards.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.lettuce.core.RedisException;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.slf4j.LoggerFactory;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -30,7 +35,22 @@ public class RedisConfig {
         template.setConnectionFactory(redisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
-        return template;
+
+        ProxyFactory pf = new ProxyFactory(template);
+        pf.setProxyTargetClass(true);
+        pf.addAdvice((MethodInterceptor) inv -> {
+            try {
+                return inv.proceed();
+            } catch (RedisConnectionFailureException | RedisException ex) {
+                LoggerFactory.getLogger(RedisConfig.class)
+                        .warn("Redis down, skip {}: {}",
+                                inv.getMethod().getName(), ex.getMessage());
+                return null;
+            }
+        });
+
+        return (RedisTemplate<String, Object>) pf.getProxy();
+//        return template;
     }
 
     @Bean

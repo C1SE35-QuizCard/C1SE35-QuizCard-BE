@@ -238,15 +238,15 @@ public class AuthServiceImpl implements IAuthService {
         UserPrincipal user = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long currentUserId = user.getId();
 
+        String key = MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId);
+
         @SuppressWarnings("unchecked")
         Cache<Object, Object> tokenMetaCache =
                 (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
 
-        tokenMetaCache.put(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId),
-                Instant.now());
+        tokenMetaCache.invalidate(key);
 
-        redisUtils.saveToRedis(MessageFormat.format("{0}_{1}", tokenIatPrefix, currentUserId), Instant.now(),
-                30, TimeUnit.DAYS); // Tạm lưu 30 ngày
+        redisUtils.saveToRedis(key, Instant.now(), 30, TimeUnit.DAYS); // Tạm lưu 30 ngày
 
         cookieUtils.removeTokenInClient(response);
     }
@@ -387,6 +387,10 @@ public class AuthServiceImpl implements IAuthService {
             String newRefreshToken = jwtTokenProvider.generateRefreshToken(UserPrincipal.create(au));
 
             // đưa refresh token cũ từ request vào redis để nó thành danh sách đen
+            @SuppressWarnings("unchecked")
+            Cache<Object, Object> tokenMetaCache =
+                    (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
+            tokenMetaCache.invalidate(key);
             redisUtils.saveToRedis(key, Instant.now(), refreshTokenDurationSec, TimeUnit.SECONDS);
 
             // trả về cặp access token - refresh token mới
