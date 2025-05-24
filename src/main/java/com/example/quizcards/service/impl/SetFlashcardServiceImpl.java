@@ -40,10 +40,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 
 @Service
@@ -393,7 +390,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
             @SuppressWarnings("unchecked")
             Cache<Object, Object> validateMetaCache =
                     (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();
-            validateMetaCache.invalidate(setPassKey);
+            validateMetaCache.put(setPassKey, new HashSet<>());
         }
         @SuppressWarnings("unchecked")
         Cache<Object, Object> passCache =
