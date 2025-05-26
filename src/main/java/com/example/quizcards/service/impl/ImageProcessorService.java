@@ -26,7 +26,7 @@ public class ImageProcessorService {
     @Value("${tesseract.languages:jpn+kor+chi_sim+vie+eng}")
     private String tesseractLanguages;
 
-    @Cacheable(value = "extractedText", key = "#file.originalFilename + #file.size")
+    @Cacheable(cacheNames = "extractedText", value = "extractedText", key = "#file.originalFilename + #file.size")
     public String extractTextFromImage(MultipartFile file) throws IOException, TesseractException {
         log.debug("Processing image: {}", file.getOriginalFilename());
 

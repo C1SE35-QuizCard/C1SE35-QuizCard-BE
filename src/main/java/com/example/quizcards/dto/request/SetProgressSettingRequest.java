@@ -115,15 +115,22 @@ public class SetProgressSettingRequest {
 
         SRSUtils.validateSettings(request);
 
-        setting.setNewCardsPerDay(request.getNewCardsPerDay());
-        setting.setCardsPerRound(request.getCardsPerRound());
-        setting.setCustomIntervalAgainSeconds(request.getCustomIntervalAgainSeconds());
-        setting.setCustomIntervalHardSeconds(request.getCustomIntervalHardSeconds());
-        setting.setCustomIntervalGoodSeconds(request.getCustomIntervalGoodSeconds());
-        setting.setCustomIntervalEasySeconds(request.getCustomIntervalEasySeconds());
-        setting.setMinIntervalGap(request.getMinIntervalGap());
-        setting.setIsAutomaticSelectCard(request.getIsAutomaticSelectCard());
-        setting.setIntervalSecondsCanSkip(request.getIntervalSecondsCanSkip());
+        setting.setNewCardsPerDay(request.getNewCardsPerDay() == null ? setting.getNewCardsPerDay() : request.getNewCardsPerDay());
+        setting.setCardsPerRound(request.getCardsPerRound() == null ? setting.getCardsPerRound() : request.getCardsPerRound());
+        setting.setCustomIntervalAgainSeconds(request.getCustomIntervalAgainSeconds() == null ?
+                setting.getCustomIntervalAgainSeconds() : request.getCustomIntervalAgainSeconds());
+        setting.setCustomIntervalHardSeconds(request.getCustomIntervalHardSeconds() == null ?
+                setting.getCustomIntervalHardSeconds() : request.getCustomIntervalHardSeconds());
+        setting.setCustomIntervalGoodSeconds(request.getCustomIntervalGoodSeconds() == null ?
+                setting.getCustomIntervalGoodSeconds() : request.getCustomIntervalGoodSeconds());
+        setting.setCustomIntervalEasySeconds(request.getCustomIntervalEasySeconds() == null ?
+                setting.getCustomIntervalEasySeconds() : request.getCustomIntervalEasySeconds());
+        setting.setMinIntervalGap(request.getMinIntervalGap() == null ?
+            setting.getMinIntervalGap() : request.getMinIntervalGap());
+        setting.setIsAutomaticSelectCard(request.getIsAutomaticSelectCard() == null ?
+                setting.getIsAutomaticSelectCard() : request.getIsAutomaticSelectCard());
+        setting.setIntervalSecondsCanSkip(request.getIntervalSecondsCanSkip() == null ?
+                setting.getIntervalSecondsCanSkip() : request.getIntervalSecondsCanSkip());
         setting.setRatioMix(request.getNewCardsRatio() + " " + request.getDueCardsRatio());
 
         return setting;

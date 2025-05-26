@@ -13,9 +13,11 @@ public interface ISetProgressSettingRepository extends JpaRepository<SetProgress
     Optional<SetProgressSetting> findBySetFlashcard_SetIdAndAppUser_UserId(Long setId, Long userId);
 
     @Query(value = """
-            SELECT sps.current_simple_mode_version
+            SELECT COALESCE(sps.current_simple_mode_version, 1)
             FROM set_progress_setting sps
-            WHERE sps.card_id = :cardId AND sps.user_id = :userId
+            JOIN set_flashcards sf ON sps.set_id = sf.set_id
+            JOIN flashcards f ON sf.set_id = f.set_id
+            WHERE f.card_id = :cardId AND sps.user_id = :userId
             LIMIT 1
     """, nativeQuery = true)
     Long findCurrentSimpleModeVersionByCardIdAndUserId(

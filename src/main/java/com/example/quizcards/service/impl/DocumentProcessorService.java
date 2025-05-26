@@ -31,7 +31,7 @@ public class DocumentProcessorService {
 
     private final Tika tika = new Tika();
 
-    @Cacheable(value = "extractedText", key = "#file.originalFilename + #file.size")
+    @Cacheable(cacheNames = "extractedText", value = "extractedText", key = "#file.originalFilename + #file.size")
     public String extractTextFromDocument(MultipartFile file, String pdfPassword) throws IOException {
         try {
             String mimeType = tika.detect(file.getInputStream());

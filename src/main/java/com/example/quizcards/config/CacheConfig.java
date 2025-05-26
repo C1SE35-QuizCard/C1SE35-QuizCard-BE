@@ -48,8 +48,15 @@ public class CacheConfig {
                         .maximumSize(10_000)
                         .build()
         );
+        CaffeineCache extractedText = new CaffeineCache(
+                "extractedText",
+                Caffeine.newBuilder()
+                        .expireAfterWrite(30, TimeUnit.MINUTES)
+                        .maximumSize(1_000)
+                        .build()
+        );
 
-        mgr.setCaches(List.of(tokenMeta, setPassInfo, validatedSets, textLangDetect));
+        mgr.setCaches(List.of(tokenMeta, setPassInfo, validatedSets, textLangDetect, extractedText));
         return mgr;
     }
 

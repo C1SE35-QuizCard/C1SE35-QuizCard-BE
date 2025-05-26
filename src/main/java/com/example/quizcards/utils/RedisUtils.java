@@ -1,6 +1,7 @@
 package com.example.quizcards.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.data.redis.connection.MessageListener;
@@ -32,6 +33,7 @@ public class RedisUtils {
         this.redisTemplate = redisTemplate;
         this.listenerContainer = listenerContainer;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.objectMapper.registerModule(new JavaTimeModule()); // Hỗ trợ LocalDateTime
     }
 

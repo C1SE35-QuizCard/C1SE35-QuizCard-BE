@@ -91,7 +91,7 @@ public class FolderController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> addFolder(@RequestBody @Validated CreateFolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
@@ -112,7 +112,7 @@ public class FolderController {
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> deleteFolder(@PathVariable("id") Long folderId) {
         if (folderService.getFolderById(folderId) != null) {
             try {
@@ -127,7 +127,7 @@ public class FolderController {
     }
 
     @PutMapping("/update")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> updateFolder(@Validated @RequestBody UpdateFolderRequest request, BindingResult bindingResult) {
         if (request == null) {
             return ResponseEntity.badRequest().body("Invalid request: request cannot be null");
@@ -152,7 +152,7 @@ public class FolderController {
 
 
     @PostMapping("/create-new-folder")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> addFolder_2(@Valid @RequestBody FolderRequest request) {
         folderService.addFolder_2(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -160,7 +160,7 @@ public class FolderController {
     }
 
     @DeleteMapping("/delete-folder")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> deleteFolder_2(@Valid @RequestBody FolderRequest request) {
         folderService.deleteFolder_2(request.getFolderId());
         return ResponseEntity.status(HttpStatus.OK)
@@ -168,7 +168,7 @@ public class FolderController {
     }
 
     @PutMapping("/update-folder")
-    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER')")
+    @PreAuthorize("hasAnyRole('ROLE_FREE_USER', 'ROLE_PREMIUM_USER', 'ROLE_ADMIN')")
     public ResponseEntity<Object> updateFolder_2(@Valid @RequestBody FolderRequest request) {
         folderService.updateFolder_2(request);
         return ResponseEntity.status(HttpStatus.OK)

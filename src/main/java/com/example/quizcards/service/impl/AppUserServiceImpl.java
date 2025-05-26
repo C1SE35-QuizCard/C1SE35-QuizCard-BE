@@ -189,11 +189,7 @@ public class AppUserServiceImpl implements IAppUserService {
                 appUser.setRole(appRole);
 
                 AppUser result = userRepository.save(appUser);
-                redisUtils.saveToRedis(
-                        CACHE_KEY_PREFIX + appUser.getUsername(),
-                        result,
-                        10,
-                        TimeUnit.MINUTES);
+                redisUtils.deleteKey(CACHE_KEY_PREFIX + appUser.getUsername() + ":");
                 return result;
             } else {
                 throw new RuntimeException("Role not found with id: " + roleId);
@@ -311,11 +307,7 @@ public class AppUserServiceImpl implements IAppUserService {
         user.setUserCode(CodeRandom.generateRandomCode(28));
 
         AppUser result = userRepository.save(user);
-        redisUtils.saveToRedis(
-                CACHE_KEY_PREFIX + result.getUsername(),
-                result,
-                10,
-                TimeUnit.MINUTES);
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + result.getUsername() + ":");
         return IAppUserDTO.AppUserDTO.from(result);
     }
 
@@ -353,11 +345,7 @@ public class AppUserServiceImpl implements IAppUserService {
             appUser.setRole(role);
         }
         AppUser result = userRepository.save(appUser);
-        redisUtils.saveToRedis(
-                CACHE_KEY_PREFIX + result.getUsername(),
-                result,
-                10,
-                TimeUnit.MINUTES);
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + result.getUsername() + ":");
         return IAppUserDTO.AppUserDTO.from(result);
     }
 
@@ -370,7 +358,7 @@ public class AppUserServiceImpl implements IAppUserService {
             throw new BadRequestException("Cannot delete admin");
         }
         userRepository.delete(appUser);
-        redisUtils.deleteKey(CACHE_KEY_PREFIX + appUser.getUsername());
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + appUser.getUsername() + ":");
     }
 
 
@@ -389,7 +377,9 @@ public class AppUserServiceImpl implements IAppUserService {
                 appUser.setUserTz(zoneOffset);
             }
         }
+
         userRepository.save(appUser);
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + appUser.getUsername() + ":");
     }
 
     @Override
@@ -577,6 +567,7 @@ public class AppUserServiceImpl implements IAppUserService {
         }
         au.setHashPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
         userRepository.save(au);
+        redisUtils.deleteKey(CACHE_KEY_PREFIX + au.getUsername() + ":");
     }
 
     @Override
@@ -608,6 +599,7 @@ public class AppUserServiceImpl implements IAppUserService {
 
             au.setEmail(email);
             userRepository.save(au);
+            redisUtils.deleteKey(CACHE_KEY_PREFIX + au.getUsername() + ":");
             redisUtils.saveToRedis(key, true, codeExpireInMinutes, TimeUnit.MINUTES);
 
             String keySendAt = MessageFormat.format("{0}_{1}", up.getId(), isSendedEmailSuffix);

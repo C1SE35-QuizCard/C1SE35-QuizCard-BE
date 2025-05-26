@@ -39,7 +39,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,6 +65,14 @@ public class AuthServiceImpl implements IAuthService {
     @Value("TOKEN_IAT_AVAILABLE")
     @NonFinal
     String tokenIatPrefix;
+
+    @Value("cache-invalidate:token_blacklist")
+    @NonFinal
+    String channelRemoveTokenBlacklist;
+
+    @Value("cache-invalidate:token_iat")
+    @NonFinal
+    String channelRemoveTokenIat;
 
     IGoogleHandleService googleHandleService;
 
@@ -247,6 +254,7 @@ public class AuthServiceImpl implements IAuthService {
         tokenMetaCache.invalidate(key);
 
         redisUtils.saveToRedis(key, Instant.now(), 30, TimeUnit.DAYS); // Tạm lưu 30 ngày
+        redisUtils.publish(channelRemoveTokenIat, key);
 
         cookieUtils.removeTokenInClient(response);
     }
@@ -276,6 +284,7 @@ public class AuthServiceImpl implements IAuthService {
                         (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
                 tokenMetaCache.invalidate(key);
                 redisUtils.saveToRedis(key, Instant.now(), duration, TimeUnit.SECONDS);
+                redisUtils.publish(channelRemoveTokenBlacklist, key);
             }
         }
     }
@@ -392,6 +401,8 @@ public class AuthServiceImpl implements IAuthService {
                     (Cache<Object, Object>) cacheManager.getCache("tokenMeta").getNativeCache();
             tokenMetaCache.invalidate(key);
             redisUtils.saveToRedis(key, Instant.now(), refreshTokenDurationSec, TimeUnit.SECONDS);
+
+            redisUtils.publish(channelRemoveTokenBlacklist, key);
 
             // trả về cặp access token - refresh token mới
             return cookieUtils.generateTokenToCookie(response, newAccessToken, newRefreshToken);

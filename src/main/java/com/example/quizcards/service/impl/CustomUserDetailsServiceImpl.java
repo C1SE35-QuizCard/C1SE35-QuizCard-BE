@@ -45,7 +45,7 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService, ICustom
     @Override
     public UserDetails loadUserByUsernameOnly(String username)
             throws UsernameNotFoundException, AccessDeniedException {
-        String key = CACHE_KEY_PREFIX + username;
+        String key = CACHE_KEY_PREFIX + username + ":mvc";
         // 1) thử lấy AppUser từ Redis
         AppUser u = redisUtils.getFromRedis(key, AppUser.class);
         if (u == null) {
