@@ -323,6 +323,12 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 request.getUserId(),
                 request.getCategoryId()
         );
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> setMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+        setMetaCache.invalidate(request.getSetId());
+        String setPassKey = MessageFormat.format("set:{0}:pass_checked:*", request.getSetId());
+        redisUtils.deleteKeysWithPattern(setPassKey);
     }
 
     @Override
@@ -356,6 +362,10 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                 up.getId(),
                 request.getCategoryId()
         );
+        @SuppressWarnings("unchecked")
+        Cache<Object, Object> setMetaCache =
+                (Cache<Object, Object>) cacheManager.getCache("setPassInfo").getNativeCache();
+        setMetaCache.invalidate(request.getSetId());
     }
 
     @Override
@@ -386,7 +396,8 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
         setFlashcardRepository.flush();
         if (Boolean.TRUE.equals(logoutAllSession)) {
             String setPassKey = MessageFormat.format("set:{0}:pass_checked", setId);
-            redisUtils.deleteKey(setPassKey);
+            String setPassKeyRedis = MessageFormat.format("set:{0}:pass_checked:*", setId);
+            redisUtils.deleteKeysWithPattern(setPassKeyRedis);
             @SuppressWarnings("unchecked")
             Cache<Object, Object> validateMetaCache =
                     (Cache<Object, Object>) cacheManager.getCache("validatedSets").getNativeCache();

@@ -3,10 +3,10 @@ package com.example.quizcards.config;
 import com.example.quizcards.security.JwtAuthenticationFilter;
 import com.example.quizcards.service.impl.CustomUserDetailsServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -126,11 +126,23 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\": \"Authentication required!\"}");
-                    response.getWriter().flush();
-                }));
+                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                    response.setContentType("application/json");
+                                    response.getWriter().write("{\"error\": \"Authentication required!\"}");
+                                    response.addHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Validate-Again");
+                                    response.addHeader("X-Validate-Again", "true");
+                                    response.getWriter().flush();
+                                })
+                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                    response.setContentType("application/json");
+                                    response.addHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Validate-Again");
+                                    response.addHeader("X-Validate-Again", "true");
+                                    response.getWriter()
+                                            .write("{\"type\":\"Permission\",\"reason\":\"Access denied by policy\"}");
+                                    response.getWriter().flush();
+                                })
+                );
 
         return http.build();
     }

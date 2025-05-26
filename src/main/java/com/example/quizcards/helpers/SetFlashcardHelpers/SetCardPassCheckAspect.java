@@ -91,7 +91,9 @@ public class SetCardPassCheckAspect {
             return pjp.proceed();
         }
 
-        if (isAlreadyValidated(setId)) {
+        String keyForRedis = MessageFormat.format(keyValid + ":user:{0}", userId);
+
+        if (redisUtils.hasKey(keyForRedis)) {
             checkL1SetValid.add(userId);
             validateMetaCache.put(keyValid, checkL1SetValid);
             return pjp.proceed();
@@ -112,7 +114,7 @@ public class SetCardPassCheckAspect {
         long endTimeCheckPassword = System.currentTimeMillis();
         System.out.println("Time taken to check password: " + (endTimeCheckPassword - endTimeCheckValidSet) + "ms");
 
-        redisUtils.saveToSet(keyValid, userId, validAt, TimeUnit.SECONDS);
+        redisUtils.saveToSet(keyForRedis, true, validAt, TimeUnit.SECONDS);
 
         long endTimeSaveToRedis = System.currentTimeMillis();
         System.out.println("Time taken to save to Redis: " + (endTimeSaveToRedis - endTimeCheckPassword) + "ms");
@@ -184,11 +186,6 @@ public class SetCardPassCheckAspect {
             return true;
         }
         return Objects.equals(up.getId(), set.getUser().getUserId());
-    }
-
-    private boolean isAlreadyValidated(Long setId) {
-        String userId = currentUserId();
-        return redisUtils.isMember(formatKey(setId), userId);
     }
 
     private String currentUserId() {

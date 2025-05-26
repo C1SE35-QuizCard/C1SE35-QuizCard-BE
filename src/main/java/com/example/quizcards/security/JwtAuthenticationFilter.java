@@ -17,6 +17,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -97,9 +98,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (blkObj == null || iatObj == null) {
                         List<Object> values = redisUtils.multiGet(List.of(blkKey, iatKey));
                         // values.get(0) tương ứng blkKey, values.get(1) tương ứng iatKey
-                        boolean isBlk = values != null && values.get(0) != null;
+                        boolean isBlk = values != null && !values.isEmpty() && values.get(0) != null;
                         long iatMillis;
-                        Object rawIat = values != null ? values.get(1) : null;
+                        Object rawIat = values != null && values.size() > 1 ? values.get(1) : null;
 
                         if (rawIat == null) {
                             iatMillis = Long.MIN_VALUE + 1;
@@ -197,6 +198,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ApiResponse apiResponse = new ApiResponse(false, message);
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+        response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Error-Validate");
+        response.setHeader("X-Error-Validate", "true");
         new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
     }
 
