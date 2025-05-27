@@ -62,7 +62,6 @@ public class SetCardPassCheckAspect {
             return pjp.proceed();
         }
 
-        String userId = currentUserId();
         Long setId = parseSetId(pjp, request);
         long startTime = System.currentTimeMillis();
         SetFlashcard set = findSetOrThrow(setId);
@@ -73,6 +72,8 @@ public class SetCardPassCheckAspect {
         if (isUnprotected(set) || isOwner(set)) {
             return pjp.proceed();
         }
+
+        String userId = currentUserId();
 
         @SuppressWarnings("unchecked")
         Cache<Object, Object> validateMetaCache =

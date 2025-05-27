@@ -37,7 +37,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         "https://localhost:3000",
                         "http://localhost:5173",
                         "https://localhost:5173",
-                        "https://quizcards-web-fe.pages.dev")
+                        "https://quizcards-web-fe.pages.dev",
+                        "https://a5683f13.quizcards-web-fe.pages.dev")
 //                .setAllowedOriginPatterns("*")
                         .withSockJS()
         ;
