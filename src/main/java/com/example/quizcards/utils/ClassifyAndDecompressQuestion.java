@@ -1,6 +1,7 @@
 package com.example.quizcards.utils;
 
 import com.example.quizcards.entities.questionTypes.QTypes;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class ClassifyAndDecompressQuestion {
     // Bị bẫy ở chỗ
     /*
@@ -71,6 +73,8 @@ public class ClassifyAndDecompressQuestion {
                 }
             }
 
+            log.info("Question so far: {}", question);
+
             // Nếu dòng khớp với định dạng đáp án
             if (isAnswer) {
                 if (options.size() >= 4) {
@@ -109,6 +113,8 @@ public class ClassifyAndDecompressQuestion {
         } else {
             result.put("type", QTypes.ESSAY.name());
         }
+
+        log.info("Parsed question: {}, options: {}", question, options);
 
         return result;
     }
