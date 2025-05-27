@@ -150,6 +150,7 @@ public class SetFlashcardServiceImpl implements ISetFlashcardService {
                         .question(HandleString.popExtraNewLineAndSpace(dto.getQuestion()))
                         .answer(HandleString.popExtraNewLineAndSpace(dto.getAnswer()))
                         .imageLink(dto.getImageLink())
+                        .videoLink(dto.getVideoLink())
                         .isApproved(true)
                         .set(SetFlashcard.builder().setId(set.getSetId()).build())
                         .build()).toList();

@@ -24,6 +24,7 @@ public class FlashcardRequest {
     private String answer;
 
     private String imageLink;
+    private String videoLink;
     private Boolean isApproved;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

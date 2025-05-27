@@ -23,14 +23,14 @@ import java.util.Optional;
 @Repository
 public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Long> {
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title, f.video_url
             from flashcards f, set_flashcards s
             where f.set_id = s.set_id and s.set_id = :set_id
             """, nativeQuery = true)
     List<IFlashcardDTO> findAllFlashcardsBySetId(@Param("set_id") Long id); // cho tất cả mọi người
 
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title, f.video_url
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
             where f.set_id = :set_id
@@ -41,7 +41,7 @@ public interface ISetFlashcardRepository extends JpaRepository<SetFlashcard, Lon
      * và các card đã phê duyệt
      *  */
     @Query(value = """
-            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title
+            select f.card_id, f.question, f.answer, f.image_url, f.is_approved, f.created_at, f.updated_at, s.title, f.video_url
             from flashcards f
             join set_flashcards s on f.set_id = s.set_id
             where s.set_id = :set_id and (s.user_id = :user_id or s.sharing_mode = true)

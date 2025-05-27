@@ -10,5 +10,6 @@ public interface IFlashcardProgressDTO {
     Boolean getStatusProgress();
     Boolean getStatusMark();
     String getImageUrl();
+    String getVideoUrl();
 }
 

@@ -19,7 +19,7 @@ public interface IFlashcardService {
 
     List<IFlashcardDTO> getInfoFlashcardBySetIdAndIdsIn(Long setId, Set<Long> ids);
 
-    void addFlashcard(String question, String answer, String imageLink, Boolean isApproved, Long setId);
+    void addFlashcard(String question, String answer, String imageLink, String videoLink, Boolean isApproved, Long setId);
 
     void deleteFlashcard(Long cardId);
 

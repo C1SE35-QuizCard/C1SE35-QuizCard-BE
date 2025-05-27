@@ -57,7 +57,8 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                         f.answer,
                         up.progress_type as status_progress,
                         up.marked_for_attention as status_mark,
-                        f.image_url
+                        f.image_url,
+                        f.video_url
                     from
                         flashcards f
                     join
@@ -77,6 +78,7 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                         f.question as question,
                         f.answer as answer,
                         f.image_url as imageUrl,
+                        f.video_url as videoUrl,
                         up.marked_for_attention as statusMark
                     from
                         flashcards f
@@ -187,7 +189,8 @@ public interface IUserProgressRepository extends JpaRepository<UserProgress, Lon
                         f.answer,
                         up.progress_type as status_progress,
                         up.marked_for_attention as status_mark,
-                        f.image_url
+                        f.image_url,
+                        f.video_url
                     from
                         flashcards f
                     join

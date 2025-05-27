@@ -21,6 +21,8 @@ public interface IFlashcardDTO {
 
     String getTitle();
 
+    String getVideoUrl();
+
 //    @Data
 //    @Builder
 //    @NoArgsConstructor

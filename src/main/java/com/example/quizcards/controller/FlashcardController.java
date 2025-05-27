@@ -94,6 +94,7 @@ public class FlashcardController {
             flashcardService.addFlashcard(request.getQuestion(),
                     request.getAnswer(),
                     request.getImageLink(),
+                    request.getVideoLink(),
                     request.getIsApproved(),
                     request.getSetId());
 
